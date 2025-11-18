@@ -1,0 +1,18 @@
+[Unit]
+Description=ARIA Edge Device Client
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/aria-app/client
+Environment="PATH=/home/pi/aria-app/venv/bin:/usr/local/bin:/usr/bin:/bin"
+ExecStart=/home/pi/aria-app/venv/bin/python -m client.main
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
