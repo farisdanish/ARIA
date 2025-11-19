@@ -2,6 +2,8 @@
 
 A comprehensive Flask-based application for managing library room bookings with integrated face recognition for access control.
 
+> **Note:** This README covers the entire ARIA project. For detailed Raspberry Pi client setup and usage, see [`aria-app/client/README.md`](aria-app/client/README.md).
+
 ## 🚀 Features
 
 - **User Management**: Student, Staff, and Admin roles with role-based access control
@@ -37,10 +39,22 @@ A comprehensive Flask-based application for managing library room bookings with 
    ```
 
 4. **Set up environment variables**
+   
+   Create a `.env` file in the `aria-app/` directory (or set environment variables):
    ```bash
-   cp .env.example .env
-   # Edit .env with your configuration
+   # Required
+   SECRET_KEY=your-secret-key-here
+   DATABASE_URL=mysql+mysqldb://user:password@localhost:3306/ariadb
+   
+   # Optional (with defaults)
+   FLASK_ENV=development
+   MAIL_USERNAME=your-email@gmail.com
+   MAIL_PASSWORD=your-app-password
+   FACE_CONFIDENCE_THRESHOLD=0.85
+   SESSION_LIFETIME_MINUTES=480
    ```
+   
+   See `config.py` for all available configuration options.
 
 5. **Set up the database**
    - Create a MySQL database: `ariadb`
@@ -49,70 +63,106 @@ A comprehensive Flask-based application for managing library room bookings with 
 
 6. **Run the application**
    ```bash
+   cd aria-app
    python main.py
    ```
 
    Or using Flask CLI:
    ```bash
+   cd aria-app
    export FLASK_APP=main.py
    export FLASK_ENV=development
    flask run
    ```
+   
+   The application will be available at `http://127.0.0.1:5000/`
 
 ## 📁 Project Structure
 
 ```
-aria-app/
-├── config.py                 # Configuration management
-├── main.py                   # Application entry point
-├── requirements.txt          # Python dependencies
-├── website/                  # Main Flask application
-│   ├── __init__.py
-│   ├── app.py               # Flask app factory
-│   ├── models/              # SQLAlchemy models
-│   │   ├── user.py
-│   │   ├── room.py
-│   │   ├── announcement.py
-│   │   └── ...
-│   ├── routes/              # Route blueprints
-│   │   ├── views.py
-│   │   ├── auth.py
-│   │   ├── face.py
-│   │   └── api/
-│   ├── services/            # Business logic layer
-│   │   ├── auth_service.py
-│   │   ├── booking_service.py
-│   │   ├── face_service.py
-│   │   └── ...
-│   ├── utils/               # Utility functions
-│   │   ├── file_utils.py
-│   │   └── validators.py
-│   ├── static/             # Static files
-│   └── templates/          # Jinja2 templates
-├── client/                   # Edge device client (Raspberry Pi)
-│   ├── __init__.py
-│   ├── config.py           # Client configuration
-│   ├── api_client.py       # API communication
-│   ├── face_recognition.py # Face recognition
-│   ├── hardware.py         # GPIO/hardware control
-│   ├── room_monitor.py     # Booking monitoring
-│   ├── main.py             # Main application
-│   ├── requirements.txt    # Client dependencies
-│   └── README.md           # Client documentation
-└── docs/                   # Documentation
+ARIA/
+├── README.md                # This file - project overview
+├── LICENSE                  # License file
+├── aria-app/                # Main application directory
+│   ├── main.py              # Application entry point
+│   ├── config.py            # Configuration management
+│   ├── requirements.txt     # Python dependencies
+│   ├── website/             # Main Flask application
+│   │   ├── __init__.py
+│   │   ├── app.py           # Flask app factory
+│   │   ├── models/          # SQLAlchemy models
+│   │   │   ├── base.py      # Database initialization
+│   │   │   ├── user.py      # Student, Staff, Admin models
+│   │   │   ├── room.py      # Room and booking models
+│   │   │   ├── announcement.py
+│   │   │   ├── face.py      # Face recognition models
+│   │   │   ├── access.py    # Access log models
+│   │   │   ├── feedback.py
+│   │   │   └── report.py
+│   │   ├── routes/          # Route blueprints
+│   │   │   ├── home.py      # Home/dashboard routes
+│   │   │   ├── auth.py      # Authentication routes
+│   │   │   ├── face.py      # Face recognition routes
+│   │   │   ├── announcements.py
+│   │   │   ├── rooms.py
+│   │   │   ├── bookings.py
+│   │   │   ├── views.py     # Legacy views (being refactored)
+│   │   │   └── api/         # REST API
+│   │   │       ├── __init__.py
+│   │   │       └── routes.py
+│   │   ├── services/        # Business logic layer
+│   │   │   ├── auth_service.py
+│   │   │   ├── booking_service.py
+│   │   │   ├── face_service.py
+│   │   │   ├── face_training.py
+│   │   │   ├── room_service.py
+│   │   │   ├── announcement_service.py
+│   │   │   └── mail_service.py
+│   │   ├── schemas/         # API schemas
+│   │   ├── utils/           # Utility functions
+│   │   │   ├── file_utils.py
+│   │   │   └── validators.py
+│   │   ├── static/          # Static files (CSS, JS, images, uploads)
+│   │   └── templates/       # Jinja2 templates
+│   └── client/              # Edge device client (Raspberry Pi)
+│       ├── __init__.py
+│       ├── config.py        # Client configuration
+│       ├── api_client.py    # API communication
+│       ├── face_recognition.py
+│       ├── hardware.py      # GPIO/hardware control
+│       ├── room_monitor.py  # Booking monitoring
+│       ├── main.py          # Main application
+│       ├── requirements.txt # Client dependencies
+│       └── README.md        # Client-specific documentation
+├── docs/                    # Documentation
+│   ├── aria_app_context.md  # Technical context and architecture
+│   └── ...
+└── RaspPiScript/            # Legacy Raspberry Pi scripts
 ```
 
 ## 🔧 Configuration
 
-The application uses environment variables for configuration. See `.env.example` for all available options.
+The application uses environment variables for configuration managed through `config.py`.
 
 ### Key Configuration Variables
 
-- `SECRET_KEY`: Flask secret key (required)
-- `DATABASE_URL`: MySQL connection string
+**Required:**
+- `SECRET_KEY`: Flask secret key (required for sessions)
+- `DATABASE_URL`: MySQL connection string (default: `mysql+mysqldb://root:@localhost:3306/ariadb`)
+
+**Optional (with defaults):**
+- `FLASK_ENV`: Environment mode (`development`, `production`, `testing`)
+- `FLASK_DEBUG`: Enable debug mode (`True`/`False`)
+- `MAIL_SERVER`: SMTP server (default: `smtp.gmail.com`)
+- `MAIL_PORT`: SMTP port (default: `465`)
+- `MAIL_USE_SSL`: Use SSL for mail (default: `True`)
 - `MAIL_USERNAME`: Email username for notifications
 - `MAIL_PASSWORD`: Email password/app password
-- `FACE_CONFIDENCE_THRESHOLD`: Face recognition confidence threshold (default: 0.85)
+- `FACE_CONFIDENCE_THRESHOLD`: Face recognition confidence threshold (default: `0.85`)
+- `SESSION_LIFETIME_MINUTES`: Session duration in minutes (default: `480`)
+- `MAX_CONTENT_LENGTH`: Max upload size in bytes (default: `16777216` = 16 MB)
+
+All configuration is managed through `config.py` using environment variables.
 
 ## 🏗️ Architecture
 
@@ -125,10 +175,11 @@ The application uses environment variables for configuration. See `.env.example`
 
 ### Key Components
 
-1. **Models**: SQLAlchemy declarative models (replaced automap)
-2. **Services**: Business logic layer (auth, bookings, face recognition, etc.)
-3. **Routes**: Thin controllers that delegate to services
-4. **Utils**: Reusable utility functions
+1. **Models**: SQLAlchemy declarative models organized by domain (user, room, face, etc.)
+2. **Services**: Business logic layer that handles complex operations (auth, bookings, face recognition, etc.)
+3. **Routes**: Thin controllers organized as Flask blueprints that delegate to services
+4. **Utils**: Reusable utility functions for file handling, validation, etc.
+5. **Configuration**: Centralized configuration management via `config.py` with environment variable support
 
 ## 🔐 Authentication
 
@@ -209,18 +260,19 @@ pytest --cov=website
 This codebase has been comprehensively refactored:
 
 ✅ **Completed:**
-- Configuration management with environment variables
-- Proper SQLAlchemy models (replaced automap)
-- Service layer for business logic
-- Refactored authentication routes
-- Refactored API routes
+- Configuration management with environment variables (`config.py`)
+- Proper SQLAlchemy declarative models (replaced automap)
+- Service layer for business logic separation
+- Refactored authentication routes (`auth.py`)
+- Refactored API routes (Flask-RESTX with Swagger docs)
 - Face recognition service (removed hard-coded paths)
-- File utilities
-- Validation utilities
+- Route organization into focused blueprints (home, auth, face, announcements, rooms, bookings)
+- File utilities and validation utilities
 - Logging infrastructure
+- Cross-platform path handling (removed Windows-specific paths)
 
 🔄 **In Progress:**
-- Complete views.py refactoring (split into smaller modules)
+- Complete `views.py` refactoring (legacy routes being migrated)
 - Error handling improvements
 - Testing suite
 
@@ -229,6 +281,7 @@ This codebase has been comprehensively refactored:
 - Enhanced API documentation
 - Docker containerization
 - CI/CD pipeline
+- Environment variable template (`.env.example`)
 
 ## 📄 License
 
