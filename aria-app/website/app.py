@@ -59,10 +59,8 @@ def create_app(config_name: str = None) -> Flask:
     app.register_blueprint(bookings)
     app.register_blueprint(apiroute, url_prefix='/api')
     
-    # Register API namespace
-    from .routes.api import api, ns
-    api.init_app(app)
-    api.add_namespace(ns)
+    # Note: API is already initialized with the blueprint in routes/api/__init__.py
+    # and namespace is already added there. No need for init_app or add_namespace here.
     
     # Initialize login manager
     from flask_login import LoginManager
