@@ -31,11 +31,11 @@ def login():
             
             # Redirect based on user type
             if user.is_Student():
-                return redirect(url_for('views.homeStud'))
+                return redirect(url_for('home.student'))
             elif user.is_Staff():
-                return redirect(url_for('views.homeStaff'))
+                return redirect(url_for('home.staff'))
             elif user.is_Admin():
-                return redirect(url_for('views.homeAdmin'))
+                return redirect(url_for('home.admin'))
         else:
             flash('Invalid user ID or password. Please try again.', category='error')
     
