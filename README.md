@@ -43,7 +43,7 @@ A comprehensive Flask-based application for managing library room bookings with 
    ```
 
 5. **Set up the database**
-   - Create a MySQL database: `fyp_umsliblrbs`
+   - Create a MySQL database: `ariadb`
    - Update `DATABASE_URL` in `.env` with your database credentials
    - The application will use the existing schema (no migrations yet)
 

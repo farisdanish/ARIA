@@ -16,7 +16,7 @@ class Config:
     
     # Database
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        'mysql+mysqldb://root:@localhost:3306/fyp_umsliblrbs'
+        'mysql+mysqldb://root:@localhost:3306/ariadb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ECHO = os.environ.get('SQLALCHEMY_ECHO', 'False').lower() == 'true'
     
