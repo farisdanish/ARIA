@@ -169,7 +169,7 @@ def register_face():
         )
     else:
         flash('Only students and staff can register faces.', category='error')
-        return redirect(url_for('views.home'))
+        return redirect(url_for('home.index'))
 
 
 @facenet.route('/face_registration_stream')
@@ -182,7 +182,7 @@ def face_registration_stream():
         user_id = current_user.StaffID
     else:
         flash('Only students and staff can register faces.', category='error')
-        return redirect(url_for('views.home'))
+        return redirect(url_for('home.index'))
     
     return Response(
         generate_face_registration_stream(user_id),
@@ -196,10 +196,10 @@ def train_data():
     """Train face recognition model (admin only)."""
     if not current_user.is_Admin():
         flash('Only administrators can train the face recognition model.', category='error')
-        return redirect(url_for('views.home'))
+        return redirect(url_for('home.index'))
     
     # Run training in background
     executor.submit(face_service.train_model)
     flash('Face Detection Model is refreshing...', category='info')
-    return redirect(url_for('views.home'))
+    return redirect(url_for('home.index'))
 
