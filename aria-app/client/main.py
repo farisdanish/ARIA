@@ -247,7 +247,7 @@ def main():
                 logger.info("Access granted - waiting for door to lock...")
                 
                 # Wait for door to auto-lock
-                while door_controller.should_lock():
+                while not door_controller.should_lock():
                     time.sleep(1)
                 
                 door_controller.lock()
