@@ -15,11 +15,58 @@ A comprehensive Flask-based application for managing library room bookings with 
 
 ## 📋 Requirements
 
-- Python 3.8+
+- Python 3.8+ (Note: Python 3.12+ requires `setuptools` for `distutils` compatibility)
 - MySQL 5.7+ or MariaDB
 - Webcam (for face recognition features)
+- MySQL client development libraries (required for `mysqlclient` package)
 
 ## 🛠️ Installation
+
+### Prerequisites
+
+Before installing Python dependencies, you need to install MySQL client development libraries for your operating system. The `mysqlclient` package requires these libraries to compile.
+
+#### Linux (Ubuntu/Debian)
+```bash
+sudo apt-get update
+sudo apt-get install default-libmysqlclient-dev build-essential pkg-config python3-dev
+```
+
+> **Note:** For Python 3.12 specifically, you may also need `python3.12-dev`:
+> ```bash
+> sudo apt-get install python3.12-dev
+> ```
+
+#### Linux (Fedora/RHEL/CentOS)
+```bash
+sudo dnf install mysql-devel gcc pkg-config python3-devel
+# Or for older systems:
+# sudo yum install mysql-devel gcc pkg-config python3-devel
+```
+
+#### macOS
+```bash
+# Using Homebrew (recommended)
+brew install mysql pkg-config
+
+# Or using MacPorts
+sudo port install mysql8 +universal
+```
+
+#### Windows
+For Windows, you have two options:
+
+**Option 1: Use pre-compiled wheel (easiest)**
+- Download MySQL from [MySQL Installer](https://dev.mysql.com/downloads/installer/)
+- Install MySQL Connector/C or MySQL Server (which includes the client libraries)
+- Ensure MySQL is added to your system PATH
+- Install Visual C++ Build Tools from [Microsoft](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+
+**Option 2: Use PyMySQL instead (no compilation needed)**
+- Replace `mysqlclient==2.2.0` with `PyMySQL==1.1.0` in `requirements.txt`
+- Update your `DATABASE_URL` in `.env` from `mysql+mysqldb://` to `mysql+pymysql://`
+
+### Installation Steps
 
 1. **Clone the repository**
    ```bash
@@ -28,15 +75,28 @@ A comprehensive Flask-based application for managing library room bookings with 
    ```
 
 2. **Create a virtual environment**
+   
+   **Linux/macOS:**
    ```bash
    python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   source venv/bin/activate
+   ```
+   
+   **Windows:**
+   ```bash
+   python -m venv venv
+   venv\Scripts\activate
    ```
 
-3. **Install dependencies**
+3. **Install Python dependencies**
    ```bash
+   pip install --upgrade pip setuptools
    pip install -r requirements.txt
    ```
+   
+   > **Note:** 
+   > - If you encounter errors installing `mysqlclient`, ensure you've installed the MySQL client development libraries for your OS (see Prerequisites above).
+   > - For Python 3.12+, `setuptools` is required (included in requirements.txt) as `distutils` was removed from the standard library.
 
 4. **Set up environment variables**
    
@@ -62,16 +122,36 @@ A comprehensive Flask-based application for managing library room bookings with 
    - The application will use the existing schema (no migrations yet)
 
 6. **Run the application**
+   
+   **Direct execution:**
    ```bash
    cd aria-app
    python main.py
    ```
-
-   Or using Flask CLI:
+   
+   **Or using Flask CLI:**
+   
+   **Linux/macOS:**
    ```bash
    cd aria-app
    export FLASK_APP=main.py
    export FLASK_ENV=development
+   flask run
+   ```
+   
+   **Windows (Command Prompt):**
+   ```cmd
+   cd aria-app
+   set FLASK_APP=main.py
+   set FLASK_ENV=development
+   flask run
+   ```
+   
+   **Windows (PowerShell):**
+   ```powershell
+   cd aria-app
+   $env:FLASK_APP="main.py"
+   $env:FLASK_ENV="development"
    flask run
    ```
    
@@ -252,8 +332,64 @@ pytest --cov=website
 ## 🐛 Known Issues
 
 - Face recognition requires local camera access
-- Some Windows-specific paths may need adjustment for Linux deployment
 - Database migrations not yet implemented (using existing schema)
+
+## 🔧 Troubleshooting
+
+### MySQL Client Library Issues
+
+**Error: `Can not find valid pkg-config name` or `mysql_config not found`**
+
+This means the MySQL client development libraries are not installed. Follow the Prerequisites section above for your operating system.
+
+**Error: `Python.h: No such file or directory`**
+
+This means Python development headers are missing. Install them:
+- **Ubuntu/Debian:** `sudo apt-get install python3-dev` (or `python3.12-dev` for Python 3.12)
+- **Fedora/RHEL:** `sudo dnf install python3-devel`
+- **macOS:** Usually included with Xcode Command Line Tools (`xcode-select --install`)
+
+**Windows: Alternative Solution**
+If you continue to have issues on Windows, consider using PyMySQL instead:
+1. Edit `requirements.txt` and replace `mysqlclient==2.2.0` with `PyMySQL==1.1.0`
+2. Update your `.env` file: change `DATABASE_URL` from `mysql+mysqldb://` to `mysql+pymysql://`
+3. Reinstall dependencies: `pip install -r requirements.txt`
+
+### Python 3.12+ Issues
+
+**Error: `ModuleNotFoundError: No module named 'distutils'`**
+
+Python 3.12+ removed `distutils` from the standard library. The `requirements.txt` includes `setuptools` which provides `distutils` compatibility. If you encounter this error:
+
+1. Ensure `setuptools` is installed:
+   ```bash
+   pip install --upgrade setuptools
+   ```
+
+2. If the error persists, install it before other packages:
+   ```bash
+   pip install setuptools wheel
+   pip install -r requirements.txt
+   ```
+
+### Virtual Environment Activation Issues
+
+**Linux/macOS:** If `source venv/bin/activate` doesn't work, try:
+```bash
+. venv/bin/activate
+```
+
+**Windows:** If activation fails, ensure you're using the correct path:
+- Command Prompt: `venv\Scripts\activate.bat`
+- PowerShell: `venv\Scripts\Activate.ps1` (may require execution policy change)
+
+### Database Connection Issues
+
+Ensure MySQL/MariaDB is running and accessible:
+- **Linux/macOS:** `sudo systemctl status mysql` or `brew services list`
+- **Windows:** Check Services panel for MySQL service
+
+Verify your `DATABASE_URL` in `.env` matches your MySQL setup.
 
 ## 🔄 Refactoring Status
 
