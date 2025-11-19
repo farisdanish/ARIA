@@ -226,7 +226,7 @@ def delete_room_booking(booking_id):
     else:
         flash('Failed to delete booking.', category='error')
     
-    return redirect(url_for('bookings.manage'))
+    return redirect(url_for('bookings.manage_room_bookings'))
 
 
 @bookings.route('/deleteEBook/<int:booking_id>/', methods=['GET', 'POST'])
@@ -243,7 +243,7 @@ def delete_event_booking(booking_id):
     else:
         flash('Failed to delete booking.', category='error')
     
-    return redirect(url_for('bookings.manage'))
+    return redirect(url_for('bookings.manage_event_bookings'))
 
 
 @bookings.route('/ManageRBookings', methods=['GET', 'POST'])
