@@ -1,0 +1,88 @@
+name: ARIA CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ─────────────────────────────────────────
+  # 1. LINT & STATIC ANALYSIS
+  # ─────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install linters
+        run: pip install ruff bandit
+      - name: Run Ruff (style + errors)
+        run: ruff check aria-app/
+      - name: Run Bandit (security)
+        run: bandit -r aria-app/website/ aria-app/client/ -ll
+
+  # ─────────────────────────────────────────
+  # 2. UNIT TESTS
+  # ─────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    needs: lint
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: testpassword
+          MYSQL_DATABASE: ariadb_test
+        ports: ["3306:3306"]
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-retries=5
+      redis:
+        image: redis:7.0-alpine
+        ports: ["6379:6379"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dependencies
+        working-directory: aria-app
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-flask
+      - name: Run tests
+        working-directory: aria-app
+        env:
+          DATABASE_URL: mysql+mysqldb://root:testpassword@127.0.0.1:3306/ariadb_test
+          REDIS_URL: redis://127.0.0.1:6379/0
+          SECRET_KEY: ci-test-secret
+          TESTING: "true"
+          FLASK_SKIP_BACKGROUND_THREADS: "1"
+        run: pytest tests/ -v
+
+  # ─────────────────────────────────────────
+  # 3. DOCKER BUILD VALIDATION
+  # ─────────────────────────────────────────
+  docker-build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build flask-app image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./aria-app
+          file: ./aria-app/Dockerfile
+          push: false
+          tags: aria-flask-app:ci
+      - name: Build pi-simulator image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./aria-app/client
+          file: ./aria-app/client/Dockerfile.simulator
+          push: false
+          tags: aria-pi-simulator:ci

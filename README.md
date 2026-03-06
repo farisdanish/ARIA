@@ -399,6 +399,15 @@ Ensure MySQL/MariaDB is running and accessible:
 
 Verify your `DATABASE_URL` in `.env` matches your MySQL setup.
 
+## 🚀 CI/CD Pipeline
+
+The project uses GitHub Actions for Continuous Integration and Continuous Deployment (CI/CD). The pipeline is defined in `.github/workflows/ci-cd.yml`.
+
+### Pipeline Stages
+1. **Lint**: Code style (`ruff`) and security (`bandit`) checks.
+2. **Test**: Unit tests run via `pytest` with a live MySQL and Redis service containers.
+3. **Docker Build**: Validates `flask-app` and `pi-simulator` container builds.
+
 ## 🔄 Refactoring Status
 
 This codebase has been comprehensively refactored:
@@ -418,7 +427,6 @@ This codebase has been comprehensively refactored:
 
 📋 **Planned:**
 - Alembic database migrations
-- CI/CD pipeline
 
 ## 📄 License
 
