@@ -7,11 +7,11 @@ A comprehensive Flask-based application for managing library room bookings with 
 ## 🚀 Features
 
 - **User Management**: Student, Staff, and Admin roles with role-based access control
-- **Room Booking**: Book rooms and events with conflict detection
-- **Face Recognition**: Register and recognize faces for automated access control
-- **Announcements**: Admin can create and manage announcements
-- **Access Logging**: Track room access with email notifications
-- **REST API**: Full REST API for integration with external systems (e.g., Raspberry Pi)
+- **Room Booking**: Conflict-detected booking system for rooms and events
+- **Double-Factor Access**: Choice between **Face Recognition** (FaceNet) and **QR Check-in**
+- **Event-Driven Architecture**: Decoupled services communicating via Redis Pub/Sub
+- **Dockerized Environment**: One-command deployment for app, simulator, and database
+- **Access Logging**: Automated entry tracking and email notifications
 
 ## 📋 Requirements
 
@@ -250,16 +250,24 @@ All configuration is managed through `config.py` using environment variables.
 
 - **Application Factory**: Flask app created via factory pattern
 - **Service Layer**: Business logic separated from routes
-- **Repository Pattern**: Data access abstracted through models
-- **Blueprint Pattern**: Routes organized into modules
+- **Event-Driven**: Decoupled communication via **Redis Pub/Sub**
+- **Background Workers**: Booking scheduling handled via background threads
 
-### Key Components
+### Microservices Architecture
 
-1. **Models**: SQLAlchemy declarative models organized by domain (user, room, face, etc.)
-2. **Services**: Business logic layer that handles complex operations (auth, bookings, face recognition, etc.)
-3. **Routes**: Thin controllers organized as Flask blueprints that delegate to services
-4. **Utils**: Reusable utility functions for file handling, validation, etc.
-5. **Configuration**: Centralized configuration management via `config.py` with environment variable support
+The system is deployed as a suite of Docker containers on a single `aria-network`:
+
+1.  **`flask-app`**: Core web app, API, and the booking scheduler thread.
+2.  **`pi-simulator`**: Mimics the hardware client. Runs face recognition against test images and listens for QR validation events.
+3.  **`redis`**: Ephemeral message broker for fast, decoupled event flow.
+4.  **`db`**: MySQL persistence for `ariadb`.
+
+### Event Flow (Redis Pub/Sub)
+
+Communication between the web cloud and the edge simulator is strictly event-based:
+- **`watch_room:{id}`**: Published by `flask-app` when a booking window opens.
+- **`face_matched:{id}`**: Published by `pi-simulator` on successful face identification.
+- **`token_validated:{id}`**: Published by `flask-app` after a successful QR check-in; consumed by `pi-simulator` to trigger the door.
 
 ## 🔐 Authentication
 
@@ -396,28 +404,21 @@ Verify your `DATABASE_URL` in `.env` matches your MySQL setup.
 This codebase has been comprehensively refactored:
 
 ✅ **Completed:**
-- Configuration management with environment variables (`config.py`)
-- Proper SQLAlchemy declarative models (replaced automap)
-- Service layer for business logic separation
-- Refactored authentication routes (`auth.py`)
-- Refactored API routes (Flask-RESTX with Swagger docs)
-- Face recognition service (removed hard-coded paths)
-- Route organization into focused blueprints (home, auth, face, announcements, rooms, bookings)
-- File utilities and validation utilities
-- Logging infrastructure
-- Cross-platform path handling (removed Windows-specific paths)
+- Service layer refactor and blueprint-based routing
+- Configuration management (`config.py`)
+- QR Check-in system (Service, Routes, Mail Integration)
+- Core API (Flask-RESTX)
+- Face recognition service (FaceNet/SGD)
+- Dockerization (Compose, Dockerfiles, Unified Config)
+- Redis Event Flow (Pub/Sub, Background Scheduler)
+- Pi Simulator (Event-driven, static image loop)
 
 🔄 **In Progress:**
-- Complete `views.py` refactoring (legacy routes being migrated)
-- Error handling improvements
-- Testing suite
+- Migration of remaining legacy `views.py` routes
 
 📋 **Planned:**
-- Database migrations (Alembic)
-- Enhanced API documentation
-- Docker containerization
+- Alembic database migrations
 - CI/CD pipeline
-- Environment variable template (`.env.example`)
 
 ## 📄 License
 

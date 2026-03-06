@@ -33,6 +33,12 @@ class ClientConfig:
     LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
     LOG_FILE = os.environ.get('LOG_FILE', 'aria_client.log')
     
+    # Redis Configuration
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://redis:6379/0')
+    
+    # Simulator Configuration
+    TEST_IMAGES_PATH = Path(os.environ.get('SIMULATOR_TEST_IMAGES_PATH', 'test_images'))
+    
     @classmethod
     def validate(cls):
         """Validate configuration."""

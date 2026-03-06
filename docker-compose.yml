@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: aria-db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-ariadb}
+    ports:
+      - "3306:3306"
+    networks:
+      - aria-network
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: aria-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - aria-network
+
+  flask-app:
+    build:
+      context: ./aria-app
+      dockerfile: Dockerfile
+    container_name: aria-flask-app
+    restart: always
+    environment:
+      - DATABASE_URL=mysql+mysqldb://root:${MYSQL_ROOT_PASSWORD:-rootpassword}@db:3306/ariadb
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
+    ports:
+      - "5000:5000"
+    networks:
+      - aria-network
+    volumes:
+      - ./aria-app/website/static/uploads:/app/website/static/uploads
+
+  pi-simulator:
+    build:
+      context: ./aria-app/client
+      dockerfile: Dockerfile.simulator
+    container_name: aria-pi-simulator
+    restart: always
+    env_file: .env
+    depends_on:
+      - flask-app
+      - redis
+    networks:
+      - aria-network
+    volumes:
+      - ./pi-simulator/test_images:/app/test_images
+      - ./aria-app/website/static/uploads:/app/model_data
+
+networks:
+  aria-network:
+    driver: bridge
+
+volumes:
+  mysql_data:

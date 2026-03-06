@@ -347,13 +347,30 @@ def qr_checkin():
 
     if request.is_json or request.method == "POST":
         # Pi simulator / API consumer path
+        if success and booking:
+            # Publish event to Redis for Pi simulator to unlock door
+            from ..services.redis_service import RedisService
+            RedisService.publish_token_validated(
+                room_id=booking.RoomID,
+                booking_id=booking_id,
+                booking_type=booking_type
+            )
+
         return jsonify({
             "success": success,
             "message": message,
             "booking_id": booking_id,
             "booking_type": booking_type,
-            "unlock_door": success,   # Pi reads this to trigger GPIO
+            "unlock_door": success,   # Still return true for legacy support
         }), 200 if success else 400
 
     # Browser / phone scan path
+    if success and booking:
+        # Also publish here for phone scans
+        from ..services.redis_service import RedisService
+        RedisService.publish_token_validated(
+            room_id=booking.RoomID,
+            booking_id=booking_id,
+            booking_type=booking_type
+        )
     return render_template("checkin_qr.html", success=success, message=message)
