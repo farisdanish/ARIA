@@ -2,13 +2,9 @@
 
 Raspberry Pi application for room access control with face recognition.
 
-## Overview
-
-This is the edge device client that runs on Raspberry Pi hardware to:
-- Monitor room bookings from the ARIA server
-- Perform face recognition to verify authorized users
-- Control door locks via GPIO relay
-- Log access events back to the server
+This client can run in two modes:
+1. **Physical Mode (`main.py`)**: Runs on a real Raspberry Pi with GPIO and a live camera.
+2. **Simulator Mode (`simulator_main.py`)**: Runs in a Docker container, listening to Redis events and using static test images for recognition.
 
 ## Features
 
@@ -53,37 +49,33 @@ This is the edge device client that runs on Raspberry Pi hardware to:
 
 Edit `.env` file with your settings:
 
-- `ARIA_API_URL`: Base URL of ARIA server API
-- `RELAY_GPIO_PIN`: GPIO pin number for relay (default: 17)
-- `UNLOCK_DURATION_SECONDS`: How long to keep door unlocked (default: 5)
-- `FACE_CONFIDENCE_THRESHOLD`: Minimum confidence for face match (0.0-1.0)
-- `FACE_DETECTION_COUNT_THRESHOLD`: Number of successful detections required
+- `ARIA_API_URL`: Base URL of ARIA server API.
+- `REDIS_URL`: URL for the Redis broker (e.g., `redis://redis:6379/0`).
+- `RELAY_GPIO_PIN`: GPIO pin number for relay (default: 17).
+- `UNLOCK_DURATION_SECONDS`: How long to keep door unlocked (default: 5).
+- `FACE_CONFIDENCE_THRESHOLD`: Minimum confidence for face match (0.0-1.0).
+- `FACE_DETECTION_COUNT_THRESHOLD`: Number of successful detections required.
+- `SIMULATOR_TEST_IMAGES_PATH`: Path to folder containing `.jpg` images for mock recognition.
 
-## Usage
+### Docker Simulator (Recommended for Dev)
 
-### Manual Run
+The simulator is typically run via `docker-compose`. It listens for Redis events (`watch_room`, `token_validated`) instead of polling.
 
 ```bash
+# Launched via root docker-compose:
+docker-compose up pi-simulator
+```
+
+### Physical Raspberry Pi
+
+```bash
+# Manual run (uses camera + polling)
 python -m client.main
 ```
 
-Or:
-
+### Systemd Service (Pi Only)
 ```bash
-python client/main.py
-```
-
-### Systemd Service
-
-```bash
-# Start service
 sudo systemctl start aria-client
-
-# Stop service
-sudo systemctl stop aria-client
-
-# View logs
-sudo journalctl -u aria-client -f
 ```
 
 ## Hardware Setup
@@ -112,9 +104,10 @@ client/
 ├── config.py            # Configuration management
 ├── api_client.py        # API communication
 ├── face_recognition.py  # Face recognition logic
-├── hardware.py          # GPIO/hardware control
-├── room_monitor.py      # Booking monitoring
-├── main.py              # Main application
+├── hardware.py          # GPIO/hardware control (mocked in non-Pi envs)
+├── room_monitor.py      # Legacy polling logic (used by main.py)
+├── main.py              # Legacy/Physical entry point
+├── simulator_main.py    # Modern/Event-driven entry point (Redis)
 ├── requirements.txt     # Dependencies
 └── README.md            # This file
 ```

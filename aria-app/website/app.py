@@ -89,6 +89,13 @@ def create_app(config_name: str = None) -> Flask:
     # Register error handlers
     register_error_handlers(app)
     
+    # Start background scheduler and Redis subscriber
+    if not os.environ.get('FLASK_SKIP_BACKGROUND_THREADS'):
+        from .services.scheduler import BookingScheduler
+        from .services.subscriber import RedisSubscriber
+        BookingScheduler.start(app)
+        RedisSubscriber.start(app)
+    
     logger.info(f"Application initialized with {config_name} configuration")
     return app
 
