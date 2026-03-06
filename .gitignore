@@ -1,0 +1,71 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+aria-app/__pycache__/
+aria-app/**/*.pyc
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+aria-app/build/
+aria-app/dist/
+aria-app/lib/
+aria-app/lib64/
+aria-app/*.egg-info/
+
+# Environments
+.env
+.flaskenv
+.venv/
+venv/
+env/
+aria-app/env/
+aria-app/venv/
+ENV/
+
+# Unit test / coverage reports
+aria-app/htmlcov/
+aria-app/.tox/
+aria-app/.coverage
+aria-app/.pytest_cache/
+
+# IDEs
+.vscode/
+.idea/
+aria-app/.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+aria-app/fyp_umsliblrbs
+aria-app/ngrok*
+qr_checkin_route_and_migration.py
+
+# Uploads (keep directory structure, ignore files)
+aria-app/website/static/uploads/*
+!aria-app/website/static/uploads/.gitkeep
+
+# Face database files
+aria-app/website/static/MalaysianFacesDB/*
+!aria-app/website/static/MalaysianFacesDB/.gitkeep
+aria-app/website/static/registered-faces-db*.npz
+
+# Simulator Specific
+pi-simulator/test_images/*
+!pi-simulator/test_images/.gitkeep
+
+# Logs
+*.log
+aria-app/**/*.log
+aria-app/client/*.log
+
+# Machine Learning models
+*.npz
+*.h5
+*.pkl
+aria-app/client/*.npz
