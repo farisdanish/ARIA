@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   db:
     image: mysql:8.0
@@ -50,6 +48,8 @@ services:
     container_name: aria-pi-simulator
     restart: always
     env_file: .env
+    environment:
+      - ARIA_API_URL=http://flask-app:5000/api
     depends_on:
       - flask-app
       - redis

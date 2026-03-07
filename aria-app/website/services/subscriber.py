@@ -3,10 +3,9 @@ import time
 import threading
 import logging
 import json
-import os
 from .redis_service import RedisService
 from ..models.room import RoomBooking, EventBooking
-from ..models.access import AccessLog
+from ..models.access import RoomAccessLog
 from ..models.base import db
 from datetime import datetime
 
@@ -99,7 +98,7 @@ class RedisSubscriber:
         if booking:
             booking.RBookStatus = 'Ongoing'
             # Create access log
-            access = AccessLog(
+            access = RoomAccessLog(
                 RoomID=room_id,
                 StudID=booking.StudID,
                 StaffID=booking.StaffID,
@@ -122,7 +121,7 @@ class RedisSubscriber:
         
         if event:
             event.EbookStatus = 'Ongoing'
-            access = AccessLog(
+            access = RoomAccessLog(
                 RoomID=room_id,
                 StudID=event.StudID,
                 StaffID=event.StaffID,

@@ -1,0 +1,21 @@
+.git
+.github
+.pytest_cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+venv
+.venv
+env
+.env
+.mypy_cache
+.ruff_cache
+.coverage
+htmlcov
+tests
+
+# Large local/runtime assets not needed at build time
+website/static/uploads
+website/static/MalaysianFacesDB
+website/static/*.npz

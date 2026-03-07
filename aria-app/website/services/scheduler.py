@@ -5,7 +5,6 @@ import logging
 from datetime import datetime, timedelta
 from .redis_service import RedisService
 from ..models.room import RoomBooking, EventBooking
-from .base import db
 
 logger = logging.getLogger(__name__)
 

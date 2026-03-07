@@ -8,7 +8,6 @@ from numpy import asarray, expand_dims, savez_compressed, load
 from PIL import Image
 from sklearn.preprocessing import LabelEncoder, Normalizer
 from sklearn.linear_model import SGDClassifier
-from keras_facenet import FaceNet
 from flask import current_app
 import logging
 
@@ -22,10 +21,23 @@ class FaceService:
         self.haar_cascade = cv2.CascadeClassifier(
             cv2.samples.findFile(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
         )
-        self.facenet = FaceNet()
+        self.facenet = None
         self.model = None
         self.label_encoder = None
         self.normalizer = None
+
+    def _ensure_facenet(self) -> bool:
+        """Lazily initialize FaceNet model to avoid startup crashes."""
+        if self.facenet is not None:
+            return True
+
+        try:
+            from keras_facenet import FaceNet
+            self.facenet = FaceNet()
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize FaceNet model: {str(e)}")
+            return False
     
     def get_faces_db_path(self) -> Path:
         """Get path to faces database directory."""
@@ -135,6 +147,8 @@ class FaceService:
     
     def get_embedding(self, face_pixels: np.ndarray) -> np.ndarray:
         """Get face embedding using FaceNet."""
+        if not self._ensure_facenet():
+            raise RuntimeError("FaceNet model is unavailable")
         samples = expand_dims(face_pixels, axis=0)
         yhat = self.facenet.embeddings(samples)
         return yhat[0]
@@ -142,6 +156,9 @@ class FaceService:
     def train_model(self) -> bool:
         """Train the face recognition model."""
         try:
+            if not self._ensure_facenet():
+                return False
+
             faces_db_path = self.get_faces_db_path()
             train_path = faces_db_path / 'train'
             test_path = faces_db_path / 'test'
@@ -299,4 +316,3 @@ class FaceService:
         except Exception as e:
             logger.error(f"Error saving face image: {str(e)}")
             return None
-

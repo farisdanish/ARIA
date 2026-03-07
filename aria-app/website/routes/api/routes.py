@@ -12,7 +12,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-ns = Namespace("api", description="ARIA API endpoints")
+ns = Namespace("api", description="ARIA API endpoints", path="/")
 
 # API Models
 student_model = ns.model("Student", {
@@ -269,11 +269,11 @@ class GetFacesFileAPI(Resource):
     @ns.doc(description="Download face database file")
     def get(self):
         """Download the face database file."""
+        faces_db_path = current_app.config.get('FACES_DB_FILE')
+        if not faces_db_path or not faces_db_path.exists():
+            return {"message": "Face database file not found"}, 404
+
         try:
-            faces_db_path = current_app.config.get('FACES_DB_FILE')
-            if not faces_db_path or not faces_db_path.exists():
-                ns.abort(404, "Face database file not found")
-            
             return send_from_directory(
                 str(faces_db_path.parent),
                 faces_db_path.name,
@@ -291,11 +291,11 @@ class GetFacesEmbedsFileAPI(Resource):
     @ns.doc(description="Download face embeddings file")
     def get(self):
         """Download the face embeddings file."""
+        faces_embeds_path = current_app.config.get('FACES_EMBEDDINGS_PATH')
+        if not faces_embeds_path or not faces_embeds_path.exists():
+            return {"message": "Face embeddings file not found"}, 404
+
         try:
-            faces_embeds_path = current_app.config.get('FACES_EMBEDDINGS_PATH')
-            if not faces_embeds_path or not faces_embeds_path.exists():
-                ns.abort(404, "Face embeddings file not found")
-            
             return send_from_directory(
                 str(faces_embeds_path.parent),
                 faces_embeds_path.name,
@@ -304,4 +304,3 @@ class GetFacesEmbedsFileAPI(Resource):
         except Exception as e:
             logger.error(f"Error serving face embeddings file: {str(e)}")
             ns.abort(500, "Internal server error")
-

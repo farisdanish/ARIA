@@ -1,5 +1,5 @@
 """Face recognition models."""
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, Text
 from .base import db
 
 
@@ -15,4 +15,3 @@ class RegisteredFace(db.Model):
     def __repr__(self):
         user_id = self.StudID or self.StaffID
         return f'<RegisteredFace {self.FaceID}: {user_id}>'
-

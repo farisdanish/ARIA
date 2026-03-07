@@ -46,6 +46,13 @@ def create_app(config_name: str = None) -> Flask:
     db.init_app(app)
     mail.init_app(app)
     executor.init_app(app)
+
+    # Bootstrap database tables for local/dev environments when missing.
+    auto_create_db = os.environ.get('AUTO_CREATE_DB', 'True').lower() == 'true'
+    if auto_create_db:
+        with app.app_context():
+            db.create_all()
+        logger.info("Database tables ensured via db.create_all()")
     
     # Register blueprints
     from .routes import home, auth, facenet, announcements, rooms, bookings
