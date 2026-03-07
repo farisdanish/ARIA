@@ -241,8 +241,18 @@ The application uses environment variables for configuration managed through `co
 - `FACE_CONFIDENCE_THRESHOLD`: Face recognition confidence threshold (default: `0.85`)
 - `SESSION_LIFETIME_MINUTES`: Session duration in minutes (default: `480`)
 - `MAX_CONTENT_LENGTH`: Max upload size in bytes (default: `16777216` = 16 MB)
+- `ARIA_UI_ENABLED`: Enable ARIA rebrand templates (`True`/`False`, default: `False`)
+- `ARIA_UI_PHASE`: Frontend rollout phase (`public`, `dashboards`, `admin`, `all`; default: `public`)
 
 All configuration is managed through `config.py` using environment variables.
+
+### Frontend Conventions
+
+- Legacy templates remain fallback templates.
+- Rebrand templates use `.aria.html` suffix and are selected by UI rollout flags.
+- Shared ARIA layout shell is `aria-app/website/templates/base_aria.html`.
+- ARIA design tokens and components are in `aria-app/website/static/css/aria-theme.css`.
+- HTMX is used for server-rendered partial updates (starting with announcement management).
 
 ## 🏗️ Architecture
 

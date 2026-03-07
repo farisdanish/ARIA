@@ -1,0 +1,63 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Face Manager {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Face Manager - ADMINISTRATION</h2></center>
+{% endblock %}
+
+{% block content%}
+<br/>
+<div class="flex-container container-fluid" style="">
+    <div class="row">
+        <div class="col md-12">
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            <button class="btn btn-primary float-right" style="margin-bottom:10px;" onclick="location.href = '/train_data';">Retrain Face Detection</button>
+            <div class="jumbotron p-3">
+                <table id="regFacesTable" class="table table-hover table-dark display">
+                    <thead>
+                        <tr>
+                            <th>FaceID</th>
+                            <th>Faces</th>
+                            <th>Student or Staff?</th>
+                            <th>Names</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    {% for r in registeredfaces %}
+                        <tr>
+                            <td>{{r.FaceID}}</td>
+                            <td>
+                            {% for line in r.FaceIMG.split('\n') %}
+                            <img src="/static/MalaysianFacesDB/{{line}}" height="50" width="50" alt="{{line}}"/>
+                            {% endfor %}
+                            </td>
+                            {% if r.StudID != None %}
+                                {%for stud in student %}
+                                    {% if stud.StudID == r.StudID %}
+                                    <td>Student</td>
+                                    <td>{{stud.StudName}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% elif r.StaffID != None %}
+                                {%for staff in staff %}
+                                    {% if staff.StaffID == r.StaffID %}
+                                    <td>Staff</td>
+                                    <td>{{staff.StaffName}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            <td>
+                                <!--<a href="/updateRoom/{{r.RoomID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal" data-bs-target="#modaleditroom{{r.RoomID}}">Edit</a>-->
+                                <a href="/deleteFace/{{r.FaceID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete face from listing?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            <!</div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+{% endblock %}

@@ -1,4 +1,9 @@
-"""Main view routes."""
+"""Legacy view routes (deprecated).
+
+This module is retained for backwards compatibility only.
+Do not add new UI work here; use routes/home.py and feature-flagged
+ARIA template rendering via website.utils.ui.
+"""
 from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import desc
@@ -162,4 +167,3 @@ def homeAdmin():
 # should be added here or split into separate blueprint modules
 # This is a basic structure - the full views.py would need to be
 # refactored into smaller modules for better maintainability
-

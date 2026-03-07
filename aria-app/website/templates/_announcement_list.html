@@ -1,0 +1,16 @@
+<ul class="list-group list-group-flush" id="announcement-list-items">
+  {% for a in announcements %}
+  <li class="list-group-item d-flex justify-content-between align-items-start">
+    <div>
+      <small class="aria-visually-muted d-block">{{ a.PostDate.strftime('%Y-%m-%d') }}</small>
+      <strong>{{ a.Title }}</strong>
+      <p class="mb-0">{{ a.Content }}</p>
+    </div>
+    {% if user.is_authenticated and user.is_Admin() %}
+    <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteAnnouncement({{ a.AnnounceID }})">Delete</button>
+    {% endif %}
+  </li>
+  {% else %}
+  <li class="list-group-item">No announcements published yet.</li>
+  {% endfor %}
+</ul>

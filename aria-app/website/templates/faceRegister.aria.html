@@ -1,0 +1,19 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Face Registration {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Face Registration</h2></center>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <center><button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/';">Go Back</button></center>
+    <div class="row">
+        <div class="col-lg-8  offset-lg-2">
+            <h3 class="mt-5">Please Stay Still!</h3>
+            <img src="{{ url_for('facenet.face_regstr') }}" width="50%">
+        </div>
+    </div>
+</div>
+{% endblock %}

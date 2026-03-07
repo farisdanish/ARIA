@@ -1,0 +1,69 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Face Manager {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Room Access Log - ADMINISTRATION</h2></center>
+{% endblock %}
+
+{% block content%}
+<br/>
+<div class="flex-container container-fluid" style="">
+    <div class="row">
+        <div class="col md-12">
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            <div class="jumbotron p-3">
+                <table id="RAccessLogTable" class="table table-hover table-dark display">
+                    <thead>
+                        <tr>
+                            <th>RAccessLogID</th>
+                            <th>Room Name</th>
+                            <th>Student/Staff Name</th>
+                            <th>Student/Staff ID</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    {% for r in roomaccesslog %}
+                        <tr>
+                            <td>{{r.rmaID}}</td>
+                            {% for rm in roomlist %}
+                                {%if rm.RoomID == r.RoomID%}
+                                <td>{{rm.RoomName}}</td>
+                                {%endif%}
+                            {% endfor %}
+                            {% if r.StudID != None %}
+                                {%for stud in student %}
+                                    {% if stud.StudID == r.StudID %}
+                                    <td>{{stud.StudName}}</td>
+                                    <td>{{stud.StudID}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% elif r.StaffID != None %}
+                                {%for staff in staff %}
+                                    {% if staff.StaffID == r.StaffID %}
+                                    <td>{{staff.StaffName}}</td>
+                                    <td>{{staff.StaffID}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {% if r.Status == 0%}
+                                <td>PASS</td>
+                            {% elif r.Status == 1%}
+                                <td>FAIL</td>
+                            {%endif%}
+                            <td>{{r.Timestamp}}</td>
+                            <td>
+                                <a href="/deleteRAccessLog/{{r.rmaID}}/" class="btn btn-danger btn-xs" onclick="return confirm('Delete room access log from listing?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            <!</div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+{% endblock %}

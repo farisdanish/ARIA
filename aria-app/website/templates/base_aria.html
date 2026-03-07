@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
+    <title>{% block title %}ARIA{% endblock %}</title>
+
+    {% block head_assets %}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet" crossorigin="anonymous" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/aria-theme.css') }}" />
+    {% endblock %}
+  </head>
+  <body>
+    {% block top_nav %}
+    <nav class="navbar navbar-expand-lg navbar-dark aria-navbar" aria-label="Primary">
+      <div class="container-fluid">
+        <a class="navbar-brand aria-brand" href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}">ARIA</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbar">
+          {% if user.is_authenticated %}
+            {% if user.is_Student() %}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item"><a class="nav-link" href="/homeStud">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="/MyBookings">My Bookings</a></li>
+              <li class="nav-item"><a class="nav-link" href="/feedback">Feedback</a></li>
+              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+            <span class="navbar-text">{{ user.StudID }}</span>
+            {% elif user.is_Staff() %}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item"><a class="nav-link" href="/homeStaff">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="/MyBookings">My Bookings</a></li>
+              <li class="nav-item"><a class="nav-link" href="/feedback">Feedback</a></li>
+              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+            <span class="navbar-text">{{ user.StaffID }}</span>
+            {% else %}
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item"><a class="nav-link" href="/homeAdmin">Home</a></li>
+              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
+            </ul>
+            <span class="navbar-text">{{ user.AdminID }}</span>
+            {% endif %}
+          {% else %}
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+            <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
+            <li class="nav-item"><a class="nav-link" href="/RegisterSelect">Register</a></li>
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+    {% endblock %}
+
+    {% block flash_messages %}
+    <div class="container-fluid px-3 pt-3" role="status" aria-live="polite">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-success' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% endwith %}
+    </div>
+    {% endblock %}
+
+    {% block page_header %}
+    <header class="aria-page-header container-fluid">
+      <div class="aria-title-card">
+        {% block PageTitle %}{% endblock %}
+      </div>
+    </header>
+    {% endblock %}
+
+    <main class="container-fluid pb-4" id="main-content">
+      {% block content %}{% endblock %}
+    </main>
+
+    {% block page_scripts %}
+    <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.js"></script>
+    <script src="{{ url_for('static', filename='index.js') }}"></script>
+    <script src="{{ url_for('static', filename='announcement.js') }}"></script>
+    <script src="{{ url_for('static', filename='aria-shell.js') }}"></script>
+    <script>
+      function getDateWithoutTime(dt) {
+        dt.setHours(0, 0, 0, 0);
+        return dt;
+      }
+      {% block calendar %}{% endblock %}
+    </script>
+    {% block custom_scripts %}{% endblock %}
+    {% endblock %}
+  </body>
+</html>

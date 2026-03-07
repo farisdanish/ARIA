@@ -1,0 +1,232 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Room Bookings Manager {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Room Bookings - ADMINISTRATION</h2></center>
+{% endblock %}
+
+{% block content%}
+<br/>
+<div class="flex-container container-fluid" style="">
+    <div class="row">
+        <div class="col md-12">
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            <div class="jumbotron p-3">
+                <h2>List of Room Bookings <button id="addrbook" type="button" class="btn btn-success float-right"> Add New Room Booking</button></h2>
+                <table id="rbookTable" class="table table-hover table-dark">
+                    <thead>
+                        <tr>
+                            <th>Room Booking ID</th>
+                            <th>Student/Staff Name</th>
+                            <th>Student/Staff ID</th>
+                            <th>Room Name</th>
+                            <th>Booking Start</th>
+                            <th>Booking End</th>
+                            <th>Purpose</th>
+                            <th>Room Booking Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    {% for rb in roombookings %}
+                        <tr>
+                            <td><center>{{rb.RBookID}}</center></td>
+                            {% if rb.StudID != None %}
+                                {%for stud in student %}
+                                    {% if stud.StudID == rb.StudID %}
+                                    <td>{{stud.StudName}}</td>
+                                    <td>{{stud.StudID}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% elif rb.StaffID != None %}
+                                {%for staff in staff %}
+                                    {% if staff.StaffID == rb.StaffID %}
+                                    <td>{{staff.StaffName}}</td>
+                                    <td>{{staff.StaffID}}</td>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                            {% for r in roomlist %}
+                                {%if r.RoomID == rb.RoomID%}
+                                <td>{{r.RoomName}}</td>
+                                {%endif%}
+                            {% endfor %}
+                            <td>{{rb.Start}}</td>
+                            <td>{{rb.End}}</td>
+                            <td>{{rb.Purpose}}</td>
+                            <td>{{rb.RBookStatus}}</td>
+                            <td>
+                                {%if rb.RBookStatus == "Completed"%}
+                                <a href="/updateRBook/{{rb.RBookID}}" class="btn btn-warning btn-xs disabled" data-bs-toggle="modal" data-bs-target="#modaleditRBook{{rb.RBookID}}">Edit</a>
+                                {%else%}
+                                <a id="btnEditRbookModal" href="/updateRBook/{{rb.RBookID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal" data-bs-target="#modaleditRBook{{rb.RBookID}}">Edit</a>
+                                {%endif%}
+                                <a href="/deleteRBook/{{rb.RBookID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete room booking permanently? This action cannot be undone.')">Delete</a>
+                            </td>
+                        </tr>
+                        <!-- update room booking modal-->
+                        <div id="modaleditRBook{{rb.RBookID}}" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h4 class="modal-title">Edit Room Booking</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form action="{{url_for('bookings.update_room_booking')}}" method="POST" enctype="multipart/form-data">
+                                            <div class="form-group">
+                                                <label>Room Booked under:</label>
+                                                <input type="hidden" id="RBookID" name="RBookID" value="{{rb.RBookID}}">
+                                                {% if rb.StudID != None %}
+                                                    {%for stud in student %}
+                                                        {% if stud.StudID == rb.StudID %}
+                                                        <input type="text" class="form-control" id="StudID" name="StudID" value="{{stud.StudID}}" disabled>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% elif rb.StaffID != None %}
+                                                    {%for staff in staff %}
+                                                        {% if staff.StaffID == rb.StaffID %}
+                                                        <input type="text" class="form-control" id="StaffID" name="StaffID" value="{{staff.StaffID}}" disabled>
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                {% endif %}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Please select the room to book:</label></br>
+                                                <select id="roomSelect" name="roomSelect" required>
+                                                    <option disabled selected value> -- select an option -- </option>
+                                                    {% for r in roomlist %}
+                                                        {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
+                                                        {%if rb.RoomID == r.RoomID%}
+                                                        <option value="{{r.RoomID}}" selected="selected" hidden>{{r.RoomName}}</option>
+                                                        {%else%}
+                                                        <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                                        {% endif %}
+                                                        {%endif%}
+                                                    {% endfor %}
+                                                </select><br/>
+                                                <div class="row ml-1 mt-1">
+                                                    <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
+                                                    <pre><span id="roomInfoPreview"></span></pre>
+                                                </div>
+                                            </div>
+                                            <h6>Each Room Booking is only allowed to be 2 hours long</h6>
+                                            <div class="form-group" id="startEndRBook">
+                                                {% for i in rBookTimeList %}
+                                                {% if i.get('RBookID') == rb.RBookID %}
+                                                <p>Start:
+                                                    <input type="date" id="rbookstart" name="rbookstart" value="{{i.get('StartDate')}}">
+                                                    <p>Current start time of booking: <b>{{i.get('StartTime')}}</b></p>
+                                                    <select id="rbooktimeStart" name="rbooktimeStart" required>
+                                                        <option disabled selected value> -- select an option to change the time -- </option>
+                                                        <option value="{{i.get('StartTime')}}" selected = "selected" hidden>{{i.get('StartTime')}}</option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                    </select>    
+                                                </p>
+                                                <p>End: 
+                                                    <input type="date" id="rbookend" name="rbookend" value="{{i.get('EndDate')}}">
+                                                    <p>Current end time of booking: <b>{{i.get('EndTime')}}</b></p>
+                                                    <select id="rbooktimeEnd" name="rbooktimeEnd" required>
+                                                        <option disabled selected value> -- select an option to change the time -- </option>
+                                                        <option value="{{i.get('EndTime')}}" selected = "selected" hidden>{{i.get('EndTime')}}</option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                        <option value="21:00:00">09:00 PM</option>
+                                                    </select>
+                                                </p>
+                                                {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Purpose of Booking:</label></br>
+                                                <textarea 
+                                                    name = "RBookPurpose" 
+                                                    id="RBookPurpose"
+                                                    class="form-control pull-left" 
+                                                    rows="3" 
+                                                    cols="2" 
+                                                    v-model="RBookPurpose" 
+                                                    placeholder="Room Booking Purpose" 
+                                                required>{{rb.Purpose}}</textarea><br>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Change room booking status:</label></br>
+                                                <select id="rBookStatusType" name="rBookStatusType">
+                                                    {% if rb.RBookStatus=="Upcoming" %}
+                                                        <option value ="Upcoming" selected = "selected">Upcoming</option>
+                                                        <option value="Completed">Completed</option>
+                                                        <option value="Canceled">Canceled</option>
+                                                        <option value="Ongoing">Ongoing</option>
+                                                    {% else %}
+                                                    <option disable selected value> -- SET STATUS -- </option>
+                                                    <option value ="Upcoming">Upcoming</option>
+                                                    <option value="Completed">Completed</option>
+                                                    <option value="Canceled">Canceled</option>
+                                                    <option value="Ongoing">Ongoing</option>
+                                                    {% endif %}
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <button type="button" class="btn btn-secondary mt-4" data-bs-dismiss="modal">Close</button>
+                                                <button class="btn btn-primary mt-4" type="submit">Edit Room Booking</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+<script type="text/javascript">
+    document.getElementById("addrbook").onclick = function () {
+        location.href = "/ManageRBookings/AddRBook";
+    };
+</script>
+<script>
+    $(document).on('show.bs.modal', '.modal', function () {
+        //should load room img and info once press edit button but not working
+        if(($("#modaleditRBook").data('bs.modal') || {})._isShown){
+            var r = document.getElementById("roomSelect");
+            var value = r.value;
+            var img = document.getElementById("roomPreview");
+            var imginfo = document.getElementById('roomInfoPreview');
+            {% for r in roomlist %}
+            if (this.value == {{r.RoomID|tojson}} ){
+                var temp = {{r.roomIMG|tojson}}.splice(10, 0, "\\");
+                img.src = "\\static\\uploads\\"+temp;
+                img.alt = temp;
+                imginfo.innerHTML = {{r.RoomInfo|tojson}};
+            }
+            {%endfor%}
+        }
+    });
+</script>
+{% endblock %}

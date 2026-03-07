@@ -9,6 +9,7 @@ from flask_executor import Executor
 from config import config
 from .models.base import db
 from .models import Student, Staff, Admin
+from .utils.ui import is_aria_ui_enabled, ui_phase
 
 # Initialize extensions
 mail = Mail()
@@ -95,6 +96,14 @@ def create_app(config_name: str = None) -> Flask:
     
     # Register error handlers
     register_error_handlers(app)
+
+    @app.context_processor
+    def inject_ui_flags():
+        """Expose UI rollout flags to templates."""
+        return {
+            'aria_ui_enabled': is_aria_ui_enabled(),
+            'aria_ui_phase': ui_phase(),
+        }
     
     # Start background scheduler and Redis subscriber
     if not os.environ.get('FLASK_SKIP_BACKGROUND_THREADS'):

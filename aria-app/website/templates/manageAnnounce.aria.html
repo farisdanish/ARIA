@@ -1,0 +1,41 @@
+{% extends "base_aria.html" %}
+{% from "_section_header.html" import section_header %}
+<title>{% block title %}Announcement Management{% endblock %}</title>
+
+{% block PageTitle %}
+{{ section_header("Announcements", "Manage ARIA-wide messaging") }}
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="aria-section-card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Published Announcements</h4>
+        <button class="btn btn-outline-primary btn-sm" hx-get="/ManageAnnouncements" hx-target="#announcement-list" hx-swap="innerHTML">Refresh</button>
+      </div>
+      <div id="announcement-list">
+        {% include "_announcement_list.html" %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <form method="POST" class="aria-section-card p-3" hx-post="/ManageAnnouncements" hx-target="#announcement-list" hx-swap="innerHTML">
+      <h4>Add Announcement</h4>
+      <div class="mb-3">
+        <label for="ATitle" class="form-label">Title</label>
+        <input type="text" class="form-control" id="ATitle" name="ATitle" required />
+      </div>
+      <div class="mb-3">
+        <label for="AContent" class="form-label">Content</label>
+        <textarea id="AContent" name="AContent" rows="4" class="form-control" required></textarea>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-primary">Publish</button>
+        <a href="/homeAdmin" class="btn btn-outline-secondary">Back</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

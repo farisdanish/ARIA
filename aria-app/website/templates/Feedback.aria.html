@@ -1,0 +1,108 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Feedback {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Booking Feedback</h2></center>
+{% endblock %}
+
+{% block content%}
+<br/>
+<div class="flex-container container-fluid" style="">
+    <center><button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/';">Go Back</button></center>
+    <div class="wrap row p-3 justify-content-center">
+        <form action="" method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                {% if user.is_Student() %}
+                    <label for="StudID">Student ID:</label>
+                    <input type="text" class="form-control" id="StudID" name="StudID" value="{{user.StudID}}" readonly>
+                    <input type="hidden" class="form-control" id="StaffID" name="StaffID" value="">
+                {% elif user.is_Staff() %}
+                    <label for="StaffID">Staff ID:</label>
+                    <input type="hidden" class="form-control" id="StudID" name="StudID" value="">
+                    <input type="text" class="form-control" id="StaffID" name="StaffID" value="{{user.StaffID}}" readonly>
+                {%endif%}
+            </div>
+            <div class="form-group">
+                <label>Is this feedback for Room Booking or Event Booking?:</label></br>
+                <select id="feedbackType" name="feedbackType" required>
+                    <option disabled selected value> -- select an option -- </option>
+                    <option value="Room">Room Booking</option>
+                    <option value="Event">Event Booking</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <div id="feedbackRBookType" style="display:none;">
+                    <p>Room Booking:
+                    <select class="js-example-basic-single" id="rbook" name="rbook">
+                        <option disabled selected value> -- select an option -- </option>
+                        {%for rb in roombookings%}
+                            {% if user.is_Student() %}
+                            {%if rb.StudID == user.StudID%}
+                                {%for rm in roomlist%}
+                                    {%if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed"%}
+                                        <option value="{{rb.RBookID}}"> {{rb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
+                                    {%endif%}
+                                {%endfor%}
+                            {%endif%}
+                            {% elif user.is_Staff() %}
+                                {%if rb.StaffID == user.StaffID%}
+                                    {%for rm in roomlist%}
+                                        {%if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed"%}
+                                            <option value="{{rb.RBookID}}"> {{rb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
+                                        {%endif%}
+                                    {%endfor%}
+                                {%endif%}
+                            {%endif%}
+                        {%endfor%}
+                    </select>
+                    </p>
+                </div>
+                <div id="feedbackEBookType" style="display:none;">
+                    <p>Event Booking:
+                    <select class="js-example-basic-single" id="ebook" name="ebook">
+                        <option disabled selected value> -- select an option -- </option>
+                        {%for eb in eventbookings%}
+                            {% if user.is_Student() %}
+                            {%if eb.StudID == user.StudID%}
+                                {%for rm in roomlist%}
+                                    {%if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed"%}
+                                        <option value="{{eb.EBookID}}"> {{eb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
+                                    {%endif%}
+                                {%endfor%}
+                            {%endif%}
+                            {% elif user.is_Staff() %}
+                                {%if eb.StaffID == user.StaffID%}
+                                    {%for rm in roomlist%}
+                                        {%if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed"%}
+                                            <option value="{{eb.EBookID}}"> {{eb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
+                                        {%endif%}
+                                    {%endfor%}
+                                {%endif%}
+                            {%endif%}
+                        {%endfor%}
+                    </select>
+                    </p>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Your Feedback:</label></br>
+                <textarea 
+                    name = "FeedbackContent" 
+                    id="FeedbackContent"
+                    class="form-control pull-left" 
+                    rows="3" 
+                    cols="2" 
+                    v-model="FeedbackContent" 
+                    placeholder="Enter your thoughts on this booking." 
+                    required></textarea><br>
+            </div>
+            <div class="form-group">
+                <button class="btn btn-primary mt-4" type="submit">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+{% endblock %}

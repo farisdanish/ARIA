@@ -1,11 +1,12 @@
 """Face recognition routes."""
-from flask import Blueprint, Response, render_template, request, flash, redirect, url_for, current_app
+from flask import Blueprint, Response, request, flash, redirect, url_for, current_app
 from flask_login import login_required, current_user
 from ..services.face_service import FaceService
 from ..models.user import Student, Staff
 from ..models.face import RegisteredFace
 from ..models.base import db
 from ..app import executor
+from ..utils.ui import render_ui_template
 import cv2
 import logging
 
@@ -152,16 +153,18 @@ def face_recognition():
 def register_face():
     """Face registration page."""
     if current_user.is_Student():
-        return render_template(
+        return render_ui_template(
             "faceRegister.html",
+            ui_group="dashboards",
             user=current_user,
             is_Student=True,
             is_Staff=False,
             is_Admin=False
         )
     elif current_user.is_Staff():
-        return render_template(
+        return render_ui_template(
             "faceRegister.html",
+            ui_group="dashboards",
             user=current_user,
             is_Student=False,
             is_Staff=True,
@@ -202,4 +205,3 @@ def train_data():
     executor.submit(face_service.train_model)
     flash('Face Detection Model is refreshing...', category='info')
     return redirect(url_for('home.index'))
-

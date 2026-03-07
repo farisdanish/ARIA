@@ -1,5 +1,5 @@
 """Booking management routes."""
-from flask import Blueprint, render_template, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, request, flash, redirect, url_for, jsonify
 from flask_login import login_required, current_user
 from sqlalchemy import desc
 from datetime import datetime
@@ -12,7 +12,9 @@ from ..utils.validation import validate_form_data
 from ..models.user import Student, Staff
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
+from ..utils.ui import render_ui_template
 from flask import current_app
+from sqlalchemy import and_
 import logging
 
 logger = logging.getLogger(__name__)
@@ -33,6 +35,13 @@ def format_booking_times(bookings_list):
         }
         time_list.append(time_dict)
     return time_list
+
+
+def _redirect_after_booking_update():
+    """Return role-aware redirect target after booking updates."""
+    if current_user.is_Admin():
+        return redirect(url_for('home.admin'))
+    return redirect(url_for('bookings.my_bookings'))
 
 
 @bookings.route('/MyBookings', methods=['GET', 'POST'])
@@ -67,8 +76,9 @@ def my_bookings():
     from ..services.announcement_service import AnnouncementService
     announcements = AnnouncementService.get_all()
     
-    return render_template(
+    return render_ui_template(
         template,
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         student=students if is_student else [],
@@ -225,6 +235,123 @@ def add_event_booking():
     return redirect(url_for('bookings.my_bookings'))
 
 
+@bookings.route('/updateRBook/', methods=['POST'])
+@login_required
+def update_room_booking():
+    """Update room booking details from legacy modal forms."""
+    try:
+        booking = db.session.query(RoomBooking).filter_by(RBookID=request.form.get('RBookID')).first()
+        if not booking:
+            flash('Room booking not found.', category='error')
+            return _redirect_after_booking_update()
+
+        start = datetime.combine(
+            datetime.strptime(request.form.get('rbookstart'), '%Y-%m-%d').date(),
+            datetime.strptime(request.form.get('rbooktimeStart'), '%H:%M:%S').time()
+        )
+        end = datetime.combine(
+            datetime.strptime(request.form.get('rbookend'), '%Y-%m-%d').date(),
+            datetime.strptime(request.form.get('rbooktimeEnd'), '%H:%M:%S').time()
+        )
+        room_id = int(request.form.get('roomSelect'))
+        purpose = request.form.get('RBookPurpose', '').strip()
+        status = request.form.get('rBookStatusType') or booking.RBookStatus
+
+        is_valid, error_msg = BookingService.validate_booking_duration(start, end, max_hours=2)
+        if not is_valid:
+            flash(error_msg, category='error')
+            return _redirect_after_booking_update()
+
+        conflicting = db.session.query(RoomBooking).filter(
+            and_(
+                RoomBooking.RoomID == room_id,
+                RoomBooking.Start <= end,
+                RoomBooking.End >= start,
+                RoomBooking.RBookID != booking.RBookID,
+            )
+        ).first()
+        if conflicting:
+            flash('Room already occupied for that time.', category='error')
+            return _redirect_after_booking_update()
+
+        if not purpose:
+            flash('Please provide booking purpose.', category='error')
+            return _redirect_after_booking_update()
+
+        booking.Start = start
+        booking.End = end
+        booking.RoomID = room_id
+        booking.Purpose = purpose
+        booking.RBookStatus = status
+        db.session.commit()
+        flash('Room booking updated successfully.', category='success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to update room booking: {str(e)}")
+        flash('Failed to update room booking.', category='error')
+
+    return _redirect_after_booking_update()
+
+
+@bookings.route('/updateEBook/', methods=['POST'])
+@login_required
+def update_event_booking():
+    """Update event booking details from legacy modal forms."""
+    try:
+        booking = db.session.query(EventBooking).filter_by(EBookID=request.form.get('EBookID')).first()
+        if not booking:
+            flash('Event booking not found.', category='error')
+            return _redirect_after_booking_update()
+
+        start = datetime.combine(
+            datetime.strptime(request.form.get('ebookstart'), '%Y-%m-%d').date(),
+            datetime.strptime(request.form.get('ebooktimeStart'), '%H:%M:%S').time()
+        )
+        end = datetime.combine(
+            datetime.strptime(request.form.get('ebookend'), '%Y-%m-%d').date(),
+            datetime.strptime(request.form.get('ebooktimeEnd'), '%H:%M:%S').time()
+        )
+        room_id = int(request.form.get('roomSelect'))
+        purpose = request.form.get('EBookPurpose', '').strip()
+        add_detail = request.form.get('EBookAddDetail')
+        status = request.form.get('eBookStatusType') or booking.EbookStatus
+
+        conflicting = db.session.query(EventBooking).filter(
+            and_(
+                EventBooking.RoomID == room_id,
+                EventBooking.Start <= end,
+                EventBooking.End >= start,
+                EventBooking.EBookID != booking.EBookID,
+            )
+        ).first()
+        if conflicting:
+            flash('Room already occupied for that time.', category='error')
+            return _redirect_after_booking_update()
+
+        if end < start:
+            flash('Booking end time must be after start time.', category='error')
+            return _redirect_after_booking_update()
+
+        if not purpose:
+            flash('Please provide booking purpose.', category='error')
+            return _redirect_after_booking_update()
+
+        booking.Start = start
+        booking.End = end
+        booking.RoomID = room_id
+        booking.Purpose = purpose
+        booking.AddDetail = add_detail
+        booking.EbookStatus = status
+        db.session.commit()
+        flash('Event booking updated successfully.', category='success')
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Failed to update event booking: {str(e)}")
+        flash('Failed to update event booking.', category='error')
+
+    return _redirect_after_booking_update()
+
+
 @bookings.route('/deleteRBook/<int:booking_id>/', methods=['GET', 'POST'])
 @login_required
 def delete_room_booking(booking_id):
@@ -274,8 +401,9 @@ def manage_room_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_template(
-        "manageRBookings.html",
+    return render_ui_template(
+        "manageRBooking.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -303,8 +431,9 @@ def manage_event_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_template(
-        "manageEBookings.html",
+    return render_ui_template(
+        "manageEBooking.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -332,7 +461,7 @@ def qr_checkin():
     if not token or not booking_id:
         if request.is_json:
             return jsonify({"success": False, "message": "Missing token or booking ID."}), 400
-        return render_template("checkin_qr.html", success=False,
+        return render_ui_template("checkin_qr.html", ui_group="dashboards", success=False,
                                message="Invalid QR code.")
 
     try:
@@ -373,4 +502,4 @@ def qr_checkin():
             booking_id=booking_id,
             booking_type=booking_type
         )
-    return render_template("checkin_qr.html", success=success, message=message)
+    return render_ui_template("checkin_qr.html", ui_group="dashboards", success=success, message=message)

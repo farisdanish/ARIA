@@ -1,0 +1,78 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Staff Registration {% endblock %}</title>
+{% block content%}
+<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+<div class="flex-container container mt-3">
+    <form method="POST">
+        <div class="row jumbotron box8">
+            <div class="col-sm-12 mx-t3 mb-4">
+                <h3 class="text-center">Staff Registration</h3>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffID">Staff ID</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id = "StaffID"
+                    name = "StaffID"
+                    placeholder = "Enter Staff ID Number"
+                required/>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffName">Full Name</label>
+                <input
+                    type="text"
+                    class="form-control"
+                    id = "StaffName"
+                    name = "StaffName"
+                    placeholder = "Enter Your Full Name"
+                required/>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffEmail">Staff Email</label>
+                <input
+                    type="email"
+                    class="form-control"
+                    id = "StaffEmail"
+                    name = "StaffEmail"
+                    placeholder = "Enter Your Staff Email"
+                required/>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffContactNum">Contact Number</label>
+                <input
+                    type="tel"
+                    class="form-control"
+                    id = "StaffContactNum"
+                    name = "StaffContactNum"
+                    placeholder = "Enter Your Contact Number"
+                required/>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffPassword1">Password</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    id = "StaffPassword1"
+                    name = "StaffPassword1"
+                    placeholder = "Enter Your Password"
+                required/>
+            </div>
+            <div class="col-sm-6 form-group">
+                <label for="StaffPassword2">Password (Confirm)</label>
+                <input
+                    type="password"
+                    class="form-control"
+                    id = "StaffPassword2"
+                    name = "StaffPassword2"
+                    placeholder = "Confirm Password"
+                required/>
+            </div>
+            <div class="col-sm-12 form-group mb-0">
+                <button type="submit" class="btn btn-primary" style="margin-bottom:10px;">Submit</button>
+                <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="history.back()">Go Back</button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

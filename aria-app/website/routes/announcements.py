@@ -6,6 +6,7 @@ from ..services.mail_service import MailService
 from ..models.base import db
 from ..schemas.announcement_schema import AnnouncementCreateSchema
 from ..utils.validation import validate_form_data
+from ..utils.ui import render_ui_template
 from flask import current_app
 import logging
 
@@ -47,8 +48,17 @@ def manage():
                 flash('Failed to create announcement. Please try again.', category='error')
     
     all_announcements = AnnouncementService.get_all()
-    return render_template(
+
+    if request.headers.get('HX-Request') == 'true':
+        return render_template(
+            "_announcement_list.html",
+            user=current_user,
+            announcements=all_announcements
+        )
+
+    return render_ui_template(
         "manageAnnounce.html",
+        ui_group="admin",
         user=current_user,
         announcements=all_announcements,
         is_Student=False,
@@ -101,21 +111,33 @@ def delete():
         return jsonify({'error': 'Unauthorized'}), 403
     
     try:
-        data = request.get_json()
-        announce_id = data.get('AnnounceId')
+        data = request.get_json(silent=True) or {}
+        announce_id = (
+            data.get('AnnounceId')
+            or request.form.get('AnnounceId')
+            or request.args.get('AnnounceId')
+        )
         
         if not announce_id:
             return jsonify({'error': 'Invalid announcement ID'}), 400
         
         success = AnnouncementService.delete(int(announce_id))
+        if request.headers.get('HX-Request') == 'true':
+            if success:
+                all_announcements = AnnouncementService.get_all()
+                return render_template(
+                    "_announcement_list.html",
+                    user=current_user,
+                    announcements=all_announcements
+                )
+            return "Announcement not found", 404
+
         if success:
             return jsonify({'success': True})
-        else:
-            return jsonify({'error': 'Announcement not found'}), 404
+        return jsonify({'error': 'Announcement not found'}), 404
             
     except ValueError:
         return jsonify({'error': 'Invalid announcement ID'}), 400
     except Exception as e:
         logger.error(f"Error deleting announcement: {str(e)}")
         return jsonify({'error': 'Internal server error'}), 500
-

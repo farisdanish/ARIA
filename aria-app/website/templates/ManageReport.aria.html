@@ -1,0 +1,76 @@
+{% extends "base_aria.html" %}
+<title>{% block title %} Booking Report {% endblock %}</title>
+
+{% block PageTitle%}
+    <br/>
+    <center><h2>Booking Report - ADMINISTRATION</h2></center>
+{% endblock %}
+
+{% block content%}
+<br/>
+<div class="flex-container container-fluid" style="">
+    <div class="row">
+        <div class="col md-12">
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            
+            <button class="btn btn-primary float-right" style="margin-bottom:10px;" data-bs-toggle="modal" data-bs-target="#modalReportChoice">Compile Report</button>
+            <!-- The Modal -->
+            <div id="modalReportChoice" class="modal fade" role="dialog">
+                <div class="modal-dialog modal-lg" style="width:90%">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title">Choose Report Parameter</h4>
+                        </div>
+                        <div class="modal-body">
+                            <form action="/getReport" method="POST" enctype="multipart/form-data">
+                                <label for="reportmonth">Report (month and year):</label>
+                                <p>if there is no popup, enter year and month using YYYY-MM format (e.g 2023-06)</p>
+                                <input type="month" class="form-control" id="reportmonth" name="reportmonth" required>
+                                <button class="btn btn-primary mt-4" type="submit">Submit</button>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="jumbotron p-3">
+                <table id="reportsTable" class="table table-hover table-dark display">
+                    <thead>
+                        <tr>
+                            <th>ReportID</th>
+                            <th>Report Title</th>
+                            <th>Room Name</th>
+                            <th>Total Bookings</th>
+                            <th>Total Hours</th>
+                            <th>Month/Year</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    {% for r in report %}
+                        <tr>
+                            <td>{{r.ReportID}}</td>
+                            <td>{{r.ReportTitle}}</td>
+                            {%for rm in roomlist%}
+                            {%if rm.RoomID == r.RoomID%}
+                            <td>{{rm.RoomName}}</td>
+                            {%endif%}
+                            {%endfor%}
+                            <td>{{r.totalNumBookings}}</td>
+                            <td>{{r.totalHoursBooked}}</td>
+                            <td>{{r.MonthYear.strftime("%m-%Y")}}</td>
+                            <td>
+                                <!--<a href="/updateRoom/{{r.RoomID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal" data-bs-target="#modaleditroom{{r.RoomID}}">Edit</a>-->
+                                <a href="/deleteReport/{{r.ReportID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete report from listing?')">Delete</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            <!</div>
+        </div>
+    </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+{% endblock %}

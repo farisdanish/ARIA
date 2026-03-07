@@ -1,9 +1,10 @@
 """Authentication routes."""
-from flask import Blueprint, render_template, request, flash, redirect, url_for, session
+from flask import Blueprint, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
 from ..services.auth_service import AuthService
 from ..models.user import Student, Staff, Admin
 from ..models.base import db
+from ..utils.ui import render_ui_template
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,7 +21,7 @@ def login():
         
         if not user_id or not password:
             flash('Please enter both user ID and password.', category='error')
-            return render_template("login.html", user=current_user)
+            return render_ui_template("login.html", ui_group="public", user=current_user)
         
         user = AuthService.authenticate_user(user_id, password)
         
@@ -39,7 +40,7 @@ def login():
         else:
             flash('Invalid user ID or password. Please try again.', category='error')
     
-    return render_template("login.html", user=current_user)
+    return render_ui_template("login.html", ui_group="public", user=current_user)
 
 
 @auth.route('/logout')
@@ -54,7 +55,7 @@ def logout():
 @auth.route('/RegisterSelect', methods=['GET', 'POST'])
 def register_select():
     """Registration selection page."""
-    return render_template("registerSelect.html", user=current_user)
+    return render_ui_template("registerSelect.html", ui_group="public", user=current_user)
 
 
 @auth.route('/studRegister', methods=['GET', 'POST'])
@@ -72,7 +73,7 @@ def register_student():
         existing_student = db.session.query(Student).filter_by(StudID=stud_id).first()
         if existing_student:
             flash('Student ID already registered.', category='error')
-            return render_template("register.html", user=current_user)
+            return render_ui_template("register.html", ui_group="public", user=current_user)
         
         # Validate registration data
         from ..utils.validators import validate_student_registration
@@ -82,7 +83,7 @@ def register_student():
         
         if not is_valid:
             flash(error_msg, category='error')
-            return render_template("register.html", user=current_user)
+            return render_ui_template("register.html", ui_group="public", user=current_user)
         
         # Create student account
         try:
@@ -93,7 +94,7 @@ def register_student():
             logger.error(f"Failed to create student account: {str(e)}")
             flash('Registration failed. Please try again.', category='error')
     
-    return render_template("register.html", user=current_user)
+    return render_ui_template("register.html", ui_group="public", user=current_user)
 
 
 @auth.route('/staffRegister', methods=['GET', 'POST'])
@@ -111,7 +112,7 @@ def register_staff():
         existing_staff = db.session.query(Staff).filter_by(StaffID=staff_id).first()
         if existing_staff:
             flash('Staff ID already registered.', category='error')
-            return render_template("registerStaff.html", user=current_user)
+            return render_ui_template("registerStaff.html", ui_group="public", user=current_user)
         
         # Validate registration data
         from ..utils.validators import validate_staff_registration
@@ -121,7 +122,7 @@ def register_staff():
         
         if not is_valid:
             flash(error_msg, category='error')
-            return render_template("registerStaff.html", user=current_user)
+            return render_ui_template("registerStaff.html", ui_group="public", user=current_user)
         
         # Create staff account
         try:
@@ -132,5 +133,4 @@ def register_staff():
             logger.error(f"Failed to create staff account: {str(e)}")
             flash('Registration failed. Please try again.', category='error')
     
-    return render_template("registerStaff.html", user=current_user)
-
+    return render_ui_template("registerStaff.html", ui_group="public", user=current_user)

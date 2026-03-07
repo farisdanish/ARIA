@@ -51,6 +51,10 @@ class Config:
     
     # JSON
     JSONIFY_PRETTYPRINT_REGULAR = True
+
+    # UI rollout
+    ARIA_UI_ENABLED = os.environ.get('ARIA_UI_ENABLED', 'False').lower() == 'true'
+    ARIA_UI_PHASE = os.environ.get('ARIA_UI_PHASE', 'public').lower()
     
     @staticmethod
     def init_app(app):
@@ -83,4 +87,3 @@ config = {
     'testing': TestingConfig,
     'default': DevelopmentConfig
 }
-

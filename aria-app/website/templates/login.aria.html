@@ -1,0 +1,59 @@
+{% extends "base_aria.html" %}
+<title>{% block title %}Login {% endblock %}</title>
+{% block content%}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+<section class="ftco-section" style="padding: 4em 0;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center mb-5">
+                <h3 align="center">LOGIN - ARIA Smart Booking Platform</h3>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-7 col-lg-5">
+                <div class="wrap">
+                    <!--<div></div>-->
+                    <div class="login-wrap p-4 p-md-5">
+                        <form method="POST">
+                            <div class="form-group">
+                                <label for="userID">ID Number</label>
+                                <input
+                                    type="text"
+                                    class="form-control"
+                                    id = "userID"
+                                    name = "userID"
+                                    placeholder = "Enter ID Number"
+                                /required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="userPassword">Password</label>
+                                    <input
+                                        type="password"
+                                        class="form-control"
+                                        id = "userPassword"
+                                        name = "userPassword"
+                                        placeholder = "Enter Your Password"
+                                    /required>
+                                </div>
+                                <div class="form-group">
+                                    <div class="row">
+                                        <div class="col text-center">   
+                                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="coontaier">
+                                    <div class="row">
+                                        <div class="col text-center">   
+                                            <a href="/RegisterSelect">Dont have an a registered account? Please <b>Register</b> (Students and staff only)</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

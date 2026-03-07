@@ -1,5 +1,5 @@
 """Home page routes."""
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, redirect, url_for
 from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import Student, Staff, Admin
@@ -9,6 +9,7 @@ from ..models.face import RegisteredFace
 from ..models.base import db
 from ..services.announcement_service import AnnouncementService
 from ..services.room_service import RoomService
+from ..utils.ui import render_ui_template
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,8 +35,9 @@ def index():
         elif current_user.is_Student():
             return redirect(url_for('home.student'))
     
-    return render_template(
+    return render_ui_template(
         "home.html",
+        ui_group="public",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -69,8 +71,9 @@ def student():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StudID=current_user.StudID).first()
     
-    return render_template(
+    return render_ui_template(
         "homeStud.html",
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -109,8 +112,9 @@ def staff():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StaffID=current_user.StaffID).first()
     
-    return render_template(
+    return render_ui_template(
         "homeStaff.html",
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -145,8 +149,9 @@ def admin():
     room_bookings = db.session.query(RoomBooking).all()
     event_bookings = db.session.query(EventBooking).all()
     
-    return render_template(
+    return render_ui_template(
         "homeAdmin.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -157,4 +162,3 @@ def admin():
         is_Staff=False,
         is_Admin=True
     )
-
