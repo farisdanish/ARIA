@@ -137,6 +137,46 @@ a:focus-visible {
   color: var(--aria-text-muted);
 }
 
+/* Toast System */
+#aria-toast-container {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 1080;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.aria-toast-item {
+  pointer-events: auto;
+  min-width: 300px;
+  max-width: 400px;
+  background: var(--aria-surface);
+  border: 1px solid var(--aria-border);
+  border-radius: var(--aria-radius-md);
+  box-shadow: var(--aria-shadow-md);
+  overflow: hidden;
+  animation: aria-toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes aria-toast-in {
+  from { opacity: 0; transform: translateX(1.5rem); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* HTMX Indicators */
+.htmx-indicator {
+  display: none;
+}
+.htmx-request .htmx-indicator {
+  display: inline-block;
+}
+.htmx-request.htmx-indicator {
+  display: inline-block;
+}
+
 @media (max-width: 992px) {
   .aria-title-card {
     padding: var(--aria-space-4) var(--aria-space-6);

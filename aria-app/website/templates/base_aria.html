@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1"/>
     <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{% block title %}ARIA{% endblock %}</title>
 
     {% block head_assets %}
@@ -62,6 +63,9 @@
       </div>
     </nav>
     {% endblock %}
+
+    <!-- Global Toast Container -->
+    <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
 
     {% block flash_messages %}
     <div class="container-fluid px-3 pt-3" role="status" aria-live="polite">

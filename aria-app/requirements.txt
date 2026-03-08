@@ -15,6 +15,7 @@ mysqlclient==2.2.0
 
 # Authentication & Security
 bcrypt==4.1.2
+Flask-WTF==1.2.1
 
 # Face Recognition & ML
 opencv-python==4.8.1.78

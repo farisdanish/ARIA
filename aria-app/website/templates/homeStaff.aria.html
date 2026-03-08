@@ -257,13 +257,17 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form action="/AddRBook" method="POST" enctype="multipart/form-data">
+                                    <form hx-post="/AddRBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#rbook-indicator" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStaff"
                                                 <p>Staff ID:
                                                     <input type="text" class="form-control" id="staffid" name="staffid" value="{{user.StaffID}}">
                                                 </p>
                                             </div>
+                                        </div>
+                                        <!-- Add a hidden spinner -->
+                                        <div id="rbook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                                          <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <div class="form-group">
                                             <label>Please select the room to book:</label></br>
@@ -351,13 +355,17 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form action="/AddEBook" method="POST" enctype="multipart/form-data">
+                                    <form hx-post="/AddEBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#ebook-indicator" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStaff"
                                                 <p>Staff ID:
                                                     <input type="text" class="form-control" id="staffid" name="staffid" value="{{user.StaffID}}">
                                                 </p>
                                             </div>
+                                        </div>
+                                        <!-- Add a hidden spinner -->
+                                        <div id="ebook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                                          <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <div class="form-group">
                                             <label>Please select the event room to book:</label></br>

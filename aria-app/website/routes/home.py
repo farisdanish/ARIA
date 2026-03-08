@@ -1,5 +1,5 @@
 """Home page routes."""
-from flask import Blueprint, redirect, url_for
+from flask import Blueprint, redirect, url_for, render_template, request
 from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import Student, Staff, Admin
@@ -162,3 +162,11 @@ def admin():
         is_Staff=False,
         is_Admin=True
     )
+
+
+@home.route('/toast-partial')
+def toast_partial():
+    """Returns a toast partial for HTMX."""
+    message = request.args.get('message', '')
+    type = request.args.get('type', 'info')
+    return render_template('partials/_toast.html', message=message, type=type)

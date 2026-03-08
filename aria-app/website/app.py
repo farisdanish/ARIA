@@ -6,6 +6,7 @@ import logging
 from flask import Flask
 from flask_mail import Mail
 from flask_executor import Executor
+from flask_wtf.csrf import CSRFProtect
 from config import config
 from .models.base import db
 from .models import Student, Staff, Admin
@@ -14,6 +15,7 @@ from .utils.ui import is_aria_ui_enabled, ui_phase
 # Initialize extensions
 mail = Mail()
 executor = Executor()
+csrf = CSRFProtect()
 
 # Configure logging
 logging.basicConfig(
@@ -47,6 +49,7 @@ def create_app(config_name: str = None) -> Flask:
     db.init_app(app)
     mail.init_app(app)
     executor.init_app(app)
+    csrf.init_app(app)
 
     # Bootstrap database tables for local/dev environments when missing.
     auto_create_db = os.environ.get('AUTO_CREATE_DB', 'True').lower() == 'true'

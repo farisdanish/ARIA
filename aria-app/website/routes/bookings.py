@@ -1,5 +1,5 @@
 """Booking management routes."""
-from flask import Blueprint, request, flash, redirect, url_for, jsonify
+from flask import Blueprint, request, flash, redirect, url_for, jsonify, render_template
 from flask_login import login_required, current_user
 from sqlalchemy import desc
 from datetime import datetime
@@ -123,6 +123,8 @@ def add_room_booking():
             # Validate booking
             is_valid, error_msg = BookingService.validate_booking_duration(start, end, max_hours=2)
             if not is_valid:
+                if request.headers.get('HX-Request'):
+                    return render_template('partials/_toast.html', message=error_msg, type='error')
                 flash(error_msg, category='error')
                 return redirect(url_for('bookings.my_bookings'))
             
@@ -154,9 +156,15 @@ def add_room_booking():
                     email = current_user.StudEmail if current_user.is_Student() else current_user.StaffEmail
                     mail_service.send_qr_checkin_email(email, qr_image, booking)
                 
-                flash('Room Booking was Added! Check your email for the QR code.', category='success')
+                success_msg = 'Room Booking was Added! Check your email for the QR code.'
+                if request.headers.get('HX-Request'):
+                    return render_template('partials/_toast.html', message=success_msg, type='success')
+                flash(success_msg, category='success')
             else:
-                flash('Room already occupied for that time or booking failed.', category='error')
+                error_msg = 'Room already occupied for that time or booking failed.'
+                if request.headers.get('HX-Request'):
+                    return render_template('partials/_toast.html', message=error_msg, type='error')
+                flash(error_msg, category='error')
                 
         except ValueError as e:
             flash(f'Invalid input: {str(e)}', category='error')
@@ -222,9 +230,15 @@ def add_event_booking():
                     email = current_user.StudEmail if current_user.is_Student() else current_user.StaffEmail
                     mail_service.send_qr_checkin_email(email, qr_image, booking)
                 
-                flash('Event Booking was Added! Check your email for the QR code.', category='success')
+                success_msg = 'Event Booking was Added! Check your email for the QR code.'
+                if request.headers.get('HX-Request'):
+                    return render_template('partials/_toast.html', message=success_msg, type='success')
+                flash(success_msg, category='success')
             else:
-                flash('Room already occupied for that time or booking failed.', category='error')
+                error_msg = 'Room already occupied for that time or booking failed.'
+                if request.headers.get('HX-Request'):
+                    return render_template('partials/_toast.html', message=error_msg, type='error')
+                flash(error_msg, category='error')
                 
         except ValueError as e:
             flash(f'Invalid input: {str(e)}', category='error')
