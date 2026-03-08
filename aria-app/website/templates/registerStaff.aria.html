@@ -4,6 +4,7 @@
 <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
 <div class="flex-container container mt-3">
     <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="row jumbotron box8">
             <div class="col-sm-12 mx-t3 mb-4">
                 <h3 class="text-center">Staff Registration</h3>

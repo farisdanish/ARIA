@@ -15,6 +15,7 @@
                     <!--<div></div>-->
                     <div class="login-wrap p-4 p-md-5">
                         <form method="POST">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                             <div class="form-group">
                                 <label for="userID">ID Number</label>
                                 <input
