@@ -1,74 +1,86 @@
-$(document).ready(function() {
+$(document).ready(function () {
   $('.js-example-basic-single').select2();
   $('.js-example-basic-multiple').select2();
-  $('#roomTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
-  $('#rbookTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    order: [[4, 'desc']],
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
-  $('#ebookTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    order: [[4, 'desc']],
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
-  $('#regFacesTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    order: [[4, 'desc']],
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
-  $('#RAccessLogTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    order: [[4, 'desc']],
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
-  
-  $('#reportsTable').DataTable( {
-    responsive: true,
-    "pageLength": 5,
-    order: [[5, 'asc']],
-    rowReorder: {
-      selector: 'td:nth-child(2)'
-    }
-  } );
+  if (!$.fn.DataTable.isDataTable('#roomTable')) {
+    $('#roomTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
+  if (!$.fn.DataTable.isDataTable('#rbookTable')) {
+    $('#rbookTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      order: [[4, 'desc']],
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
+  if (!$.fn.DataTable.isDataTable('#ebookTable')) {
+    $('#ebookTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      order: [[4, 'desc']],
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
+  if (!$.fn.DataTable.isDataTable('#regFacesTable')) {
+    $('#regFacesTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      order: [[4, 'desc']],
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
+  if (!$.fn.DataTable.isDataTable('#RAccessLogTable')) {
+    $('#RAccessLogTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      order: [[4, 'desc']],
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
+
+  if (!$.fn.DataTable.isDataTable('#reportsTable')) {
+    $('#reportsTable').DataTable({
+      responsive: true,
+      "pageLength": 5,
+      order: [[5, 'asc']],
+      rowReorder: {
+        selector: 'td:nth-child(2)'
+      }
+    });
+  }
 
   $('.datepicker').datepicker({
     format: "mm-yyyy",
-    startView: "months", 
+    startView: "months",
     minViewMode: "months"
   });
 });
 
 function deleteAnnouncement(AnnounceId) {
-    fetch("/delete-announcement", {
-      method: "POST",
-      body: JSON.stringify({ AnnounceId: AnnounceId }),
-    }).then((_res) => {
-      window.location.href = "/ManageAnnouncements";
-    });
+  fetch("/delete-announcement", {
+    method: "POST",
+    body: JSON.stringify({ AnnounceId: AnnounceId }),
+  }).then((_res) => {
+    window.location.href = "/ManageAnnouncements";
+  });
 }
 
-$('#rBookType').on('change',function(){
+$('#rBookType').on('change', function () {
   var selection = $(this).val();
-  switch(selection){
+  switch (selection) {
     case "student":
       $("#typeStudent").show()
       $("#typeStaff").hide()
@@ -89,9 +101,9 @@ $('#rBookType').on('change',function(){
   }
 });
 
-$('#eBookType').on('change',function(){
+$('#eBookType').on('change', function () {
   var selection = $(this).val();
-  switch(selection){
+  switch (selection) {
     case "student":
       $("#typeStudent").show()
       $("#typeStaff").hide()
@@ -112,9 +124,9 @@ $('#eBookType').on('change',function(){
   }
 });
 
-$('#feedbackType').on('change',function(){
+$('#feedbackType').on('change', function () {
   var selection = $(this).val();
-  switch(selection){
+  switch (selection) {
     case "Room":
       $("#feedbackRBookType").show()
       $("#feedbackEBookType").hide()
@@ -135,7 +147,7 @@ $('#feedbackType').on('change',function(){
   }
 });
 
-String.prototype.splice = function(idx, rem, str) {
+String.prototype.splice = function (idx, rem, str) {
   return this.slice(0, idx) + str + this.slice(idx + Math.abs(rem));
 };
 
