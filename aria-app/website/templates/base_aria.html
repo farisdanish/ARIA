@@ -126,6 +126,20 @@
     <!-- Global Toast Container -->
     <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
 
+    <!-- Shared Announcement Modal -->
+    <div id="ariaAnnouncementModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" id="ariaAnnouncementModalContent">
+                <!-- Content loaded via HTMX -->
+                <div class="modal-body text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     {% block flash_messages %}
     <div id="legacy-flash-messages" style="display: none;">
       {% with messages = get_flashed_messages(with_categories=true) %}

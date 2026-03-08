@@ -1,0 +1,17 @@
+<div class="modal-header border-bottom-0 pb-0">
+    <h4 class="modal-title fw-bold">{{ announcement.Title }}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body py-4">
+    <div class="mb-3 text-muted small d-flex align-items-center gap-2">
+        <i class="fa fa-calendar text-primary"></i> 
+        <span>Published {{ announcement.PostDate.strftime("%Y-%m-%d at %H:%M") }}</span>
+        <span class="ms-auto">By Admin</span>
+    </div>
+    <div class="announcement-content text-dark lh-base" style="white-space: pre-wrap;">
+        {{ announcement.Content }}
+    </div>
+</div>
+<div class="modal-footer border-top-0">
+    <button type="button" class="btn btn-light px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+</div>

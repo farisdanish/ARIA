@@ -103,6 +103,38 @@ def update():
     return redirect(url_for('announcements.manage'))
 
 
+@announcements.route('/announcements/feed', methods=['GET'])
+@login_required
+def feed():
+    """Get the interactive announcement feed (HTMX)."""
+    search = request.args.get('search')
+    page = request.args.get('page', 1, type=int)
+    
+    results, has_more = AnnouncementService.get_feed(search=search, page=page)
+    
+    return render_template(
+        "partials/_announcement_list.html",
+        announcements=results,
+        page=page,
+        has_more=has_more,
+        search=search
+    )
+
+
+@announcements.route('/announcements/view/<int:announce_id>', methods=['GET'])
+@login_required
+def view(announce_id):
+    """Get announcement content for shared modal (HTMX)."""
+    announcement = AnnouncementService.get_by_id(announce_id)
+    if not announcement:
+        return "Announcement not found", 404
+        
+    return render_template(
+        "partials/_announcement_modal_content.html",
+        announcement=announcement
+    )
+
+
 @announcements.route('/delete-announcement', methods=['POST'])
 @login_required
 def delete():

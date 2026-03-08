@@ -1,0 +1,11 @@
+{% if page == 1 and not announcements %}
+<div class="text-center py-5">
+    <i class="fa fa-bullhorn fa-3x text-light mb-3"></i>
+    <p class="text-muted">No announcements found.</p>
+</div>
+{% endif %}
+
+{% for announcement in announcements %}
+    {% set is_last = loop.last %}
+    {% include 'partials/_announcement_item.html' %}
+{% endfor %}

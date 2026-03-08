@@ -19,6 +19,29 @@ class AnnouncementService:
         if order_by_date:
             query = query.order_by(desc(Announcement.PostDate))
         return query.all()
+
+    @staticmethod
+    def get_feed(search: str = None, page: int = 1, per_page: int = 10) -> tuple[List[Announcement], bool]:
+        """
+        Get paginated and filtered announcements.
+        Returns (list of announcements, has_more_boolean)
+        """
+        query = db.session.query(Announcement)
+        
+        if search:
+            query = query.filter(
+                (Announcement.Title.ilike(f'%{search}%')) | 
+                (Announcement.Content.ilike(f'%{search}%'))
+            )
+            
+        query = query.order_by(desc(Announcement.PostDate))
+        
+        # Paginate
+        offset = (page - 1) * per_page
+        results = query.offset(offset).limit(per_page + 1).all()
+        
+        has_more = len(results) > per_page
+        return results[:per_page], has_more
     
     @staticmethod
     def get_by_id(announce_id: int) -> Optional[Announcement]:
