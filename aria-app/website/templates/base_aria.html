@@ -124,6 +124,11 @@
     </div>
     {% endblock %}
 
+    {% if user.is_authenticated %}
+    <!-- Global UI Pulse (Real-time Sync) -->
+    <div hx-get="/api/ui/pulse" hx-trigger="every 60s" hx-swap="none" class="d-none" id="aria-ui-pulse"></div>
+    {% endif %}
+
     <!-- Global Toast Container -->
     <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
 

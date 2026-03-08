@@ -143,7 +143,7 @@
             <div class="aria-section-card flex-grow-1 p-3 overflow-auto">
                 <div id="discovery-sidebar-content" 
                      hx-get="/rooms/discovery?type=r" 
-                     hx-trigger="load" 
+                     hx-trigger="load, refreshRoomStatus from:body" 
                      hx-indicator="#rooms-loader">
                     <div class="text-center py-5">
                         <div class="spinner-border text-primary spinner-border-sm" role="status"></div>

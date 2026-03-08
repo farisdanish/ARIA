@@ -177,3 +177,27 @@ def toast_partial():
     message = request.args.get('message', '')
     type = request.args.get('type', 'info')
     return render_template('partials/_toast.html', message=message, type=type)
+
+
+@home.route('/api/ui/pulse')
+@login_required
+def ui_pulse():
+    """Lightweight endpoint for periodic UI state synchronization."""
+    from flask import make_response
+    import json
+    
+    triggers = {}
+    
+    # 1. Check for upcoming bookings or status changes
+    # For now, we signal a refresh of the room discovery sidebar
+    triggers['refreshRoomStatus'] = True
+    
+    # 2. Admin specific pulses (Feedback, reports)
+    if current_user.is_Admin():
+        from ..models.feedback import Feedback
+        feedback_count = db.session.query(Feedback).count()
+        triggers['updateFeedbackCount'] = feedback_count
+        
+    response = make_response("", 204) # No content
+    response.headers['HX-Trigger'] = json.dumps(triggers)
+    return response

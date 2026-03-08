@@ -78,6 +78,12 @@
 
     // 3. Global Error Handling
     document.addEventListener("htmx:responseError", (evt) => {
+      // SILENT FAILURE for background polling
+      if (evt.detail.path === "/api/ui/pulse" || evt.detail.target.id === "aria-ui-pulse") {
+        console.warn("[ARIA Sync] Background pulse failed silently.");
+        return;
+      }
+
       const errorMsg = evt.detail.xhr.responseText || "An unexpected error occurred.";
       window.showToast(errorMsg, "error");
     });
