@@ -42,6 +42,8 @@ services:
       - aria-network
     volumes:
       - ./aria-app/website/static/uploads:/app/website/static/uploads
+      - ./aria-app/website/templates:/app/website/templates
+      - ./aria-app/website/routes:/app/website/routes
 
   pi-simulator:
     build:
