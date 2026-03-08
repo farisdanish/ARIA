@@ -764,3 +764,206 @@ a:focus-visible {
     padding: var(--aria-space-4) var(--aria-space-6);
   }
 }
+
+/* ============================================
+   MOBILE-FIRST RESPONSIVE OVERRIDES (≤576px)
+   ============================================ */
+@media (max-width: 576px) {
+  /* 1. Toast → bottom-center on mobile */
+  #aria-toast-container {
+    top: auto;
+    right: auto;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 2rem);
+    max-width: 400px;
+  }
+  .aria-toast-item {
+    min-width: 0;
+    width: 100%;
+  }
+  @keyframes aria-toast-in {
+    from { opacity: 0; transform: translateY(1rem); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* 2. Typography scaling */
+  .display-6 { font-size: 1.5rem; }
+  .lead { font-size: 0.95rem; }
+
+  /* 3. Reduced card padding */
+  .aria-section-card { padding: 0.75rem; }
+  .stat-card { padding: 0.75rem; gap: 0.75rem; }
+  .stat-icon { width: 40px; height: 40px; font-size: 1rem; }
+  .stat-value { font-size: 1.25rem; }
+  .aria-hero { padding: var(--aria-space-4); margin-bottom: var(--aria-space-4); }
+  .aria-page-header { padding: var(--aria-space-4) var(--aria-space-2) var(--aria-space-2); }
+  .aria-title-card { padding: var(--aria-space-3) var(--aria-space-4); }
+
+  /* 4. Touch targets — sidebar nav */
+  .sidebar-nav .nav-link {
+    min-height: 48px;
+    padding: 0.85rem 1rem !important;
+    font-size: 1rem;
+  }
+
+  /* 5. Auth pages */
+  .auth-content {
+    padding: 1.5rem 1rem;
+  }
+  .auth-hero {
+    min-height: auto;
+    padding: 2rem 1.5rem;
+  }
+  .auth-wrapper {
+    flex-direction: column;
+  }
+
+  /* 6. Room Discovery — remove inline min-height */
+  .aria-section-card[style*="min-height: 500px"],
+  .aria-section-card.discovery-card {
+    min-height: auto !important;
+    overflow: visible;
+  }
+
+  /* 7. Announcements — remove inline max-height */
+  .aria-section-card[style*="max-height: 400px"],
+  .aria-section-card.announcement-card {
+    max-height: none !important;
+  }
+  .aria-section-card .input-group-sm .form-control {
+    min-height: 40px;
+    font-size: 1rem;
+  }
+
+  /* 8. User dropdown overflow prevention */
+  .dropdown-menu {
+    max-width: calc(100vw - 2rem);
+    right: 0 !important;
+    left: auto !important;
+  }
+  .user-dropdown-toggle span {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* 9. Booking modals — stack fields, full-width buttons */
+  .modal-body .input-group {
+    flex-wrap: wrap;
+  }
+  .modal-body .input-group .form-control,
+  .modal-body .input-group .form-select {
+    width: 100% !important;
+    border-radius: var(--aria-radius-sm) !important;
+    margin-bottom: 0.5rem;
+  }
+  .modal-body .d-flex.justify-content-between {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .modal-body .d-flex.justify-content-between > div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .modal-body .d-flex.justify-content-between .btn {
+    width: 100%;
+  }
+
+  /* 10. Admin page buttons */
+  .jumbotron h2 .btn.float-right,
+  .jumbotron h2 .btn.float-end {
+    float: none !important;
+    display: block;
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+
+  /* 11. Admin table images */
+  table img {
+    max-width: 120px;
+    height: auto !important;
+    width: auto !important;
+  }
+
+  /* 12. Quick actions wrap */
+  .quick-actions-row {
+    flex-direction: column;
+  }
+  .quick-actions-row .btn-quick-action {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 13. My Bookings header stacking */
+  .aria-section-card .d-flex.justify-content-between.align-items-center {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0.75rem;
+  }
+
+  /* 14. Filter groups stacking */
+  .d-flex.flex-wrap.gap-2.align-items-center {
+    width: 100%;
+  }
+  .filter-group {
+    width: 100%;
+  }
+}
+
+/* =====================
+   FLOATING ACTION BUTTON
+   ===================== */
+.aria-fab {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--aria-primary);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  box-shadow: 0 4px 16px rgba(13, 79, 140, 0.35);
+  z-index: 1070;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+.aria-fab:hover {
+  background: var(--aria-primary-strong);
+  color: #ffffff;
+  transform: scale(1.1);
+  box-shadow: 0 6px 24px rgba(13, 79, 140, 0.45);
+}
+.aria-fab:active {
+  transform: scale(0.95);
+}
+
+/* Calendar skeleton loader */
+.calendar-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 1rem;
+}
+.calendar-skeleton .skel-bar {
+  height: 16px;
+  background: linear-gradient(90deg, var(--aria-surface-soft) 25%, var(--aria-bg) 50%, var(--aria-surface-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+.calendar-skeleton .skel-bar:nth-child(1) { width: 60%; height: 24px; }
+.calendar-skeleton .skel-bar:nth-child(2) { width: 100%; height: 200px; }
+.calendar-skeleton .skel-bar:nth-child(3) { width: 80%; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

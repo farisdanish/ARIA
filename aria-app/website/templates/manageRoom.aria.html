@@ -2,19 +2,23 @@
 <title>{% block title %} Room Manager {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>Room Manager - ADMINISTRATION</h2></center>
+<br />
+<center>
+    <h2>Room Manager - ADMINISTRATION</h2>
+</center>
 {% endblock %}
 
 {% block content%}
-<br/>
+<br />
 <div class="flex-container container-fluid" style="">
     <div class="row">
         <div class="col md-12">
-            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go
+                Back</button>
             <div class="jumbotron p-3">
-                <h2>Manage Rooms <button type="button" class="btn btn-success float-right" data-bs-toggle="modal" data-bs-target="#insert_room_modal"> Add New Room </button></h2>
-                <table id="roomTable" class="table table-hover table-dark display">
+                <h2>Manage Rooms <button type="button" class="btn btn-success float-right" data-bs-toggle="modal"
+                        data-bs-target="#insert_room_modal"> Add New Room </button></h2>
+                <table id="roomTable" class="table table-hover table-dark dataTable display">
                     <thead>
                         <tr>
                             <th>RoomID</th>
@@ -27,158 +31,151 @@
                         </tr>
                     </thead>
                     {% for r in roomlist %}
-                        <tr>
-                            <td>{{r.RoomID}}</td>
-                            <td>{{r.RoomName}}</td>
-                            <td><img src="/static/uploads/{{r.roomIMG}}" height="100" width="200" alt="{{r.roomIMG}}"/></td> 
-                            <td>{{r.RoomInfo}}</td>
-                            <td>{{r.RoomType}}</td>
-                            <td>{{r.RoomStatus}}</td>
-                            <td>
-                                <a href="/updateRoom/{{r.RoomID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal" data-bs-target="#modaleditroom{{r.RoomID}}">Edit</a>
-                                <a href="/deleteRoom/{{r.RoomID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete room from listing?')">Delete</a>
-                            </td>
-                        </tr>
-                        <!-- update room modal-->
-                        <div id="modaleditroom{{r.RoomID}}" class="modal fade" role="dialog">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Edit Room</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form action="{{url_for('rooms.update')}}" method="POST" enctype="multipart/form-data">
-                                            <div class="form-group">
-                                                <label>Room Name:</label>
-                                                <input type="hidden" id="roomID" name="roomID" value="{{r.RoomID}}">
-                                                <input type="text" class="form-control" id="roomName" name="roomName" value="{{r.RoomName}}" >
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Room Information</label>
-                                                <textarea 
-                                                    name = "roomInfo" 
-                                                    id="roomInfo" 
-                                                    class="form-control pull-left" 
-                                                    rows="3" 
-                                                    cols="2" 
-                                                    v-model="updateRoom"
+                    <tr>
+                        <td>{{r.RoomID}}</td>
+                        <td>{{r.RoomName}}</td>
+                        <td><img src="/static/uploads/{{r.roomIMG}}" class="img-fluid" style="max-width:200px"
+                                alt="{{r.roomIMG}}" /></td>
+                        <td>{{r.RoomInfo}}</td>
+                        <td>{{r.RoomType}}</td>
+                        <td>{{r.RoomStatus}}</td>
+                        <td>
+                            <a href="/updateRoom/{{r.RoomID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal"
+                                data-bs-target="#modaleditroom{{r.RoomID}}">Edit</a>
+                            <a href="/deleteRoom/{{r.RoomID}}" class="btn btn-danger btn-xs"
+                                onclick="return confirm('Delete room from listing?')">Delete</a>
+                        </td>
+                    </tr>
+                    <!-- update room modal-->
+                    <div id="modaleditroom{{r.RoomID}}" class="modal fade" role="dialog">
+                        <div class="modal-dialog modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Edit Room</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{url_for('rooms.update')}}" method="POST"
+                                        enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label>Room Name:</label>
+                                            <input type="hidden" id="roomID" name="roomID" value="{{r.RoomID}}">
+                                            <input type="text" class="form-control" id="roomName" name="roomName"
+                                                value="{{r.RoomName}}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Room Information</label>
+                                            <textarea name="roomInfo" id="roomInfo" class="form-control pull-left"
+                                                rows="3" cols="2" v-model="updateRoom"
                                                 required>{{r.RoomInfo}}</textarea><br>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Select Room Type(Normal/Event):</label></br>
-                                                <select id="roomType" name="roomType">
-                                                    {% if r.RoomType=="Normal Room" %}
-                                                        <option value ="Normal Room" selected = "selected">Normal Room</option>
-                                                        <option value="Event Room">Event Room</option>
-                                                    {% else %}
-                                                        <option value ="Event Room" selected = "selected">Event Room</option>
-                                                        <option value="Normal Room">Normal Room</option>
-                                                    {% endif %}
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Select Room Status(Open/Closed):</label></br>
-                                                <select id="roomStatus" name="roomStatus">
-                                                    {% if r.RoomStatus=="Open" %}
-                                                        <option value ="Open" selected = "selected">Open</option>
-                                                        <option value="Closed">Closed</option>
-                                                    {% else %}
-                                                        <option value ="Closed" selected = "selected">Closed</option>
-                                                        <option value="Open">Open</option>
-                                                    {% endif %}
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Upload Room Picture (Only one picture allowed):</label></br>
-                                                <dl>
-                                                    <p>
-                                                        <img src="/static/uploads/{{r.roomIMG}}" height="200" width="200" alt="{{r.roomIMG}}"/>
-                                                        <input type="file" id="file" name="file" class="form-control" autocomplete="off" value="r.roomIMG">
-                                                    </p>
-                                                </dl>
-                                            </div>
-                                            <div class="form-group">
-                                                <button class="btn btn-primary mt-4" type="submit">Edit Room</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Select Room Type(Normal/Event):</label></br>
+                                            <select id="roomType" name="roomType">
+                                                {% if r.RoomType=="Normal Room" %}
+                                                <option value="Normal Room" selected="selected">Normal Room</option>
+                                                <option value="Event Room">Event Room</option>
+                                                {% else %}
+                                                <option value="Event Room" selected="selected">Event Room</option>
+                                                <option value="Normal Room">Normal Room</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Select Room Status(Open/Closed):</label></br>
+                                            <select id="roomStatus" name="roomStatus">
+                                                {% if r.RoomStatus=="Open" %}
+                                                <option value="Open" selected="selected">Open</option>
+                                                <option value="Closed">Closed</option>
+                                                {% else %}
+                                                <option value="Closed" selected="selected">Closed</option>
+                                                <option value="Open">Open</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Upload Room Picture (Only one picture allowed):</label></br>
+                                            <dl>
+                                                <p>
+                                                    <img src="/static/uploads/{{r.roomIMG}}" class="img-fluid"
+                                                        style="max-width:200px" alt="{{r.roomIMG}}" />
+                                                    <input type="file" id="file" name="file" class="form-control"
+                                                        autocomplete="off" value="r.roomIMG">
+                                                </p>
+                                            </dl>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-primary mt-4" type="submit">Edit Room</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-bs-dismiss="modal">Close</button>
                                 </div>
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
                 </table>
-            <!</div>
-            <!--Add Room Modal-->
-            <div id="insert_room_modal" class="modal fade" role="dialog">
-                <div class="modal-dialog">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h4 class="modal-title">Add Room</h4>
-                        </div>
-                        <div class="modal-body">
-                            <form action="" method="POST" enctype="multipart/form-data">
-                                <div class="form-group">
-                                    <label>Enter Room Name:</label></br>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        id = "roomName"
-                                        name = "roomName"
-                                        placeholder = "Enter Room Name"
-                                        style="width:100%;" 
-                                    required>
+                <!< /div>
+                    <!--Add Room Modal-->
+                    <div id="insert_room_modal" class="modal fade" role="dialog">
+                        <div class="modal-dialog modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Add Room</h4>
                                 </div>
-                                <div class="form-group">
-                                    <label>Enter Room Information:</label></br>
-                                    <textarea 
-                                        name = "roomInfo" 
-                                        id="roomInfo" 
-                                        class="form-control pull-left" 
-                                        rows="3" 
-                                        cols="2" 
-                                        v-model="newRoom" 
-                                        placeholder="New room details" 
-                                    required></textarea><br>
+                                <div class="modal-body">
+                                    <form action="" method="POST" enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label>Enter Room Name:</label></br>
+                                            <input type="text" class="form-control" id="roomName" name="roomName"
+                                                placeholder="Enter Room Name" style="width:100%;" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Enter Room Information:</label></br>
+                                            <textarea name="roomInfo" id="roomInfo" class="form-control pull-left"
+                                                rows="3" cols="2" v-model="newRoom" placeholder="New room details"
+                                                required></textarea><br>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Select Room Type(Normal/Event):</label></br>
+                                            <select id="roomType" name="roomType">
+                                                <option disabled selected value> -- select an option -- </option>
+                                                <option value="Normal Room">Normal Room</option>
+                                                <option value="Event Room">Event Room</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Select Room Status(Open/Closed):</label></br>
+                                            <select id="roomStatus" name="roomStatus">
+                                                <option disabled selected value> -- select an option -- </option>
+                                                <option value="Open">Open</option>
+                                                <option value="Closed">Closed</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Upload Room Picture (Only one picture allowed):</label></br>
+                                            <dl>
+                                                <p>
+                                                    <input type="file" id="file" name="file" class="form-control"
+                                                        autocomplete="off">
+                                                </p>
+                                            </dl>
+                                        </div>
+                                        <div class="form-group">
+                                            <button class="btn btn-primary mt-4" type="submit">Add Room</button>
+                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary"
+                                                data-bs-dismiss="modal">Close</button>
+                                        </div>
+                                    </form>
                                 </div>
-                                <div class="form-group">
-                                    <label>Select Room Type(Normal/Event):</label></br>
-                                    <select id="roomType" name="roomType">
-                                        <option disabled selected value> -- select an option -- </option>
-                                        <option value="Normal Room">Normal Room</option>
-                                        <option value="Event Room">Event Room</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Select Room Status(Open/Closed):</label></br>
-                                    <select id="roomStatus" name="roomStatus">
-                                        <option disabled selected value> -- select an option -- </option>
-                                        <option value="Open">Open</option>
-                                        <option value="Closed">Closed</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label>Upload Room Picture (Only one picture allowed):</label></br>
-                                    <dl>
-                                        <p>
-                                            <input type="file" id="file" name="file" class="form-control" autocomplete="off">
-                                        </p>
-                                    </dl>
-                                </div>
-                                <div class="form-group">
-                                    <button class="btn btn-primary mt-4" type="submit">Add Room</button>
-                                    <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                </div>
-                            </form>
+                            </div>
                         </div>
                     </div>
-                </div>
             </div>
         </div>
     </div>
-</div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
-{% endblock %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
+    <script type="text/javascript" src="{{ url_for('static', filename='room.js')}}"></script>
+    {% endblock %}

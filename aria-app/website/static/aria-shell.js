@@ -27,12 +27,29 @@
 
     // 2. Select2
     if (window.jQuery && jQuery.fn.select2) {
-      $(container).find('select.select2:not(.initialized)').each(function () {
+      $(container).find('select.select2:not(.initialized), select.js-example-basic-single:not(.initialized)').each(function () {
         $(this).addClass('initialized').select2({
           width: '100%',
-          theme: 'bootstrap-5'
+          theme: 'bootstrap-5',
+          dropdownParent: $(this).closest('.modal').length ? $(this).closest('.modal') : $(document.body)
         });
       });
+    }
+
+    // 4. Mobile Calendar Defaults
+    if (window.FullCalendar && window.innerWidth < 576) {
+      var calEl = container === document ? document.getElementById('calendar') : container.querySelector('#calendar');
+      if (calEl && calEl.__fc) {
+        var fc = calEl.__fc;
+        fc.changeView('listWeek');
+        fc.setOption('headerToolbar', { left: 'prev,next', center: 'title', right: 'listWeek,dayGridMonth' });
+      }
+    }
+
+    // 5. Calendar skeleton — hide once FullCalendar renders
+    var skel = document.getElementById('calendar-skeleton');
+    if (skel && document.querySelector('.fc')) {
+      skel.style.display = 'none';
     }
 
     // 3. Tooltips & Popovers (Bootstrap 5)

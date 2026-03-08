@@ -2,112 +2,116 @@
 <title>{% block title %} Event Bookings Manager {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>Event Bookings (Add Event Room) - ADMINISTRATION</h2></center>
+<br />
+<center>
+    <h2>Event Bookings (Add Event Room) - ADMINISTRATION</h2>
+</center>
 {% endblock %}
 
 {% block calendar %}
-            document.addEventListener('DOMContentLoaded', function() {
-                let selector1 = document.querySelector("#selector");
-                var today = new Date().toISOString().slice(0,10);
-                var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    eventDisplay: 'block',
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector.value;
-                        if (!(val == arg.event.extendedProps.location || val == "all")) {
-                            arg.el.style.display = "none";
-                        }
-                    },
-                    events: function (fetchInfo, successCallback, failureCallback) {
-                        successCallback([
-                        {% for row in eventbookings %}
-                        {% if row.StudID != None: %}
-                        {
-                            id: '{{row.EBookID}}',
-                            title: '{{row.StudID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.EBookStatus}}' 
-                            }
-                        },
-                        {% else %}
-                        {
-                            id: '{{row.EBookID}}',
-                            title: '{{row.StaffID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.EBookStatus}}' 
-                            }
-                        },
-                        {% endif %}
-                        {% endfor %}
-                        ]);
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        if (clickedDate >= nowDate) {
-                            $("#modaladdEBook").modal("show");
-                            $("#ebookstart").val(info.dateStr);
-                            $("#ebookend").val(info.dateStr);
-                        }
-                        else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
-                    }
-                });
-                calendar.render();
-                calendar.setOption('contentHeight', 650);
+document.addEventListener('DOMContentLoaded', function() {
+let selector1 = document.querySelector("#selector");
+var today = new Date().toISOString().slice(0,10);
+var calendarEl = document.getElementById('calendar');
+var calendar = new FullCalendar.Calendar(calendarEl, {
+initialView: 'dayGridMonth',
+eventDisplay: 'block',
+selectable: true,
+headerToolbar: {
+left: 'prev,next',
+center: 'title',
+right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
+},
+eventDidMount: function(arg) {
+let val = selector.value;
+if (!(val == arg.event.extendedProps.location || val == "all")) {
+arg.el.style.display = "none";
+}
+},
+events: function (fetchInfo, successCallback, failureCallback) {
+successCallback([
+{% for row in eventbookings %}
+{% if row.StudID != None: %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StudID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.EBookStatus}}'
+}
+},
+{% else %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StaffID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.EBookStatus}}'
+}
+},
+{% endif %}
+{% endfor %}
+]);
+},
+dateClick: function(info) {
+var clickedDate = getDateWithoutTime(info.date);
+var nowDate = getDateWithoutTime(new Date())
+if (clickedDate >= nowDate) {
+$("#modaladdEBook").modal("show");
+$("#ebookstart").val(info.dateStr);
+$("#ebookend").val(info.dateStr);
+}
+else alert("Cannot Select Past Date");
+},
+select: function(info) {
+//alert('selected ' + info.startStr + ' to ' + info.endStr);
+}
+});
+calendar.render();
+calendar.setOption('contentHeight', 650);
 
-                selector1.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-            });
+selector1.addEventListener('change', function() {
+calendar.refetchEvents();
+});
+});
 {% endblock %}
 
 {% block content%}
-<br/>
+<br />
 <div class="flex-container container-fluid" style="">
     <div class="row">
         <div class="col md-12">
-            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/ManageEBookings';">Go Back</button>
+            <button class="btn btn-secondary" style="margin-bottom:10px;"
+                onclick="location.href = '/ManageEBookings';">Go Back</button>
             <div class="addEBookContainer m-3 border-top">
-                <h4 class="font-weight-bold pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Current Event Bookings</h4> *Please click on a date to add a booking
-                    <div class="float-right">
-                        <b>Room: </b> 
-                        <select id="selector">
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <br/><br/>
-                    <div id="modaladdEBook" class="modal fade" role="dialog">
-                        <div class="modal-dialog modal-lg" style="width:90%">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Event Booking - ADMIN</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="container-fluid">
+                <h4 class="font-weight-bold pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Current Event Bookings
+                </h4> *Please click on a date to add a booking
+                <div class="float-right">
+                    <b>Room: </b>
+                    <select id="selector">
+                        <option value="all">All</option>
+                        {% for r in roomlist %}
+                        {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
+                        <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                        {%endif%}
+                        {% endfor %}
+                    </select>
+                </div>
+                <br /><br />
+                <div id="modaladdEBook" class="modal fade" role="dialog">
+                    <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Add Event Booking - ADMIN</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container-fluid">
                                     <form action="" method="POST" enctype="multipart/form-data">
                                         <div class="form-group">
                                             <label>Is this event booking for a student or staff?:</label></br>
@@ -120,20 +124,26 @@
                                         <div class="form-group" id="userType">
                                             <div id="typeStudent" style="display:none;">
                                                 <p>Student ID:
-                                                    <select class="js-example-basic-single" id="studentid" name="studentid">
-                                                        <option disabled selected value> -- select an option -- </option>
+                                                    <select class="js-example-basic-single select2" id="studentid"
+                                                        name="studentid">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
                                                         {%for stud in student%}
-                                                        <option value="{{stud.StudID}}"> {{stud.StudID + " - " + stud.StudName}} </option>
+                                                        <option value="{{stud.StudID}}"> {{stud.StudID + " - " +
+                                                            stud.StudName}} </option>
                                                         {%endfor%}
                                                     </select>
                                                 </p>
                                             </div>
                                             <div id="typeStaff" style="display:none;">
                                                 <p>Staff ID:
-                                                    <select class="js-example-basic-single" id="staffid" name="staffid">
-                                                        <option disabled selected value> -- select an option -- </option>
+                                                    <select class="js-example-basic-single select2" id="staffid"
+                                                        name="staffid">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
                                                         {%for staff in staff%}
-                                                        <option value="{{staff.StaffID}}"> {{staff.StaffID + " - " + staff.StaffName}} </option>
+                                                        <option value="{{staff.StaffID}}"> {{staff.StaffID + " - " +
+                                                            staff.StaffName}} </option>
                                                         {%endfor%}
                                                     </select>
                                                 </p>
@@ -144,19 +154,20 @@
                                             <select id="roomSelect" name="roomSelect" required>
                                                 <option disabled selected value> -- select an option -- </option>
                                                 {% for r in roomlist %}
-                                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
-                                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                                    {%endif%}
+                                                {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
+                                                <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                                {%endif%}
                                                 {% endfor %}
-                                            </select><br/>
+                                            </select><br />
                                             <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
+                                                <img id="roomPreview" src="placeholder.png" class="img-fluid"
+                                                    style="max-width:300px" alt="" />
                                                 <pre><span id="roomInfoPreview"></span></pre>
                                             </div>
                                         </div>
                                         <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="ebookstart" name="ebookstart"> 
+                                            <p>Start:
+                                                <input type="date" id="ebookstart" name="ebookstart">
                                                 <select id="ebooktimeStart" name="ebooktimeStart">
                                                     <option disabled selected value> -- select an option -- </option>
                                                     <option value="09:00:00">09:00 AM</option>
@@ -173,8 +184,8 @@
                                                     <option value="20:00:00">08:00 PM</option>
                                                 </select>
                                             </p>
-                                            <p>End: 
-                                                <input type="date" id="ebookend" name="ebookend"> 
+                                            <p>End:
+                                                <input type="date" id="ebookend" name="ebookend">
                                                 <select id="ebooktimeEnd" name="ebooktimeEnd">
                                                     <option disabled selected value> -- select an option -- </option>
                                                     <option value="09:00:00">09:00 AM</option>
@@ -195,45 +206,35 @@
                                         </div>
                                         <div class="form-group">
                                             <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "EBookPurpose" 
-                                                id="EBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookPurpose" 
-                                                placeholder="Event Booking Purpose" 
-                                            required></textarea><br>
+                                            <textarea name="EBookPurpose" id="EBookPurpose"
+                                                class="form-control pull-left" rows="3" cols="2" v-model="EBookPurpose"
+                                                placeholder="Event Booking Purpose" required></textarea><br>
                                         </div>
                                         <div class="form-group">
                                             <label>Additional Details:</label></br>
-                                            <textarea 
-                                                name = "EBookAddDetails" 
-                                                id="EBookAddDetails"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookAddDetails" 
-                                                placeholder="Event Booking Additional Details" 
-                                            required></textarea><br>
+                                            <textarea name="EBookAddDetails" id="EBookAddDetails"
+                                                class="form-control pull-left" rows="3" cols="2"
+                                                v-model="EBookAddDetails" placeholder="Event Booking Additional Details"
+                                                required></textarea><br>
                                         </div>
                                         <div class="form-group">
                                             <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal" onclick="this.form.reset();">Close</button>
+                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary"
+                                                data-bs-dismiss="modal" onclick="this.form.reset();">Close</button>
                                         </div>
                                     </form>
-                                </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="calendar">
+                </div>
+                <div id="calendar">
 
-                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='room.js')}}"></script>
 {% endblock %}

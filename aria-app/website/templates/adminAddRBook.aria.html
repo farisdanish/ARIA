@@ -2,38 +2,42 @@
 <title>{% block title %} Room Bookings Manager {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>Room Bookings (Add Room) - ADMINISTRATION</h2></center>
+<br />
+<center>
+    <h2>Room Bookings (Add Room) - ADMINISTRATION</h2>
+</center>
 {% endblock %}
 
 {% block content%}
-<br/>
+<br />
 <div class="flex-container container-fluid" style="">
     <div class="row">
         <div class="col md-12">
-            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/ManageRBookings';">Go Back</button>
+            <button class="btn btn-secondary" style="margin-bottom:10px;"
+                onclick="location.href = '/ManageRBookings';">Go Back</button>
             <div class="addRBookContainer m-3 border-top">
-                <h4 class="font-weight-bold pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Current Room Bookings</h4> *Please click on a date to add a booking
-                    <div class="float-right">
-                        <b>Room: </b> 
-                        <select id="selector">
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <br/><br/>
-                    <div id="modaladdRBook" class="modal fade" role="dialog">
-                        <div class="modal-dialog modal-lg" style="width:90%">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Room Booking - ADMIN</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="container-fluid">
+                <h4 class="font-weight-bold pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Current Room Bookings
+                </h4> *Please click on a date to add a booking
+                <div class="float-right">
+                    <b>Room: </b>
+                    <select id="selector">
+                        <option value="all">All</option>
+                        {% for r in roomlist %}
+                        {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
+                        <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                        {%endif%}
+                        {% endfor %}
+                    </select>
+                </div>
+                <br /><br />
+                <div id="modaladdRBook" class="modal fade" role="dialog">
+                    <div class="modal-dialog modal-lg modal-fullscreen-sm-down">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h4 class="modal-title">Add Room Booking - ADMIN</h4>
+                            </div>
+                            <div class="modal-body">
+                                <div class="container-fluid">
                                     <form action="" method="POST" enctype="multipart/form-data">
                                         <div class="form-group">
                                             <label>Is this room booking for a student or staff?:</label></br>
@@ -46,20 +50,26 @@
                                         <div class="form-group" id="userType">
                                             <div id="typeStudent" style="display:none;">
                                                 <p>Student ID:
-                                                    <select class="js-example-basic-single" id="studentid" name="studentid">
-                                                        <option disabled selected value> -- select an option -- </option>
+                                                    <select class="js-example-basic-single select2" id="studentid"
+                                                        name="studentid">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
                                                         {%for stud in student%}
-                                                        <option value="{{stud.StudID}}"> {{stud.StudID + " - " + stud.StudName}} </option>
+                                                        <option value="{{stud.StudID}}"> {{stud.StudID + " - " +
+                                                            stud.StudName}} </option>
                                                         {%endfor%}
                                                     </select>
                                                 </p>
                                             </div>
                                             <div id="typeStaff" style="display:none;">
                                                 <p>Staff ID:
-                                                    <select class="js-example-basic-single" id="staffid" name="staffid">
-                                                        <option disabled selected value> -- select an option -- </option>
+                                                    <select class="js-example-basic-single select2" id="staffid"
+                                                        name="staffid">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
                                                         {%for staff in staff%}
-                                                        <option value="{{staff.StaffID}}"> {{staff.StaffID + " - " + staff.StaffName}} </option>
+                                                        <option value="{{staff.StaffID}}"> {{staff.StaffID + " - " +
+                                                            staff.StaffName}} </option>
                                                         {%endfor%}
                                                     </select>
                                                 </p>
@@ -70,20 +80,21 @@
                                             <select id="roomSelect" name="roomSelect" required>
                                                 <option disabled selected value> -- select an option -- </option>
                                                 {% for r in roomlist %}
-                                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
-                                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                                    {%endif%}
+                                                {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
+                                                <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                                {%endif%}
                                                 {% endfor %}
-                                            </select><br/>
+                                            </select><br />
                                             <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
+                                                <img id="roomPreview" src="placeholder.png" class="img-fluid"
+                                                    style="max-width:300px" alt="" />
                                                 <pre><span id="roomInfoPreview"></span></pre>
                                             </div>
                                         </div>
                                         <h6>Each Room Booking is only allowed to be 2 hours long</h6>
                                         <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="rbookstart" name="rbookstart"> 
+                                            <p>Start:
+                                                <input type="date" id="rbookstart" name="rbookstart">
                                                 <select id="rbooktimeStart" name="rbooktimeStart">
                                                     <option disabled selected value> -- select an option -- </option>
                                                     <option value="09:00:00">09:00 AM</option>
@@ -100,8 +111,8 @@
                                                     <option value="20:00:00">08:00 PM</option>
                                                 </select>
                                             </p>
-                                            <p>End: 
-                                                <input type="date" id="rbookend" name="rbookend"> 
+                                            <p>End:
+                                                <input type="date" id="rbookend" name="rbookend">
                                                 <select id="rbooktimeEnd" name="rbooktimeEnd">
                                                     <option disabled selected value> -- select an option -- </option>
                                                     <option value="09:00:00">09:00 AM</option>
@@ -122,33 +133,28 @@
                                         </div>
                                         <div class="form-group">
                                             <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "RBookPurpose" 
-                                                id="RBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="RBookPurpose" 
-                                                placeholder="Room Booking Purpose" 
-                                            required></textarea><br>
+                                            <textarea name="RBookPurpose" id="RBookPurpose"
+                                                class="form-control pull-left" rows="3" cols="2" v-model="RBookPurpose"
+                                                placeholder="Room Booking Purpose" required></textarea><br>
                                         </div>
                                         <div class="form-group">
                                             <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal" onclick="this.form.reset();">Close</button>
+                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary"
+                                                data-bs-dismiss="modal" onclick="this.form.reset();">Close</button>
                                         </div>
                                     </form>
-                                </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div id="calendar">
+                </div>
+                <div id="calendar">
 
-                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='room.js')}}"></script>
 {% endblock %}

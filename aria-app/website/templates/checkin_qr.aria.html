@@ -1,34 +1,38 @@
 {% extends "base_aria.html" %}
 {% block title %}QR Check-in{% endblock %}
 {% block content %}
-<div class="container mt-5">
+<div class="container mt-3 mt-md-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-12 col-md-6">
             <div class="card shadow-lg border-0 rounded-lg mt-5">
                 <div class="card-header bg-primary text-white text-center py-4">
                     <h3 class="font-weight-light my-1">Room Check-in</h3>
                 </div>
                 <div class="card-body text-center p-5">
                     {% if success %}
-                        <div class="mb-4">
-                            <i class="fas fa-check-circle text-success fa-5x"></i>
-                        </div>
-                        <h2 class="text-success mb-3">Success!</h2>
-                        <p class="lead">{{ message }}</p>
-                        <p>The door has been unlocked. Enjoy your session!</p>
-                        <div class="mt-4">
-                            <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-primary btn-lg px-5">Back to My Bookings</a>
-                        </div>
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success fa-5x"></i>
+                    </div>
+                    <h2 class="text-success mb-3">Success!</h2>
+                    <p class="lead">{{ message }}</p>
+                    <p>The door has been unlocked. Enjoy your session!</p>
+                    <div class="mt-4">
+                        <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-primary btn-lg px-5">Back to My
+                            Bookings</a>
+                    </div>
                     {% else %}
-                        <div class="mb-4">
-                            <i class="fas fa-exclamation-triangle text-danger fa-5x"></i>
-                        </div>
-                        <h2 class="text-danger mb-3">Check-in Failed</h2>
-                        <p class="lead text-muted">{{ message }}</p>
-                        <div class="mt-4">
-                            <p class="small text-secondary">If you believe this is an error, please contact the laboratory administrator.</p>
-                            <a href="{{ url_for('bookings.my_bookings') }}" class="btn btn-outline-secondary mt-3">Back to My Bookings</a>
-                        </div>
+                    <div class="mb-4">
+                        <i class="fas fa-exclamation-triangle text-danger fa-5x"></i>
+                    </div>
+                    <h2 class="text-danger mb-3">Check-in Failed</h2>
+                    <p class="lead text-muted">{{ message }}</p>
+                    <div class="mt-4">
+                        <p class="small text-secondary">If you believe this is an error, please contact the laboratory
+                            administrator.</p>
+                        <a href="{{ url_for('bookings.my_bookings') }}"
+                            class="btn btn-outline-secondary btn-lg w-100 mt-3">Back to
+                            My Bookings</a>
+                    </div>
                     {% endif %}
                 </div>
             </div>
@@ -41,9 +45,11 @@
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         min-height: 100vh;
     }
+
     .card {
         border-radius: 1rem;
     }
+
     .card-header {
         border-top-left-radius: 1rem !important;
         border-top-right-radius: 1rem !important;

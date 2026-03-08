@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.css" rel="stylesheet">
+    <link href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.bootstrap5.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
@@ -133,6 +134,13 @@
     <!-- Global Toast Container -->
     <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
 
+    {% if user.is_authenticated and (user.is_Student() or user.is_Staff()) %}
+    <!-- Mobile Floating Action Button -->
+    <a href="#" class="aria-fab d-lg-none" data-bs-toggle="modal" data-bs-target="#modaladdRBook" aria-label="Quick Book Room">
+      <i class="fa fa-plus"></i>
+    </a>
+    {% endif %}
+
     <!-- Shared Announcement Modal -->
     <div id="ariaAnnouncementModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered">
@@ -181,6 +189,8 @@
     <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script src="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js"></script>
+    <script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.min.js"></script>
     <script src="{{ url_for('static', filename='index.js') }}"></script>
     <script src="{{ url_for('static', filename='announcement.js') }}"></script>
     <script src="{{ url_for('static', filename='aria-shell.js') }}"></script>

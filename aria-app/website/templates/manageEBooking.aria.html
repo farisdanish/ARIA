@@ -2,19 +2,23 @@
 <title>{% block title %} Event Bookings Manager {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>Event Bookings - ADMINISTRATION</h2></center>
+<br />
+<center>
+    <h2>Event Bookings - ADMINISTRATION</h2>
+</center>
 {% endblock %}
 
 {% block content%}
-<br/>
+<br />
 <div class="flex-container container-fluid" style="">
     <div class="row">
         <div class="col md-12">
-            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
+            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go
+                Back</button>
             <div class="jumbotron p-3">
-                <h2>List of Event Bookings <button id="addebook" type="button" class="btn btn-success float-right"> Add New Event Booking</button></h2>
-                <table id="ebookTable" class="table table-hover table-dark">
+                <h2>List of Event Bookings <button id="addebook" type="button" class="btn btn-success float-right"> Add
+                        New Event Booking</button></h2>
+                <table id="ebookTable" class="table table-hover table-dark dataTable">
                     <thead>
                         <tr>
                             <th>Event Booking ID</th>
@@ -30,186 +34,193 @@
                         </tr>
                     </thead>
                     {% for eb in eventbookings %}
-                        <tr>
-                            <td><center>{{eb.EBookID}}</center></td>
-                            {% if eb.StudID != None %}
-                                {%for stud in student %}
-                                    {% if stud.StudID == eb.StudID %}
-                                    <td>{{stud.StudName}}</td>
-                                    <td>{{stud.StudID}}</td>
-                                    {% endif %}
-                                {% endfor %}
-                            {% elif eb.StaffID != None %}
-                                {%for staff in staff %}
-                                    {% if staff.StaffID == eb.StaffID %}
-                                    <td>{{staff.StaffName}}</td>
-                                    <td>{{staff.StaffID}}</td>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                            {% for r in roomlist %}
-                                {%if r.RoomID == eb.RoomID%}
-                                <td>{{r.RoomName}}</td>
-                                {%endif%}
-                            {% endfor %}
-                            <td>{{eb.Start}}</td>
-                            <td>{{eb.End}}</td>
-                            <td>{{eb.Purpose}}</td>
-                            <td>{{eb.AddDetail}}</td>
-                            <td>{{eb.EbookStatus}}</td>
-                            <td>
-                                {%if eb.ebookStatus == "Completed"%}
-                                <a href="/updateEBook/{{eb.EBookID}}" class="btn btn-warning btn-xs disabled" data-bs-toggle="modal" data-bs-target="#modaleditEBook{{eb.EBookID}}">Edit</a>
-                                {%else%}
-                                <a href="/updateEBook/{{eb.EBookID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal" data-bs-target="#modaleditEBook{{eb.EBookID}}">Edit</a>
-                                {%endif%}
-                                <a href="/deleteEBook/{{eb.EBookID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete room booking permanently? This action cannot be undone.')">Delete</a>
-                            </td>
-                        </tr>
-                        <!-- update room modal-->
-                        <div id="modaleditEBook{{eb.EBookID}}" class="modal fade" role="dialog">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4 class="modal-title">Edit Event Booking</h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form action="{{url_for('bookings.update_event_booking')}}" method="POST" enctype="multipart/form-data">
-                                            <div class="form-group">
-                                                <label>Event Booked under:</label>
-                                                <input type="hidden" id="EBookID" name="EBookID" value="{{eb.EBookID}}">
-                                                {% if eb.StudID != None %}
-                                                    {%for stud in student %}
-                                                        {% if stud.StudID == eb.StudID %}
-                                                        <input type="text" class="form-control" id="StudID" name="StudID" value="{{stud.StudID}}" disabled>
-                                                        {% endif %}
-                                                    {% endfor %}
-                                                {% elif eb.StaffID != None %}
-                                                    {%for staff in staff %}
-                                                        {% if staff.StaffID == eb.StaffID %}
-                                                        <input type="text" class="form-control" id="StaffID" name="StaffID" value="{{staff.StaffID}}" disabled>
-                                                        {% endif %}
-                                                    {% endfor %}
+                    <tr>
+                        <td>
+                            <center>{{eb.EBookID}}</center>
+                        </td>
+                        {% if eb.StudID != None %}
+                        {%for stud in student %}
+                        {% if stud.StudID == eb.StudID %}
+                        <td>{{stud.StudName}}</td>
+                        <td>{{stud.StudID}}</td>
+                        {% endif %}
+                        {% endfor %}
+                        {% elif eb.StaffID != None %}
+                        {%for staff in staff %}
+                        {% if staff.StaffID == eb.StaffID %}
+                        <td>{{staff.StaffName}}</td>
+                        <td>{{staff.StaffID}}</td>
+                        {% endif %}
+                        {% endfor %}
+                        {% endif %}
+                        {% for r in roomlist %}
+                        {%if r.RoomID == eb.RoomID%}
+                        <td>{{r.RoomName}}</td>
+                        {%endif%}
+                        {% endfor %}
+                        <td>{{eb.Start}}</td>
+                        <td>{{eb.End}}</td>
+                        <td>{{eb.Purpose}}</td>
+                        <td>{{eb.AddDetail}}</td>
+                        <td>{{eb.EbookStatus}}</td>
+                        <td>
+                            {%if eb.ebookStatus == "Completed"%}
+                            <a href="/updateEBook/{{eb.EBookID}}" class="btn btn-warning btn-xs disabled"
+                                data-bs-toggle="modal" data-bs-target="#modaleditEBook{{eb.EBookID}}">Edit</a>
+                            {%else%}
+                            <a href="/updateEBook/{{eb.EBookID}}" class="btn btn-warning btn-xs" data-bs-toggle="modal"
+                                data-bs-target="#modaleditEBook{{eb.EBookID}}">Edit</a>
+                            {%endif%}
+                            <a href="/deleteEBook/{{eb.EBookID}}" class="btn btn-danger btn-xs"
+                                onclick="return confirm('Delete room booking permanently? This action cannot be undone.')">Delete</a>
+                        </td>
+                    </tr>
+                    <!-- update room modal-->
+                    <div id="modaleditEBook{{eb.EBookID}}" class="modal fade" role="dialog">
+                        <div class="modal-dialog modal-fullscreen-sm-down">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h4 class="modal-title">Edit Event Booking</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form action="{{url_for('bookings.update_event_booking')}}" method="POST"
+                                        enctype="multipart/form-data">
+                                        <div class="form-group">
+                                            <label>Event Booked under:</label>
+                                            <input type="hidden" id="EBookID" name="EBookID" value="{{eb.EBookID}}">
+                                            {% if eb.StudID != None %}
+                                            {%for stud in student %}
+                                            {% if stud.StudID == eb.StudID %}
+                                            <input type="text" class="form-control" id="StudID" name="StudID"
+                                                value="{{stud.StudID}}" disabled>
+                                            {% endif %}
+                                            {% endfor %}
+                                            {% elif eb.StaffID != None %}
+                                            {%for staff in staff %}
+                                            {% if staff.StaffID == eb.StaffID %}
+                                            <input type="text" class="form-control" id="StaffID" name="StaffID"
+                                                value="{{staff.StaffID}}" disabled>
+                                            {% endif %}
+                                            {% endfor %}
+                                            {% endif %}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Please select the room to book:</label></br>
+                                            <select id="roomSelect" name="roomSelect" required>
+                                                <option disabled selected value> -- select an option -- </option>
+                                                {% for r in roomlist %}
+                                                {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
+                                                {%if eb.RoomID == r.RoomID%}
+                                                <option value="{{r.RoomID}}" selected="selected">{{r.RoomName}}</option>
+                                                {%else%}
+                                                <option value="{{r.RoomID}}">{{r.RoomName}}</option>
                                                 {% endif %}
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Please select the room to book:</label></br>
-                                                <select id="roomSelect" name="roomSelect" required>
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    {% for r in roomlist %}
-                                                        {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
-                                                        {%if eb.RoomID == r.RoomID%}
-                                                        <option value="{{r.RoomID}}" selected="selected">{{r.RoomName}}</option>
-                                                        {%else%}
-                                                        <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                                        {% endif %}
-                                                        {%endif%}
-                                                    {% endfor %}
-                                                </select><br/>
-                                                <div class="row ml-1 mt-1">
-                                                    <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
-                                                    <pre><span id="roomInfoPreview"></span></pre>
-                                                </div>
-                                            </div>
-                                            <div class="form-group" id="startEndRBook">
-                                                {% for i in eBookTimeList %}
-                                                {% if i.get('EBookID') == eb.EBookID %}
-                                                <p>Start:
-                                                    <input type="date" id="ebookstart" name="ebookstart" value="{{i.get('StartDate')}}">
-                                                    <p>Current start time of booking: <b>{{i.get('StartTime')}}</b></p>
-                                                    <select id="ebooktimeStart" name="ebooktimeStart">
-                                                        <option disabled selected value> -- select an option to change the time -- </option>
-                                                        <option value="{{i.get('StartTime')}}" selected = "selected" hidden>{{i.get('StartTime')}}</option>
-                                                        <option value="09:00:00">09:00 AM</option>
-                                                        <option value="10:00:00">10:00 AM</option>
-                                                        <option value="11:00:00">11:00 AM</option>
-                                                        <option value="12:00:00">12:00 PM</option>
-                                                        <option value="13:00:00">01:00 PM</option>
-                                                        <option value="14:00:00">02:00 PM</option>
-                                                        <option value="15:00:00">03:00 PM</option>
-                                                        <option value="16:00:00">04:00 PM</option>
-                                                        <option value="17:00:00">05:00 PM</option>
-                                                        <option value="18:00:00">06:00 PM</option>
-                                                        <option value="19:00:00">07:00 PM</option>
-                                                        <option value="20:00:00">08:00 PM</option>
-                                                    </select>    
-                                                </p>
-                                                <p>End: 
-                                                    <input type="date" id="ebookend" name="ebookend" value="{{i.get('EndDate')}}">
-                                                    <p>Current end time of booking: <b>{{i.get('EndTime')}}</b></p>
-                                                    <select id="ebooktimeEnd" name="ebooktimeEnd">
-                                                        <option disabled selected value> -- select an option to change the time -- </option>
-                                                        <option value="{{i.get('EndTime')}}" selected = "selected" hidden>{{i.get('EndTime')}}</option>
-                                                        <option value="09:00:00">09:00 AM</option>
-                                                        <option value="10:00:00">10:00 AM</option>
-                                                        <option value="11:00:00">11:00 AM</option>
-                                                        <option value="12:00:00">12:00 PM</option>
-                                                        <option value="13:00:00">01:00 PM</option>
-                                                        <option value="14:00:00">02:00 PM</option>
-                                                        <option value="15:00:00">03:00 PM</option>
-                                                        <option value="16:00:00">04:00 PM</option>
-                                                        <option value="17:00:00">05:00 PM</option>
-                                                        <option value="18:00:00">06:00 PM</option>
-                                                        <option value="19:00:00">07:00 PM</option>
-                                                        <option value="20:00:00">08:00 PM</option>
-                                                        <option value="21:00:00">09:00 PM</option>
-                                                    </select>
-                                                </p>
-                                                {% endif %}
+                                                {%endif%}
                                                 {% endfor %}
+                                            </select><br />
+                                            <div class="row ml-1 mt-1">
+                                                <img id="roomPreview" src="placeholder.png" class="img-fluid"
+                                                    style="max-width:300px" alt="" />
+                                                <pre><span id="roomInfoPreview"></span></pre>
                                             </div>
-                                            <div class="form-group">
-                                                <label>Purpose of Booking:</label></br>
-                                                <textarea 
-                                                    name = "EBookPurpose" 
-                                                    id="EBookPurpose"
-                                                    class="form-control pull-left" 
-                                                    rows="3" 
-                                                    cols="2" 
-                                                    v-model="EBookPurpose" 
-                                                    placeholder="Event Booking Purpose" 
+                                        </div>
+                                        <div class="form-group" id="startEndRBook">
+                                            {% for i in eBookTimeList %}
+                                            {% if i.get('EBookID') == eb.EBookID %}
+                                            <p>Start:
+                                                <input type="date" id="ebookstart" name="ebookstart"
+                                                    value="{{i.get('StartDate')}}">
+                                            <p>Current start time of booking: <b>{{i.get('StartTime')}}</b></p>
+                                            <select id="ebooktimeStart" name="ebooktimeStart">
+                                                <option disabled selected value> -- select an option to change the time
+                                                    -- </option>
+                                                <option value="{{i.get('StartTime')}}" selected="selected" hidden>
+                                                    {{i.get('StartTime')}}</option>
+                                                <option value="09:00:00">09:00 AM</option>
+                                                <option value="10:00:00">10:00 AM</option>
+                                                <option value="11:00:00">11:00 AM</option>
+                                                <option value="12:00:00">12:00 PM</option>
+                                                <option value="13:00:00">01:00 PM</option>
+                                                <option value="14:00:00">02:00 PM</option>
+                                                <option value="15:00:00">03:00 PM</option>
+                                                <option value="16:00:00">04:00 PM</option>
+                                                <option value="17:00:00">05:00 PM</option>
+                                                <option value="18:00:00">06:00 PM</option>
+                                                <option value="19:00:00">07:00 PM</option>
+                                                <option value="20:00:00">08:00 PM</option>
+                                            </select>
+                                            </p>
+                                            <p>End:
+                                                <input type="date" id="ebookend" name="ebookend"
+                                                    value="{{i.get('EndDate')}}">
+                                            <p>Current end time of booking: <b>{{i.get('EndTime')}}</b></p>
+                                            <select id="ebooktimeEnd" name="ebooktimeEnd">
+                                                <option disabled selected value> -- select an option to change the time
+                                                    -- </option>
+                                                <option value="{{i.get('EndTime')}}" selected="selected" hidden>
+                                                    {{i.get('EndTime')}}</option>
+                                                <option value="09:00:00">09:00 AM</option>
+                                                <option value="10:00:00">10:00 AM</option>
+                                                <option value="11:00:00">11:00 AM</option>
+                                                <option value="12:00:00">12:00 PM</option>
+                                                <option value="13:00:00">01:00 PM</option>
+                                                <option value="14:00:00">02:00 PM</option>
+                                                <option value="15:00:00">03:00 PM</option>
+                                                <option value="16:00:00">04:00 PM</option>
+                                                <option value="17:00:00">05:00 PM</option>
+                                                <option value="18:00:00">06:00 PM</option>
+                                                <option value="19:00:00">07:00 PM</option>
+                                                <option value="20:00:00">08:00 PM</option>
+                                                <option value="21:00:00">09:00 PM</option>
+                                            </select>
+                                            </p>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Purpose of Booking:</label></br>
+                                            <textarea name="EBookPurpose" id="EBookPurpose"
+                                                class="form-control pull-left" rows="3" cols="2" v-model="EBookPurpose"
+                                                placeholder="Event Booking Purpose"
                                                 required>{{eb.Purpose}}</textarea><br>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Additional Details for Event:</label></br>
-                                                <textarea 
-                                                    name = "EBookAddDetail" 
-                                                    id="EBookAddDetail"
-                                                    class="form-control pull-left" 
-                                                    rows="3" 
-                                                    cols="2" 
-                                                    v-model="EBookAddDetail" 
-                                                    placeholder="Additional Details for Event" 
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Additional Details for Event:</label></br>
+                                            <textarea name="EBookAddDetail" id="EBookAddDetail"
+                                                class="form-control pull-left" rows="3" cols="2"
+                                                v-model="EBookAddDetail" placeholder="Additional Details for Event"
                                                 required>{{eb.AddDetail}}</textarea><br>
-                                            </div>
-                                            <div class="form-group">
-                                                <label>Change event booking status:</label></br>
-                                                <select id="eBookStatusType" name="eBookStatusType">
-                                                    {% if eb.EbookStatus=="Upcoming" %}
-                                                        <option value ="Upcoming" selected = "selected">Upcoming</option>
-                                                        <option value="Completed">Completed</option>
-                                                        <option value="Canceled">Canceled</option>
-                                                        <option value="Ongoing">Ongoing</option>
-                                                    {% else %}
-                                                        <option disable selected value> -- SET STATUS -- </option>
-                                                        <option value ="Upcoming">Upcoming</option>
-                                                        <option value="Completed">Completed</option>
-                                                        <option value="Canceled">Canceled</option>
-                                                        <option value="Ongoing">Ongoing</option>
-                                                    {% endif %}
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <button type="button" class="btn btn-secondary mt-4" data-bs-dismiss="modal">Close</button>
-                                                <button class="btn btn-primary mt-4" type="submit">Edit Event Booking</button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                    </div>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Change event booking status:</label></br>
+                                            <select id="eBookStatusType" name="eBookStatusType">
+                                                {% if eb.EbookStatus=="Upcoming" %}
+                                                <option value="Upcoming" selected="selected">Upcoming</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Canceled">Canceled</option>
+                                                <option value="Ongoing">Ongoing</option>
+                                                {% else %}
+                                                <option disable selected value> -- SET STATUS -- </option>
+                                                <option value="Upcoming">Upcoming</option>
+                                                <option value="Completed">Completed</option>
+                                                <option value="Canceled">Canceled</option>
+                                                <option value="Ongoing">Ongoing</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <button type="button" class="btn btn-secondary mt-4"
+                                                data-bs-dismiss="modal">Close</button>
+                                            <button class="btn btn-primary mt-4" type="submit">Edit Event
+                                                Booking</button>
+                                        </div>
+                                    </form>
+                                </div>
+                                <div class="modal-footer">
                                 </div>
                             </div>
                         </div>
+                    </div>
                     {% endfor %}
                 </table>
             </div>
@@ -217,7 +228,7 @@
     </div>
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='room.js')}}"></script>
 <script type="text/javascript">
     document.getElementById("addebook").onclick = function () {
         location.href = "/ManageEBookings/AddEBook";
