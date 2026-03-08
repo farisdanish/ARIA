@@ -18,6 +18,9 @@ logger = logging.getLogger(__name__)
 
 ns = Namespace("api", description="ARIA API endpoints", path="/")
 
+# Persistent face service to avoid reloading models on every frame
+face_service = FaceService()
+
 # API Models
 student_model = ns.model("Student", {
     "StudID": fields.String(required=True, description="Student ID"),
@@ -330,7 +333,6 @@ class RecognizeFrameAPI(Resource):
             if frame is None:
                 return {"status": "error", "message": "Invalid image payload structure"}, 400
                 
-            face_service = FaceService()
             # Ensure model is loaded implicitly or explicitly
             face_service.load_trained_model()
             

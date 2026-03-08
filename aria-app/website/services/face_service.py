@@ -213,6 +213,9 @@ class FaceService:
                 logger.warning("Face embeddings file not found. Model needs to be trained first.")
                 return False
             
+            if self.model is not None:
+                return True
+
             # Load embeddings
             data = load(str(embeddings_file))
             trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
@@ -232,7 +235,7 @@ class FaceService:
             self.model = SGDClassifier(loss='log_loss')
             self.model.fit(trainX, trainy_encoded)
             
-            logger.info("Face recognition model loaded successfully")
+            logger.debug("Face recognition model loaded successfully")
             return True
             
         except Exception as e:
