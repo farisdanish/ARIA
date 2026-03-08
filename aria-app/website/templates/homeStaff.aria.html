@@ -2,8 +2,35 @@
 <title>{% block title %} Home {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>ARIA Smart Booking Platform</h2></center>
+<div class="aria-hero shadow-sm mt-4">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="aria-hero-greeting">
+                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill">Staff Portal: Welcome, {{ user.StaffName.split(' ')[0] }}</span>
+                <h2 class="display-6 fw-bold">Manage Campus Resources</h2>
+                <p class="lead text-muted">Efficiently coordinate room bookings, host institutional events, and track facility occupancy from your staff dashboard.</p>
+            </div>
+            
+            <div class="quick-actions-row">
+                <button class="btn btn-quick-action shadow-sm" data-bs-toggle="modal" data-bs-target="#modaladdRBook">
+                    <i class="fa fa-plus-circle text-primary"></i>
+                    <span>New Room Booking</span>
+                </button>
+                <button class="btn btn-quick-action shadow-sm" data-bs-toggle="modal" data-bs-target="#modaladdEBook">
+                    <i class="fa fa-university text-accent"></i>
+                    <span>Host Official Event</span>
+                </button>
+                <a href="/MyBookings" class="btn btn-quick-action shadow-sm">
+                    <i class="fa fa-list-ul text-warning"></i>
+                    <span>Staff Schedule</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block">
+            {% include 'partials/_stat_cards.html' %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block calendar %}
@@ -20,7 +47,7 @@
                     headerToolbar: {
                         left: 'prev,next',
                         center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
                     eventDidMount: function(arg) {
                         let val = selector1.value;
@@ -50,11 +77,6 @@
                                 description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Normal Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.RBookStatus}}' 
                                 }
                             },
@@ -67,11 +89,6 @@
                                 description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.RBookStatus}}' 
                                 }
                             },
@@ -90,11 +107,6 @@
                                 description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.EBookStatus}}' 
                                 }
                             },
@@ -107,11 +119,6 @@
                                 description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.EBookStatus}}' 
                                 }
                             },
@@ -136,352 +143,347 @@
                             }
                         }
                         else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
                     }
                 });
                 calendar.render();
                 calendar.setOption('contentHeight', 650);
 
-                selector1.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector2.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector3.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
+                selector1.addEventListener('change', function() { calendar.refetchEvents(); });
+                selector2.addEventListener('change', function() { calendar.refetchEvents(); });
+                selector3.addEventListener('change', function() { calendar.refetchEvents(); });
             });
 {% endblock %}
 
 {% block content%}
-<br/>
-{% if not(regFaceExist) %}
-<div class="alert alert-info alter-dismissable fade show" role="alert" style="overflow:auto;">
-    <button type="button" class="close display:inline-block; position:relative;" data-bs-dismiss="alert">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    <center><p>You haven't registered your face for face unlock, <b><a href="/register_face" style="color: red;">MUST REGISTER FACE</a></b> first.<br/> Please register face 3 days ahead of a ROOM booking</p></center>
-</div>
-{% endif %}
-<div class="row">
-    <div class="flex-container container-fluid" id="booking-bt">
-        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-bs-toggle="modal" data-bs-target="#modaladdRBook">Book Room</button>
-        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-bs-toggle="modal" data-bs-target="#modaladdEBook">Book for Event</button>
-    </div>
+<div class="container-fluid d-lg-none mb-4">
+    {% include 'partials/_stat_cards.html' %}
 </div>
 
+{% if not(regFaceExist) %}
+<div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
+    <div class="d-flex align-items-center gap-3">
+        <i class="fa fa-exclamation-triangle fa-2x text-warning"></i>
+        <div>
+            <h5 class="alert-heading mb-1 fw-bold">Biometric Data Required</h5>
+            <p class="mb-0 text-dark">You haven't registered your face for institutional room access. <b><a href="/register_face" class="alert-link text-danger text-decoration-underline">Enroll biometric data</a></b> to ensure your access permissions are active.</p>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 <div class="row">
-    <section class="two-column-list mb-sm-5 pr-lg-3 container-fluid" id="two-column-list">
-        <div class="flex-container container-fluid" style="">
-            <div class="row">
-                <div class="col-lg-6 pr-2">
-                    <section aria-label="Announcements" class="announcements">
-                        <h4 class="font-weight-bold border-bottom pb-3 mt-3 mb-0 pr-5" style="text-align: center;">Announcements</h4>
+    <section class="two-column-list mb-sm-5 container-fluid" id="two-column-list">
+        <div class="row g-4">
+            <!-- Left Column: Announcements -->
+            <div class="col-lg-4">
+                <div class="aria-section-card h-100">
+                    <div class="card-header bg-white border-bottom-0 pt-4 px-4 d-flex justify-content-between align-items-center">
+                        <h4 class="fw-bold mb-0">Announcements</h4>
+                        <span class="badge bg-soft-primary text-primary rounded-pill">{{ announcements|length }} Total</span>
+                    </div>
+                    <div class="card-body p-0">
                         <ul class="list-group list-group-flush" id="announcements">
                             {% for a in announcements %}
-                            <li class="list-group-item">
-                                <p>{{ a.PostDate.strftime('%Y-%m-%d') }}</p>
-                                <h5><a href="#" data-bs-toggle="modal" data-bs-target="#modalviewannounce{{a.AnnounceID}}">{{ a.Title }}</a></h5>
-                              <hr/>
+                            <li class="list-group-item px-4 py-3 border-light">
+                                <div class="small text-muted mb-1"><i class="fa fa-clock-o me-1"></i> {{ a.PostDate.strftime('%Y-%m-%d') }}</div>
+                                <h6 class="mb-0 fw-bold"><a href="#" class="text-dark text-decoration-none" data-bs-toggle="modal" data-bs-target="#modalviewannounce{{a.AnnounceID}}">{{ a.Title }}</a></h6>
                             </li>
                             <!--VIEW ANNOUNCEMENT MODAL-->
                             <div id="modalviewannounce{{a.AnnounceID}}" class="modal fade" role="dialog">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">{{a.Title}}</h4>
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content border-0 shadow-lg">
+                                        <div class="modal-header border-bottom-0 pb-0">
+                                            <h4 class="modal-title fw-bold">{{a.Title}}</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
-                                        <div class="modal-body">
-                                            <form action="" method="POST">
-                                                <div class="form-group">
-                                                    <p>Created on: {{a.PostDate.strftime("%Y-%m-%d (%A) %H:%M")}}</p>
-                                                </div>
-                                                <div class="form-group">
-                                                    <p>{{a.Content}}</p>
-                                                </div>
-                                            </form>
+                                        <div class="modal-body py-4">
+                                            <div class="mb-3 text-muted small">
+                                                <i class="fa fa-calendar me-1"></i> Staff Notice - Published {{a.PostDate.strftime("%Y-%m-%d at %H:%M")}}
+                                            </div>
+                                            <div class="announcement-content">
+                                                {{a.Content}}
+                                            </div>
                                         </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <div class="modal-footer border-top-0">
+                                            <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Close</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             {% endfor %}
-                          </ul>
-                    </section>
+                        </ul>
+                    </div>
                 </div>
-                <div class="col-lg-6 pl-2">
-                    <h4 class="font-weight-bold border-bottom pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Bookings</h4>
-                    <div id="nroomSelectorDiv" class="float-right">
-                        <p id="nroomSelectorLabel"><b>Room: </b> 
-                        <select id="nroomSelector">
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                        </p>
-                    </div>
-                    <div id="eroomSelectorDiv" class="float-right">
-                        <p id="eroomSelectorLabel" hidden><b>Room: </b>
-                        <select id="eroomSelector" hidden disabled>
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                        </p> 
-                    </div>
-                    <div class="float-left">
-                        <b>Type: </b> 
-                        <select id="BookTypeSelector" onchange="bookOnChange()">
-                            <option value="r" selected="selected">Room Only</option>
-                            <option value="e">Event Only</option>
-                        </select>
-                    </div>
-                    <br/><br/>
-                    <!--Add Room Booking Modal-->
-                    <div id="modaladdRBook" class="modal fade" role="dialog">
-                        <div class="modal-dialog modal-lg" style="width:90%">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Room Booking</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="container-fluid">
-                                    <form hx-post="/AddRBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#rbook-indicator" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('modaladdRBook')).hide();" enctype="multipart/form-data">
-                                        <div class="form-group" id="userType">
-                                            <div id="typeStaff"
-                                                <p>Staff ID:
-                                                    <input type="text" class="form-control" id="staffid" name="staffid" value="{{user.StaffID}}">
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <!-- Add a hidden spinner -->
-                                        <div id="rbook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
-                                          <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Please select the room to book:</label></br>
-                                            <select id="roomSelect" name="roomSelect" required>
-                                                <option disabled selected value> -- select an option -- </option>
-                                                {% for r in roomlist %}
-                                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
-                                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                                    {%endif%}
-                                                {% endfor %}
-                                            </select><br/>
-                                            <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
-                                                <pre><span id="roomInfoPreview"></span></pre>
-                                            </div>
-                                        </div>
-                                        <h6>Each Room Booking is only allowed to be 2 hours long</h6>
-                                        <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="rbookstart" name="rbookstart"> 
-                                                <select id="rbooktimeStart" name="rbooktimeStart">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                </select>
-                                            </p>
-                                            <p>End: 
-                                                <input type="date" id="rbookend" name="rbookend"> 
-                                                <select id="rbooktimeEnd" name="rbooktimeEnd">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                    <option value="21:00:00">09:00 PM</option>
-                                                </select>
-                                            </p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "RBookPurpose" 
-                                                id="RBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="RBookPurpose" 
-                                                placeholder="Room Booking Purpose" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <!--Add Event Booking Modal-->>
-                    <div id="modaladdEBook" class="modal fade" role="dialog">
-                        <div class="modal-dialog modal-lg" style="width:90%">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h4 class="modal-title">Add Event Booking</h4>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="container-fluid">
-                                    <form hx-post="/AddEBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#ebook-indicator" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('modaladdEBook')).hide();" enctype="multipart/form-data">
-                                        <div class="form-group" id="userType">
-                                            <div id="typeStaff"
-                                                <p>Staff ID:
-                                                    <input type="text" class="form-control" id="staffid" name="staffid" value="{{user.StaffID}}">
-                                                </p>
-                                            </div>
-                                        </div>
-                                        <!-- Add a hidden spinner -->
-                                        <div id="ebook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
-                                          <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Please select the event room to book:</label></br>
-                                            <select id="roomSelect" name="roomSelect" required>
-                                                <option disabled selected value> -- select an option -- </option>
-                                                {% for r in roomlist %}
-                                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
-                                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                                    {%endif%}
-                                                {% endfor %}
-                                            </select><br/>
-                                            <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
-                                                <pre><span id="roomInfoPreview"></span></pre>
-                                            </div>
-                                        </div>
-                                        <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="ebookstart" name="ebookstart"> 
-                                                <select id="ebooktimeStart" name="ebooktimeStart">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                </select>
-                                            </p>
-                                            <p>End: 
-                                                <input type="date" id="ebookend" name="ebookend"> 
-                                                <select id="ebooktimeEnd" name="ebooktimeEnd">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                    <option value="21:00:00">09:00 PM</option>
-                                                </select>
-                                            </p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "EBookPurpose" 
-                                                id="EBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookPurpose" 
-                                                placeholder="Event Booking Purpose" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Additional Details:</label></br>
-                                            <textarea 
-                                                name = "EBookAddDetails" 
-                                                id="EBookAddDetails"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookAddDetails" 
-                                                placeholder="Event Booking Additional Details" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-bs-dismiss="modal" onclick="this.form.reset();">Close</button>
-                                        </div>
-                                    </form>
-                                </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="calendar">
+            </div>
 
+            <!-- Right Column: Calendar -->
+            <div class="col-lg-8">
+                <div class="aria-section-card p-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                        <h4 class="fw-bold mb-0">Facility Schedule</h4>
+                        
+                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                            <div class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
+                                <span class="small fw-bold text-muted me-2 text-nowrap">TYPE:</span>
+                                <select id="BookTypeSelector" class="form-select form-select-sm border-0 bg-transparent" onchange="bookOnChange()">
+                                    <option value="r" selected>Rooms</option>
+                                    <option value="e">Event Halls</option>
+                                </select>
+                            </div>
+
+                            <div id="nroomSelectorDiv" class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
+                                <span class="small fw-bold text-muted me-2 text-nowrap">FILTER:</span>
+                                <select id="nroomSelector" class="form-select form-select-sm border-0 bg-transparent">
+                                    <option value="all">All Rooms</option>
+                                    {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div id="eroomSelectorDiv" class="filter-group d-none align-items-center bg-light rounded-pill px-3 py-1">
+                                <span class="small fw-bold text-muted me-2 text-nowrap">FILTER:</span>
+                                <select id="eroomSelector" class="form-select form-select-sm border-0 bg-transparent" disabled>
+                                    <option value="all">All Halls</option>
+                                    {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
                     </div>
+
+                    <div id="calendar" class="fc-theme-modern shadow-none border-0"></div>
                 </div>
             </div>
         </div>
     </section>
 </div>
-<script type = "text/javascript" src = "{{ url_for('static', filename='announcement.js')}}"></script>
+
+<!-- Modals same as Student but with Staff ID -->
+<!-- Add Room Booking Modal -->
+<div id="modaladdRBook" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h4 class="modal-title fw-bold">New Room Booking</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modaladdRBookBody">
+                <div class="container-fluid">
+                <form hx-post="/AddRBook" hx-target="#modaladdRBookBody" hx-swap="innerHTML" hx-indicator="#rbook-indicator" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">STAFF ID</label>
+                            <input type="text" class="form-control bg-light border-0" id="staffid" name="staffid" value="{{user.StaffID}}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">SELECT ROOM</label>
+                            <select id="roomSelect" name="roomSelect" class="form-select bg-light border-0" required>
+                                <option disabled selected value>Choose a room...</option>
+                                {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">START DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="rbookstart" name="rbookstart" required>
+                                <select class="form-select bg-light border-0" id="rbooktimeStart" name="rbooktimeStart" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">END DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="rbookend" name="rbookend" required>
+                                <select class="form-select bg-light border-0" id="rbooktimeEnd" name="rbooktimeEnd" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                    <option value="21:00:00">09:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">PURPOSE</label>
+                            <textarea name="RBookPurpose" id="RBookPurpose" class="form-control bg-light border-0" rows="3" placeholder="Purpose of use..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <div id="rbook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary px-5 fw-bold" type="submit">Confirm Booking</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Booking Modal -->
+<div id="modaladdEBook" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h4 class="modal-title fw-bold">Official Event Booking</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modaladdEBookBody">
+                <div class="container-fluid">
+                <form hx-post="/AddEBook" hx-target="#modaladdEBookBody" hx-swap="innerHTML" hx-indicator="#ebook-indicator" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">STAFF ID</label>
+                            <input type="text" class="form-control bg-light border-0" id="staffid" name="staffid" value="{{user.StaffID}}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">SELECT HALL</label>
+                            <select id="roomSelect" name="roomSelect" class="form-select bg-light border-0" required>
+                                <option disabled selected value>Choose an event hall...</option>
+                                {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">START DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="ebookstart" name="ebookstart" required>
+                                <select class="form-select bg-light border-0" id="ebooktimeStart" name="ebooktimeStart" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">END DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="ebookend" name="ebookend" required>
+                                <select class="form-select bg-light border-0" id="ebooktimeEnd" name="ebooktimeEnd" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                    <option value="21:00:00">09:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">EVENT TITLE / PURPOSE</label>
+                            <textarea name="EBookPurpose" id="EBookPurpose" class="form-control bg-light border-0" rows="2" placeholder="Title of the institutional event..." required></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">ADDITIONAL REQUIREMENTS</label>
+                            <textarea name="EBookAddDetails" id="EBookAddDetails" class="form-control bg-light border-0" rows="2" placeholder="Institutional details, equipment, etc..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <div id="ebook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary px-5 fw-bold" type="submit">Submit Request</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     function bookOnChange(){
-        if (document.getElementById('BookTypeSelector').value == "r"){
-            document.getElementById('eroomSelector').disabled = true;
-            document.getElementById('eroomSelector').hidden = true;
-            document.getElementById('eroomSelectorLabel').hidden = true;
+        const val = document.getElementById('BookTypeSelector').value;
+        const nroomDiv = document.getElementById('nroomSelectorDiv');
+        const eroomDiv = document.getElementById('eroomSelectorDiv');
+        const nroomSel = document.getElementById('nroomSelector');
+        const eroomSel = document.getElementById('eroomSelector');
 
-            document.getElementById('nroomSelector').disabled = false;
-            document.getElementById('nroomSelector').hidden = false;
-            document.getElementById('nroomSelectorLabel').hidden = false;
-        }else if (document.getElementById('BookTypeSelector').value == "e"){
-            document.getElementById('eroomSelector').disabled = false;
-            document.getElementById('eroomSelector').hidden = false;
-            document.getElementById('eroomSelectorLabel').hidden = false;
-
-            document.getElementById('nroomSelector').disabled = true;
-            document.getElementById('nroomSelector').hidden = true;
-            document.getElementById('nroomSelectorLabel').hidden = true;
+        if (val == "r"){
+            eroomDiv.classList.add('d-none');
+            eroomDiv.classList.remove('d-flex');
+            eroomSel.disabled = true;
+            
+            nroomDiv.classList.remove('d-none');
+            nroomDiv.classList.add('d-flex');
+            nroomSel.disabled = false;
+        } else {
+            nroomDiv.classList.add('d-none');
+            nroomDiv.classList.remove('d-flex');
+            nroomSel.disabled = true;
+            
+            eroomDiv.classList.remove('d-none');
+            eroomDiv.classList.add('d-flex');
+            eroomSel.disabled = false;
         }
     }
 </script>

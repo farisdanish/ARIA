@@ -1,0 +1,40 @@
+<div class="row g-4">
+    <!-- Total Users -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon primary">
+                <i class="fa fa-users"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ student|length + staff|length }}</div>
+                <div class="stat-label">Registered Users</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Bookings Today -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon accent">
+                <i class="fa fa-building"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ roombookings|selectattr("RBookStatus", "equalto", "Ongoing")|list|length + eventbookings|selectattr("EbookStatus", "equalto", "Ongoing")|list|length }}</div>
+                <div class="stat-label">Rooms Occupied</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Feedback -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon warning">
+                <i class="fa fa-comments"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ feedbacks|length }}</div>
+                <div class="stat-label">Total Feedbacks</div>
+            </div>
+        </div>
+    </div>
+</div>

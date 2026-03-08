@@ -2,8 +2,35 @@
 <title>{% block title %} Home - ADMIN {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>ARIA Smart Booking Platform - ADMINISTRATION</h2></center>
+<div class="aria-hero shadow-sm mt-4">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <div class="aria-hero-greeting">
+                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill">System Administration</span>
+                <h2 class="display-6 fw-bold">Command Center</h2>
+                <p class="lead text-muted">Oversee campus facilities, manage user permissions, and analyze resource utilization through your administrative dashboard.</p>
+            </div>
+            
+            <div class="quick-actions-row">
+                <a href="/ManageRooms" class="btn btn-quick-action shadow-sm">
+                    <i class="fa fa-building text-primary"></i>
+                    <span>Manage Rooms</span>
+                </a>
+                <a href="/ManageAnnouncements" class="btn btn-quick-action shadow-sm">
+                    <i class="fa fa-bullhorn text-accent"></i>
+                    <span>Announcements</span>
+                </a>
+                <a href="/ManageReport" class="btn btn-quick-action shadow-sm">
+                    <i class="fa fa-line-chart text-warning"></i>
+                    <span>Analytics</span>
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-block">
+            {% include 'partials/_admin_stat_cards.html' %}
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block calendar %}
@@ -11,7 +38,6 @@
                 let selector1 = document.querySelector("#nroomSelector");
                 let selector2 = document.querySelector("#eroomSelector");
                 let selector3 = document.querySelector("#BookTypeSelector");
-                var today = new Date().toISOString().slice(0,10);
                 var calendarEl = document.getElementById('calendar');
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
@@ -20,265 +46,199 @@
                     headerToolbar: {
                         left: 'prev,next',
                         center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector1.value;
-                        let val2 = selector2.value;
-                        let val3 = selector3.value;
-                        if (val3 == "r"){
-                            if (!(val == arg.event.extendedProps.location || val == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }else if (val3 == "e"){
-                            if (!(val2 == arg.event.extendedProps.location || val2 == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
                     },
                     events: function (fetchInfo, successCallback, failureCallback) {
                         let valBookType = selector3.value
                         if (valBookType == "r"){
                             successCallback([
                             {% for row in roombookings %}
-                            {% if row.StudID != None: %}
                             {
                                 id: '{{row.RBookID}}',
-                                title: '{{row.StudID}}',
+                                title: '{{row.StudID if row.StudID else row.StaffID}}',
                                 start: '{{row.Start}}',
                                 end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Normal Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.RBookStatus}}' 
                                 }
                             },
-                            {% else %}
-                            {
-                                id: '{{row.RBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.RBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
                             {% endfor %}
                             ]);
                         }else if (valBookType == "e"){
                             successCallback([
                             {% for row in eventbookings %}
-                            {% if row.StudID != None: %}
                             {
                                 id: '{{row.EBookID}}',
-                                title: '{{row.StudID}}',
+                                title: '{{row.StudID if row.StudID else row.StaffID}}',
                                 start: '{{row.Start}}',
                                 end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
                                 extendedProps:{
                                     location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
                                     status: '{{row.EBookStatus}}' 
                                 }
                             },
-                            {% else %}
-                            {
-                                id: '{{row.EBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.EBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
                             {% endfor %}
                             ]);
                         }
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        let valBookType = selector3.value 
-                        if (clickedDate >= nowDate) {
-                            if (valBookType == "r"){
-                                $("#modaladdRBook").modal("show");
-                                $("#rbookstart").val(info.dateStr);
-                                $("#rbookend").val(info.dateStr);
-                            }else if (valBookType == "e"){
-                                $("#modaladdEBook").modal("show");
-                                $("#ebookstart").val(info.dateStr);
-                                $("#ebookend").val(info.dateStr);
-                            }
-                        }
-                        else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
                     }
                 });
                 calendar.render();
-                calendar.setOption('contentHeight', 650);
+                calendar.setOption('contentHeight', 600);
 
-                selector1.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector2.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector3.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
+                selector1.addEventListener('change', function() { calendar.refetchEvents(); });
+                selector2.addEventListener('change', function() { calendar.refetchEvents(); });
+                selector3.addEventListener('change', function() { calendar.refetchEvents(); });
             });
 {% endblock %}
 
 {% block content%}
-<br/>
+<div class="container-fluid d-lg-none mb-4">
+    {% include 'partials/_admin_stat_cards.html' %}
+</div>
 
-<div class="row">
-    <section class="two-column-list mb-sm-5 pr-lg-3 container-fluid" id="two-column-list">
-        <div class="flex-container container-fluid" style="">
-            <div class="row">
-                <div class="col-lg-6 pr-2">
-                    <section></section>
-                    <section aria-label="management" class="">
-                        <h4 class="font-weight-bold border-bottom pb-3 mt-3 mb-0 pr-5" style="text-align: center;">Management</h4><br/>
-                        <div class="row">
-                            
-                            <div class="col-sm">
-                                <ul class="list-group list-group-flush">
-                                    <button id="ManageAnnouncements" class="btn btn-light btn-lg border border-right-0">Manage Announcements</button>
-                                    <br/>
-                                    <button id="ManageRooms" class="btn btn-light btn-lg border border-right-0">Manage Rooms</button>
-                                    <br/>
-                                    <button id="manageRegisteredFaces" class="btn btn-light btn-lg border border-right-0">View Registered Faces</button>
-                                    <br/>
-                                    <button id="ViewFeedback" class="btn btn-light btn-lg border border-right-0">View Feedback</button>
-                                </ul>
-                            </div>
-                            <div class="col-sm">
-                                <ul class="list-group list-group-flush">
-                                    <!-- <li class="list-group-item border-0 text-center">-->
-                                    <button id="ManageRBook" class="btn btn-light btn-lg border border-right-0">Manage Room Bookings</button>
-                                    <br/>    
-                                    <button id="ManageEBook" class="btn btn-light btn-lg border border-right-0">Manage Event Bookings</button>
-                                    <br/>
-                                    <button id="RAccessLogBtn" class="btn btn-light btn-lg border border-right-0">View Room Acces Log</button>
-                                    <br/>
-                                    <button id="ManageReport" class="btn btn-light btn-lg border border-right-0">Report and Analytics</button>
-                                </ul>
-                            </div>
+<div class="row g-4">
+    <!-- Left Column: Management Cards -->
+    <div class="col-lg-5">
+        <div class="aria-section-card p-4">
+            <h4 class="fw-bold mb-4">Management Modules</h4>
+            
+            <div class="row g-3">
+                <div class="col-sm-6">
+                    <a href="/ManageRooms" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon primary sm shadow-none"><i class="fa fa-building"></i></div>
+                            <span class="fw-bold text-dark">Room Inventory</span>
                         </div>
-                    </section>
+                    </a>
                 </div>
-                <div class="col-lg-6 pl-2 border-left" style="padding-left:3px">
-                    <h4 class="font-weight-bold border-bottom pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Bookings</h4>
-                    <div id="nroomSelectorDiv" class="float-right">
-                        <p id="nroomSelectorLabel"><b>Room: </b> 
-                        <select id="nroomSelector">
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                        </p>
-                    </div>
-                    <div id="eroomSelectorDiv" class="float-right">
-                        <p id="eroomSelectorLabel" hidden><b>Room: </b>
-                        <select id="eroomSelector" hidden disabled>
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                        </p> 
-                    </div>
-                    <div class="float-left">
-                        <b>Type: </b> 
-                        <select id="BookTypeSelector" onchange="bookOnChange()">
-                            <option value="r" selected="selected">Room Only</option>
-                            <option value="e">Event Only</option>
-                        </select>
-                    </div>
-                    <br/>
-                    <br/>
-                    <div id="calendar">
-
-                    </div>
+                <div class="col-sm-6">
+                    <a href="/ManageRBookings" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon primary sm shadow-none"><i class="fa fa-calendar"></i></div>
+                            <span class="fw-bold text-dark">Room Bookings</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ManageAnnouncements" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon accent sm shadow-none"><i class="fa fa-bullhorn"></i></div>
+                            <span class="fw-bold text-dark">Announcement Feed</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ManageEBookings" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon accent sm shadow-none"><i class="fa fa-university"></i></div>
+                            <span class="fw-bold text-dark">Event Bookings</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ManageFaces" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon warning sm shadow-none"><i class="fa fa-user-circle"></i></div>
+                            <span class="fw-bold text-dark">Face Database</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ViewRoomAccessLog" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon warning sm shadow-none"><i class="fa fa-key"></i></div>
+                            <span class="fw-bold text-dark">Access Logs</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ViewFeedback" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon danger sm shadow-none"><i class="fa fa-comments"></i></div>
+                            <span class="fw-bold text-dark">User Feedback</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-sm-6">
+                    <a href="/ManageReport" class="text-decoration-none">
+                        <div class="stat-card border-0 bg-light p-3">
+                            <div class="stat-icon danger sm shadow-none"><i class="fa fa-pie-chart"></i></div>
+                            <span class="fw-bold text-dark">System Analytics</span>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+
+    <!-- Right Column: Calendar Overview -->
+    <div class="col-lg-7">
+        <div class="aria-section-card p-4">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <h4 class="fw-bold mb-0">System-wide Schedule</h4>
+                
+                <div class="d-flex flex-wrap gap-2 align-items-center">
+                    <div class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
+                        <select id="BookTypeSelector" class="form-select form-select-sm border-0 bg-transparent" onchange="bookOnChange()">
+                            <option value="r" selected>Normal Rooms</option>
+                            <option value="e">Event Halls</option>
+                        </select>
+                    </div>
+
+                    <div id="nroomSelectorDiv" class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
+                        <select id="nroomSelector" class="form-select form-select-sm border-0 bg-transparent">
+                            <option value="all">All Rooms</option>
+                            {% for r in roomlist %}
+                            {%if r.RoomType=="Normal Room"%}
+                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                            {%endif%}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div id="eroomSelectorDiv" class="filter-group d-none align-items-center bg-light rounded-pill px-3 py-1">
+                        <select id="eroomSelector" class="form-select form-select-sm border-0 bg-transparent" disabled>
+                            <option value="all">All Halls</option>
+                            {% for r in roomlist %}
+                            {%if r.RoomType=="Event Room"%}
+                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                            {%endif%}
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div id="calendar" class="fc-theme-modern shadow-none border-0"></div>
+        </div>
+    </div>
 </div>
-<script type="text/javascript">
-    document.getElementById("ManageAnnouncements").onclick = function () {
-        location.href = "/ManageAnnouncements";
-    };
-    document.getElementById("ManageRooms").onclick = function () {
-        location.href = "/ManageRooms";
-    };
-    document.getElementById("ManageRBook").onclick = function () {
-        location.href = "/ManageRBookings";
-    };
-    document.getElementById("ManageEBook").onclick = function () {
-        location.href = "/ManageEBookings";
-    };
-    document.getElementById("manageRegisteredFaces").onclick = function () {
-        location.href = "/ManageFaces";
-    };
-    document.getElementById("RAccessLogBtn").onclick = function () {
-        location.href = "/ViewRoomAccessLog";
-    };
-    document.getElementById("ManageReport").onclick = function () {
-        location.href = "/ManageReport";
-    };
-</script>
+
 <script>
     function bookOnChange(){
-        if (document.getElementById('BookTypeSelector').value == "r"){
-            document.getElementById('eroomSelector').disabled = true;
-            document.getElementById('eroomSelector').hidden = true;
-            document.getElementById('eroomSelectorLabel').hidden = true;
+        const val = document.getElementById('BookTypeSelector').value;
+        const nroomDiv = document.getElementById('nroomSelectorDiv');
+        const eroomDiv = document.getElementById('eroomSelectorDiv');
+        const nroomSel = document.getElementById('nroomSelector');
+        const eroomSel = document.getElementById('eroomSelector');
 
-            document.getElementById('nroomSelector').disabled = false;
-            document.getElementById('nroomSelector').hidden = false;
-            document.getElementById('nroomSelectorLabel').hidden = false;
-        }else if (document.getElementById('BookTypeSelector').value == "e"){
-            document.getElementById('eroomSelector').disabled = false;
-            document.getElementById('eroomSelector').hidden = false;
-            document.getElementById('eroomSelectorLabel').hidden = false;
-
-            document.getElementById('nroomSelector').disabled = true;
-            document.getElementById('nroomSelector').hidden = true;
-            document.getElementById('nroomSelectorLabel').hidden = true;
+        if (val == "r"){
+            eroomDiv.classList.add('d-none');
+            eroomDiv.classList.remove('d-flex');
+            eroomSel.disabled = true;
+            
+            nroomDiv.classList.remove('d-none');
+            nroomDiv.classList.add('d-flex');
+            nroomSel.disabled = false;
+        } else {
+            nroomDiv.classList.add('d-none');
+            nroomDiv.classList.remove('d-flex');
+            nroomSel.disabled = true;
+            
+            eroomDiv.classList.remove('d-none');
+            eroomDiv.classList.add('d-flex');
+            eroomSel.disabled = false;
         }
     }
 </script>

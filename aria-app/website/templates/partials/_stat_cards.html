@@ -1,0 +1,40 @@
+<div class="row g-4">
+    <!-- Active Bookings -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon primary">
+                <i class="fa fa-calendar-check-o"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ roombookings|selectattr("RBookStatus", "equalto", "Upcoming")|list|length + eventbookings|selectattr("EbookStatus", "equalto", "Upcoming")|list|length }}</div>
+                <div class="stat-label">Upcoming Bookings</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Announcements -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon accent">
+                <i class="fa fa-bullhorn"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ announcements|length }}</div>
+                <div class="stat-label">Announcements</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Face Status -->
+    <div class="col-md-4">
+        <div class="stat-card shadow-sm">
+            <div class="stat-icon {{ 'accent' if regFaceExist else 'warning' }}">
+                <i class="fa {{ 'fa-smile-o' if regFaceExist else 'fa-user-circle-o' }}"></i>
+            </div>
+            <div>
+                <div class="stat-value" style="font-size: 1.1rem;">{{ 'Verified' if regFaceExist else 'Action Needed' }}</div>
+                <div class="stat-label">Face Recognition</div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -149,6 +149,11 @@ def admin():
     room_bookings = db.session.query(RoomBooking).all()
     event_bookings = db.session.query(EventBooking).all()
     
+    from ..models.feedback import Feedback
+    from ..models.announcement import Announcement
+    feedbacks = db.session.query(Feedback).all()
+    announcements = db.session.query(Announcement).all()
+    
     return render_ui_template(
         "homeAdmin.html",
         ui_group="admin",
@@ -158,6 +163,8 @@ def admin():
         student=students,
         roombookings=room_bookings,
         eventbookings=event_bookings,
+        feedbacks=feedbacks,
+        announcements=announcements,
         is_Student=False,
         is_Staff=False,
         is_Admin=True

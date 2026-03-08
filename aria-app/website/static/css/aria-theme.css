@@ -170,6 +170,113 @@ a:hover {
   color: var(--aria-primary) !important;
 }
 
+/* Dashboard Hero Section */
+.aria-hero {
+  background: var(--aria-surface);
+  border-radius: var(--aria-radius-lg);
+  padding: var(--aria-space-8);
+  margin-bottom: var(--aria-space-8);
+  border: 1px solid var(--aria-border);
+  box-shadow: var(--aria-shadow-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.aria-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -10%;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, rgba(13, 79, 140, 0.05) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.aria-hero-greeting h2 {
+  font-weight: 800;
+  color: var(--aria-primary);
+  margin-bottom: 0.5rem;
+}
+
+/* Stat Cards */
+.stat-card {
+  background: var(--aria-surface);
+  border: 1px solid var(--aria-border);
+  border-radius: var(--aria-radius-md);
+  padding: 1.25rem;
+  height: 100%;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--aria-shadow-md);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--aria-radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.stat-icon.primary { background: rgba(13, 79, 140, 0.1); color: var(--aria-primary); }
+.stat-icon.accent { background: rgba(31, 157, 139, 0.1); color: var(--aria-accent); }
+.stat-icon.warning { background: rgba(181, 71, 8, 0.1); color: var(--aria-warning); }
+.stat-icon.danger { background: rgba(180, 35, 24, 0.1); color: var(--aria-danger); }
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--aria-text);
+}
+
+.stat-label {
+  font-size: 0.85rem;
+  color: var(--aria-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+}
+
+/* Quick Actions */
+.quick-actions-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.btn-quick-action {
+  background: var(--aria-surface);
+  border: 1px solid var(--aria-border);
+  color: var(--aria-text);
+  padding: 0.75rem 1.25rem;
+  border-radius: var(--aria-radius-md);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.btn-quick-action:hover {
+  background: var(--aria-primary);
+  color: #ffffff;
+  border-color: var(--aria-primary);
+  transform: translateY(-2px);
+}
+
 .aria-page-header {
   padding: var(--aria-space-8) var(--aria-space-4) var(--aria-space-4);
 }
