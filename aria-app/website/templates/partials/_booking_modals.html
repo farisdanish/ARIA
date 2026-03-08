@@ -1,0 +1,200 @@
+<!-- Add Room Booking Modal -->
+<div id="modaladdRBook" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h4 class="modal-title fw-bold">Room Booking</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modaladdRBookBody">
+                <div class="container-fluid">
+                <form hx-post="/AddRBook" hx-target="#modaladdRBookBody" hx-swap="innerHTML" hx-indicator="#rbook-indicator" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">{{ 'STUDENT' if user.is_Student() else 'STAFF' }} ID</label>
+                            <input type="text" class="form-control bg-light border-0" id="{{ 'studid' if user.is_Student() else 'staffid' }}" name="{{ 'studid' if user.is_Student() else 'staffid' }}" value="{{ user.StudID if user.is_Student() else user.StaffID }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">SELECT ROOM</label>
+                            <select id="roomSelect" name="roomSelect" class="form-select bg-light border-0" required>
+                                <option disabled selected value>Choose a room...</option>
+                                {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 small mb-0">
+                                <i class="fa fa-info-circle me-2"></i> Bookings are limited to 2 hours maximum.
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">START DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="rbookstart" name="rbookstart" required>
+                                <select class="form-select bg-light border-0" id="rbooktimeStart" name="rbooktimeStart" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">END DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="rbookend" name="rbookend" required>
+                                <select class="form-select bg-light border-0" id="rbooktimeEnd" name="rbooktimeEnd" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                    <option value="21:00:00">09:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">PURPOSE</label>
+                            <textarea name="RBookPurpose" id="RBookPurpose" class="form-control bg-light border-0" rows="3" placeholder="Explain the purpose of your booking..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <div id="rbook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary px-5 fw-bold" type="submit">Confirm Booking</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Event Booking Modal -->
+<div id="modaladdEBook" class="modal fade" role="dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header">
+                <h4 class="modal-title fw-bold">Event Hall Booking</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="modaladdEBookBody">
+                <div class="container-fluid">
+                <form hx-post="/AddEBook" hx-target="#modaladdEBookBody" hx-swap="innerHTML" hx-indicator="#ebook-indicator" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">{{ 'STUDENT' if user.is_Student() else 'STAFF' }} ID</label>
+                            <input type="text" class="form-control bg-light border-0" id="{{ 'studid' if user.is_Student() else 'staffid' }}" name="{{ 'studid' if user.is_Student() else 'staffid' }}" value="{{ user.StudID if user.is_Student() else user.StaffID }}" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">SELECT HALL</label>
+                            <select id="roomSelect" name="roomSelect" class="form-select bg-light border-0" required>
+                                <option disabled selected value>Choose an event hall...</option>
+                                {% for r in roomlist %}
+                                    {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
+                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                    {%endif%}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">START DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="ebookstart" name="ebookstart" required>
+                                <select class="form-select bg-light border-0" id="ebooktimeStart" name="ebooktimeStart" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted">END DATE & TIME</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control bg-light border-0" id="ebookend" name="ebookend" required>
+                                <select class="form-select bg-light border-0" id="ebooktimeEnd" name="ebooktimeEnd" required>
+                                    <option disabled selected value>Time...</option>
+                                    <option value="09:00:00">09:00 AM</option>
+                                    <option value="10:00:00">10:00 AM</option>
+                                    <option value="11:00:00">11:00 AM</option>
+                                    <option value="12:00:00">12:00 PM</option>
+                                    <option value="13:00:00">01:00 PM</option>
+                                    <option value="14:00:00">02:00 PM</option>
+                                    <option value="15:00:00">03:00 PM</option>
+                                    <option value="16:00:00">04:00 PM</option>
+                                    <option value="17:00:00">05:00 PM</option>
+                                    <option value="18:00:00">06:00 PM</option>
+                                    <option value="19:00:00">07:00 PM</option>
+                                    <option value="20:00:00">08:00 PM</option>
+                                    <option value="21:00:00">09:00 PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">EVENT PURPOSE</label>
+                            <textarea name="EBookPurpose" id="EBookPurpose" class="form-control bg-light border-0" rows="2" placeholder="Title or purpose of the event..." required></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold small text-muted">ADDITIONAL DETAILS</label>
+                            <textarea name="EBookAddDetails" id="EBookAddDetails" class="form-control bg-light border-0" rows="2" placeholder="Equipment needed, number of attendees, etc..." required></textarea>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex justify-content-between align-items-center">
+                        <div id="ebook-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary" role="status">
+                            <span class="visually-hidden">Processing...</span>
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-light px-4 me-2" data-bs-dismiss="modal">Cancel</button>
+                            <button class="btn btn-primary px-5 fw-bold" type="submit">Submit Request</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            </div>
+        </div>
+    </div>
+</div>

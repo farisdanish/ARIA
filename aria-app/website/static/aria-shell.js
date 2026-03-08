@@ -12,8 +12,16 @@
   function initPlugins(container = document) {
     // 1. DataTables
     if (window.jQuery && jQuery.fn.DataTable) {
-      $(container).find('table.dataTable:not(.initialized)').each(function() {
-        $(this).addClass('initialized').DataTable();
+      $(container).find('table.dataTable, table.table').each(function() {
+        const $table = $(this);
+        // Only initialize if not already a DataTable and not already processed by us
+        if (!$.fn.DataTable.isDataTable(this) && !this.hasAttribute('data-aria-initialized')) {
+          this.setAttribute('data-aria-initialized', 'true');
+          $table.DataTable({
+            responsive: true,
+            pageLength: 10
+          });
+        }
       });
     }
 
