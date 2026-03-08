@@ -1,6 +1,7 @@
 # Flask Core
 Flask==2.2.5
 Werkzeug==2.2.3
+gunicorn==21.2.0
 
 # Flask Extensions
 Flask-SQLAlchemy==3.1.1

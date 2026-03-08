@@ -28,5 +28,5 @@ COPY aria-app/ .
 # Expose port (placeholder, Railway injects its own)
 EXPOSE ${PORT:-5000}
 
-# Command to run the application using sh to evaluate variables
-CMD ["sh", "-c", "python main.py"]
+# Command to run the application using gunicorn for production
+CMD ["sh", "-c", "gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 4 --timeout 120 main:app0"]

@@ -17,13 +17,10 @@ class Config:
     # Database
     db_url = os.environ.get('DATABASE_URL')
     if db_url:
-        import sys
-        print(f"DEBUG: DATABASE_URL found in environment.", file=sys.stderr)
         if db_url.startswith('postgres://'):
             db_url = db_url.replace('postgres://', 'postgresql://', 1)
     else:
-        import sys
-        print("DEBUG: DATABASE_URL NOT found in environment!", file=sys.stderr)
+        pass
         
     SQLALCHEMY_DATABASE_URI = db_url or 'mysql+mysqldb://root:@localhost:3306/ariadb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
@@ -32,11 +29,9 @@ class Config:
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     
     if SQLALCHEMY_DATABASE_URI.startswith('postgresql'):
-        import sys
-        print(f"DEBUG: SQLAlchemy is using PostgreSQL.", file=sys.stderr)
+        pass
     else:
-        import sys
-        print(f"DEBUG: SQLAlchemy is using MySQL (Fallback).", file=sys.stderr)
+        pass
     
     # Session
     PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(

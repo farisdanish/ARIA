@@ -39,6 +39,7 @@ services:
       - redis
     ports:
       - "5000:5000"
+    command: ["sh", "-c", "python main.py"]
     networks:
       - aria-network
     volumes:
