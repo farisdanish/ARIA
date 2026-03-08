@@ -1,19 +1,350 @@
 {% extends "base_aria.html" %}
 <title>{% block title %} Face Registration {% endblock %}</title>
 
-{% block PageTitle%}
-    <br/>
-    <center><h2>Face Registration</h2></center>
+{% block PageTitle %}
+<div class="aria-title-card d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold mb-1">Face Registration</h2>
+        <p class="text-muted mb-0">Secure biometric enrollment for secondary campus authentication.</p>
+    </div>
+    <div class="header-actions">
+        {% if user.is_Student() %}
+        <a href="/homeStud" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+            <i class="fa fa-arrow-left me-2"></i> Dashboard
+        </a>
+        {% elif user.is_Staff() %}
+        <a href="/homeStaff" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+            <i class="fa fa-arrow-left me-2"></i> Dashboard
+        </a>
+        {% else %}
+        <a href="/" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+            <i class="fa fa-arrow-left me-2"></i> Go Back
+        </a>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 {% block content %}
-<div class="container">
-    <center><button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/';">Go Back</button></center>
-    <div class="row">
-        <div class="col-lg-8  offset-lg-2">
-            <h3 class="mt-5">Please Stay Still!</h3>
-            <img src="{{ url_for('facenet.face_regstr') }}" width="50%">
+<div class="container-fluid py-5" id="registration-app">
+    <!-- Method Selection -->
+    <div id="selection-view" class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="text-center mb-5">
+                <h3 class="fw-bold text-dark">Enroll Biometrics</h3>
+                <p class="text-muted">Choose your preferred enrollment method below.</p>
+            </div>
+            <div class="row g-4">
+                <!-- Scanner Option -->
+                <div class="col-md-6">
+                    <div class="aria-section-card p-4 h-100 text-center cursor-pointer hover-lift shadow-sm"
+                        onclick="showScanner()">
+                        <div class="bg-soft-primary text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                            style="width: 80px; height: 80px;">
+                            <i class="fa fa-camera fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Live Scanner</h4>
+                        <p class="text-muted small mb-4">Recommended for the highest accuracy. Uses your device's camera
+                            to capture enrollment data in real-time.</p>
+                        <button class="btn btn-primary rounded-pill px-4">Start Scanner</button>
+                    </div>
+                </div>
+                <!-- Upload Option -->
+                <div class="col-md-6">
+                    <div class="aria-section-card p-4 h-100 text-center cursor-pointer hover-lift shadow-sm"
+                        onclick="showUpload()">
+                        <div class="bg-soft-accent text-accent rounded-circle d-inline-flex align-items-center justify-content-center mb-4"
+                            style="width: 80px; height: 80px;">
+                            <i class="fa fa-upload fa-2x"></i>
+                        </div>
+                        <h4 class="fw-bold">Gallery Upload</h4>
+                        <p class="text-muted small mb-4">Upload an existing portrait from your phone. Ensure the photo
+                            is clear and your face is fully visible.</p>
+                        <button class="btn btn-accent rounded-pill px-4">Upload Photo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scanner View -->
+    <div id="scanner-view" class="row justify-content-center d-none">
+        <div class="col-lg-6">
+            <div class="aria-section-card p-5 text-center">
+                <div class="mb-4">
+                    <div id="scanner-status-badge"
+                        class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill mb-3">
+                        <i class="fa fa-video me-1"></i> Requesting Camera...
+                    </div>
+                    <h3 class="fw-bold text-dark" id="scanner-title">Please Stay Still!</h3>
+                    <p class="text-muted" id="scanner-subtitle">Align your face with the camera. Enrollment will process
+                        automatically.</p>
+                </div>
+
+                <div class="position-relative d-inline-block border rounded-4 overflow-hidden shadow-sm bg-dark"
+                    style="width: 100%; max-width: 480px; aspect-ratio: 4/3;">
+                    <!-- Client-side Video Capture -->
+                    <video id="scanner-video" autoplay playsinline muted class="w-100 h-100"
+                        style="object-fit: cover;"></video>
+                    <canvas id="scanner-canvas" class="d-none" width="480" height="360"></canvas>
+
+                    <div
+                        class="position-absolute bottom-0 start-0 end-0 p-3 bg-dark bg-opacity-50 text-white small d-flex justify-content-between align-items-center">
+                        <div><i class="fa fa-circle text-danger me-2 animate-pulse"></i> LIVE FEED</div>
+                        <div id="capture-progress" class="fw-bold">0 / 9</div>
+                    </div>
+
+                    <!-- Overlay for feedback -->
+                    <div id="scanner-overlay"
+                        class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center d-none"
+                        style="background: rgba(0,0,0,0.5);">
+                        <div class="text-white text-center">
+                            <i class="fa fa-check-circle fa-4x mb-3 text-success"></i>
+                            <h4 class="fw-bold">Done!</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-4 border-top">
+                    <button class="btn btn-outline-secondary rounded-pill px-4"
+                        onclick="stopScanner(); showSelection()">
+                        <i class="fa fa-arrow-left me-1"></i> Change Method
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload View -->
+    <div id="upload-view" class="row justify-content-center d-none">
+        <div class="col-lg-6">
+            <div class="aria-section-card p-5">
+                <div class="text-center mb-4">
+                    <div class="badge bg-soft-accent text-accent px-3 py-2 rounded-pill mb-3">
+                        <i class="fa fa-image me-1"></i> Gallery Enrollment
+                    </div>
+                    <h3 class="fw-bold text-dark">Upload Portrait</h3>
+                    <p class="text-muted">Select a high-quality photo where your face is clearly visible.</p>
+                </div>
+
+                <form action="{{ url_for('facenet.register_face_upload') }}" method="POST" enctype="multipart/form-data"
+                    id="upload-form">
+                    <div class="mb-4">
+                        <div class="upload-zone p-5 border-dashed rounded-4 text-center cursor-pointer bg-light border-2"
+                            onclick="document.getElementById('face_image').click()">
+                            <input type="file" name="face_image" id="face_image" class="d-none" accept="image/*"
+                                onchange="previewImage(this)">
+                            <div id="upload-icon">
+                                <i class="fa fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                                <h5 class="fw-bold mb-1">Click to select photo</h5>
+                                <p class="text-muted small mb-0">PNG, JPG or JPEG (Max 10MB)</p>
+                            </div>
+                            <div id="image-preview-container" class="d-none">
+                                <img id="image-preview" src="#" alt="Preview" class="img-fluid rounded-3 shadow-sm mb-3"
+                                    style="max-height: 250px;">
+                                <p class="text-primary small mb-0 fw-bold" id="filename-display"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg rounded-pill fw-bold shadow-sm"
+                            id="submit-btn" disabled>
+                            Complete Enrollment
+                        </button>
+                        <button type="button" class="btn btn-light rounded-pill" onclick="showSelection()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+
+                <div class="mt-4 pt-4 border-top text-center">
+                    <p class="small text-muted mb-0">
+                        <i class="fa fa-shield me-1"></i> Photos are used exclusively for identity verification and are
+                        encrypted at rest.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<style>
+    .cursor-pointer {
+        cursor: pointer;
+    }
+
+    .border-dashed {
+        border-style: dashed !important;
+    }
+
+    .hover-lift {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--aria-shadow-md) !important;
+    }
+
+    .upload-zone {
+        transition: all 0.2s ease;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--aria-primary) !important;
+        background-color: var(--aria-soft-primary) !important;
+    }
+
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.4;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .animate-pulse {
+        animation: pulse 1.5s infinite;
+    }
+</style>
+
+<script>
+    let videoStream = null;
+    let captureInterval = null;
+    const trainLimit = 9;
+    let isProcessing = false;
+
+    function showSelection() {
+        document.getElementById('selection-view').classList.remove('d-none');
+        document.getElementById('scanner-view').classList.add('d-none');
+        document.getElementById('upload-view').classList.add('d-none');
+    }
+
+    async function showScanner() {
+        document.getElementById('selection-view').classList.add('d-none');
+        document.getElementById('scanner-view').classList.remove('d-none');
+        document.getElementById('upload-view').classList.add('d-none');
+
+        try {
+            const video = document.getElementById('scanner-video');
+            videoStream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: 'user',
+                    width: { ideal: 640 },
+                    height: { ideal: 480 }
+                }
+            });
+            video.srcObject = videoStream;
+
+            document.getElementById('scanner-status-badge').innerHTML = '<i class="fa fa-video me-1"></i> Biometric Scanner Active';
+
+            // Start capturing frames
+            startCapture();
+        } catch (err) {
+            console.error("Camera access error:", err);
+            alert("Could not access camera. Please ensure you've given permission.");
+            showSelection();
+        }
+    }
+
+    function stopScanner() {
+        if (videoStream) {
+            videoStream.getTracks().forEach(track => track.stop());
+            videoStream = null;
+        }
+        if (captureInterval) {
+            clearInterval(captureInterval);
+            captureInterval = null;
+        }
+    }
+
+    function startCapture() {
+        if (captureInterval) return;
+
+        const video = document.getElementById('scanner-video');
+        const canvas = document.getElementById('scanner-canvas');
+        const context = canvas.getContext('2d');
+        const progressDisplay = document.getElementById('capture-progress');
+        const statusBadge = document.getElementById('scanner-status-badge');
+
+        captureInterval = setInterval(async () => {
+            if (isProcessing) return;
+
+            // Capture current frame
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = canvas.toDataURL('image/jpeg', 0.7);
+
+            isProcessing = true;
+            try {
+                const response = await fetch('/process_scanner_frame', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                    },
+                    body: JSON.stringify({ image: imageData })
+                });
+
+                const result = await response.json();
+
+                if (result.status === 'processing' || result.status === 'success') {
+                    progressDisplay.textContent = `${result.count} / ${result.limit}`;
+                    statusBadge.classList.replace('bg-soft-primary', 'bg-soft-success');
+                    statusBadge.classList.replace('text-primary', 'text-success');
+                    statusBadge.innerHTML = '<i class="fa fa-check me-1"></i> Capturing Face...';
+
+                    if (result.status === 'success') {
+                        stopScanner();
+                        document.getElementById('scanner-overlay').classList.remove('d-none');
+                        setTimeout(() => {
+                            window.location.href = result.redirect;
+                        }, 2000);
+                    }
+                } else if (result.status === 'searching') {
+                    statusBadge.classList.replace('bg-soft-success', 'bg-soft-primary');
+                    statusBadge.classList.replace('text-success', 'text-primary');
+                    statusBadge.innerHTML = '<i class="fa fa-search me-1"></i> Searching for Face...';
+                }
+            } catch (err) {
+                console.error("Server processing error:", err);
+            } finally {
+                isProcessing = false;
+            }
+        }, 800); // Send frame every 800ms
+    }
+
+    function showUpload() {
+        document.getElementById('selection-view').classList.add('d-none');
+        document.getElementById('scanner-view').classList.add('d-none');
+        document.getElementById('upload-view').classList.remove('d-none');
+    }
+
+    function previewImage(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            const preview = document.getElementById('image-preview');
+            const previewContainer = document.getElementById('image-preview-container');
+            const uploadIcon = document.getElementById('upload-icon');
+            const filenameDisplay = document.getElementById('filename-display');
+            const submitBtn = document.getElementById('submit-btn');
+
+            reader.onload = function (e) {
+                preview.src = e.target.result;
+                previewContainer.classList.remove('d-none');
+                uploadIcon.classList.add('d-none');
+                filenameDisplay.textContent = input.files[0].name;
+                submitBtn.disabled = false;
+            }
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+</script>
 {% endblock %}

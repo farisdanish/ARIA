@@ -168,19 +168,6 @@ selector3.addEventListener('change', function() { calendar.refetchEvents(); });
     {% include 'partials/_stat_cards.html' %}
 </div>
 
-{% if not(regFaceExist) %}
-<div class="alert alert-warning border-warning shadow-sm mb-4" role="alert">
-    <div class="d-flex align-items-center gap-3">
-        <i class="fa fa-exclamation-triangle fa-2x text-warning"></i>
-        <div>
-            <h5 class="alert-heading mb-1 fw-bold">Biometric Data Required</h5>
-            <p class="mb-0 text-dark">You haven't registered your face for institutional room access. <b><a
-                        href="/register_face" class="alert-link text-danger text-decoration-underline">Enroll biometric
-                        data</a></b> to ensure your access permissions are active.</p>
-        </div>
-    </div>
-</div>
-{% endif %}
 
 <div class="row">
     <section class="two-column-list mb-sm-5 container-fluid" id="two-column-list">

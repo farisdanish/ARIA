@@ -2,175 +2,171 @@
 <title>{% block title %} Home {% endblock %}</title>
 
 {% block PageTitle%}
-    <br/>
-    <center><h2>UMS Library Room Booking System</h2></center>
+<br />
+<center>
+    <h2>UMS Library Room Booking System</h2>
+</center>
 {% endblock %}
 
 {% block calendar %}
-            document.addEventListener('DOMContentLoaded', function() {
-                let selector1 = document.querySelector("#nroomSelector");
-                let selector2 = document.querySelector("#eroomSelector");
-                let selector3 = document.querySelector("#BookTypeSelector");
-                var today = new Date().toISOString().slice(0,10);
-                var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    eventDisplay: 'block',
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector1.value;
-                        let val2 = selector2.value;
-                        let val3 = selector3.value;
-                        if (val3 == "r"){
-                            if (!(val == arg.event.extendedProps.location || val == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }else if (val3 == "e"){
-                            if (!(val2 == arg.event.extendedProps.location || val2 == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }
-                    },
-                    events: function (fetchInfo, successCallback, failureCallback) {
-                        let valBookType = selector3.value
-                        if (valBookType == "r"){
-                            successCallback([
-                            {% for row in roombookings %}
-                            {% if row.StudID != None: %}
-                            {
-                                id: '{{row.RBookID}}',
-                                title: '{{row.StudID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Normal Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.RBookStatus}}' 
-                                }
-                            },
-                            {% else %}
-                            {
-                                id: '{{row.RBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.RBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
-                            {% endfor %}
-                            ]);
-                        }else if (valBookType == "e"){
-                            successCallback([
-                            {% for row in eventbookings %}
-                            {% if row.StudID != None: %}
-                            {
-                                id: '{{row.EBookID}}',
-                                title: '{{row.StudID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.EBookStatus}}' 
-                                }
-                            },
-                            {% else %}
-                            {
-                                id: '{{row.EBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    {%for r in roomlist%}
-                                    {%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
-                                    roomType: '{{r.RoomType}}',
-                                    {%endif%}
-                                    {% endfor %}
-                                    status: '{{row.EBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
-                            {% endfor %}
-                            ]);
-                        }
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        let valBookType = selector3.value 
-                        if (clickedDate >= nowDate) {
-                            if (valBookType == "r"){
-                                $("#modaladdRBook").modal("show");
-                                $("#rbookstart").val(info.dateStr);
-                                $("#rbookend").val(info.dateStr);
-                            }else if (valBookType == "e"){
-                                $("#modaladdEBook").modal("show");
-                                $("#ebookstart").val(info.dateStr);
-                                $("#ebookend").val(info.dateStr);
-                            }
-                        }
-                        else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
-                    }
-                });
-                calendar.render();
-                calendar.setOption('contentHeight', 650);
+document.addEventListener('DOMContentLoaded', function() {
+let selector1 = document.querySelector("#nroomSelector");
+let selector2 = document.querySelector("#eroomSelector");
+let selector3 = document.querySelector("#BookTypeSelector");
+var today = new Date().toISOString().slice(0,10);
+var calendarEl = document.getElementById('calendar');
+var calendar = new FullCalendar.Calendar(calendarEl, {
+initialView: 'dayGridMonth',
+eventDisplay: 'block',
+selectable: true,
+headerToolbar: {
+left: 'prev,next',
+center: 'title',
+right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
+},
+eventDidMount: function(arg) {
+let val = selector1.value;
+let val2 = selector2.value;
+let val3 = selector3.value;
+if (val3 == "r"){
+if (!(val == arg.event.extendedProps.location || val == "all")) {
+arg.el.style.display = "none";
+}
+}else if (val3 == "e"){
+if (!(val2 == arg.event.extendedProps.location || val2 == "all")) {
+arg.el.style.display = "none";
+}
+}
+},
+events: function (fetchInfo, successCallback, failureCallback) {
+let valBookType = selector3.value
+if (valBookType == "r"){
+successCallback([
+{% for row in roombookings %}
+{% if row.StudID != None: %}
+{
+id: '{{row.RBookID}}',
+title: '{{row.StudID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+{%for r in roomlist%}
+{%if row.RoomID==r.RoomID and r.RoomID=="Normal Room":%}
+roomType: '{{r.RoomType}}',
+{%endif%}
+{% endfor %}
+status: '{{row.RBookStatus}}'
+}
+},
+{% else %}
+{
+id: '{{row.RBookID}}',
+title: '{{row.StaffID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+{%for r in roomlist%}
+{%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
+roomType: '{{r.RoomType}}',
+{%endif%}
+{% endfor %}
+status: '{{row.RBookStatus}}'
+}
+},
+{% endif %}
+{% endfor %}
+]);
+}else if (valBookType == "e"){
+successCallback([
+{% for row in eventbookings %}
+{% if row.StudID != None: %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StudID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+{%for r in roomlist%}
+{%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
+roomType: '{{r.RoomType}}',
+{%endif%}
+{% endfor %}
+status: '{{row.EBookStatus}}'
+}
+},
+{% else %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StaffID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+{%for r in roomlist%}
+{%if row.RoomID==r.RoomID and r.RoomID=="Event Room":%}
+roomType: '{{r.RoomType}}',
+{%endif%}
+{% endfor %}
+status: '{{row.EBookStatus}}'
+}
+},
+{% endif %}
+{% endfor %}
+]);
+}
+},
+dateClick: function(info) {
+var clickedDate = getDateWithoutTime(info.date);
+var nowDate = getDateWithoutTime(new Date())
+let valBookType = selector3.value
+if (clickedDate >= nowDate) {
+if (valBookType == "r"){
+$("#modaladdRBook").modal("show");
+$("#rbookstart").val(info.dateStr);
+$("#rbookend").val(info.dateStr);
+}else if (valBookType == "e"){
+$("#modaladdEBook").modal("show");
+$("#ebookstart").val(info.dateStr);
+$("#ebookend").val(info.dateStr);
+}
+}
+else alert("Cannot Select Past Date");
+},
+select: function(info) {
+//alert('selected ' + info.startStr + ' to ' + info.endStr);
+}
+});
+calendar.render();
+calendar.setOption('contentHeight', 650);
 
-                selector1.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector2.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                selector3.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-            });
+selector1.addEventListener('change', function() {
+calendar.refetchEvents();
+});
+selector2.addEventListener('change', function() {
+calendar.refetchEvents();
+});
+selector3.addEventListener('change', function() {
+calendar.refetchEvents();
+});
+});
 {% endblock %}
 
 {% block content%}
-<br/>
+<br />
 
-{% if not(regFaceExist) %}
-<div class="alert alert-info alter-dismissable fade show" role="alert" style="overflow:auto;">
-    <button type="button" class="close display:inline-block; position:relative;" data-dismiss="alert">
-        <span aria-hidden="true">&times;</span>
-    </button>
-    <center><p>You haven't registered your face for face unlock, <b><a href="/register_face" style="color: red;">MUST REGISTER FACE</a></b> first.<br/> Please register face 3 days ahead of a ROOM booking</p></center>
-</div>
-{% endif %}
 <div class="row">
     <div class="flex-container container-fluid" id="booking-bt">
-        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-toggle="modal" data-target="#modaladdRBook">Book Room</button>
-        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-toggle="modal" data-target="#modaladdEBook">Book for Event</button>
+        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-toggle="modal"
+            data-target="#modaladdRBook">Book Room</button>
+        <button class="btn btn-light btn-outline-dark" style="margin:5px;" data-toggle="modal"
+            data-target="#modaladdEBook">Book for Event</button>
     </div>
 </div>
 
@@ -180,13 +176,15 @@
             <div class="row">
                 <div class="col-lg-6 pr-2">
                     <section aria-label="Announcements" class="announcements">
-                        <h4 class="font-weight-bold border-bottom pb-3 mt-3 mb-0 pr-5" style="text-align: center;">Announcements</h4>
+                        <h4 class="font-weight-bold border-bottom pb-3 mt-3 mb-0 pr-5" style="text-align: center;">
+                            Announcements</h4>
                         <ul class="list-group list-group-flush" id="announcements">
                             {% for a in announcements %}
                             <li class="list-group-item">
                                 <p>{{ a.PostDate.strftime('%Y-%m-%d') }}</p>
-                                <h5><a href="#" data-toggle="modal" data-target="#modalviewannounce{{a.AnnounceID}}">{{ a.Title }}</a></h5>
-                              <hr/>
+                                <h5><a href="#" data-toggle="modal" data-target="#modalviewannounce{{a.AnnounceID}}">{{
+                                        a.Title }}</a></h5>
+                                <hr />
                             </li>
                             <!--VIEW ANNOUNCEMENT MODAL-->
                             <div id="modalviewannounce{{a.AnnounceID}}" class="modal fade" role="dialog">
@@ -206,49 +204,51 @@
                                             </form>
                                         </div>
                                         <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                            <button type="button" class="btn btn-secondary"
+                                                data-dismiss="modal">Close</button>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             {% endfor %}
-                          </ul>
+                        </ul>
                     </section>
                 </div>
                 <div class="col-lg-6 pl-2">
-                    <h4 class="font-weight-bold border-bottom pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">Bookings</h4>
+                    <h4 class="font-weight-bold border-bottom pb-3 mt-3 pl-lg-5 mb-0" style="text-align: center;">
+                        Bookings</h4>
                     <div id="nroomSelectorDiv" class="float-right">
-                        <p id="nroomSelectorLabel"><b>Room: </b> 
-                        <select id="nroomSelector">
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
+                        <p id="nroomSelectorLabel"><b>Room: </b>
+                            <select id="nroomSelector">
+                                <option value="all">All</option>
+                                {% for r in roomlist %}
+                                {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
+                                <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                {%endif%}
+                                {% endfor %}
+                            </select>
                         </p>
                     </div>
                     <div id="eroomSelectorDiv" class="float-right">
                         <p id="eroomSelectorLabel" hidden><b>Room: </b>
-                        <select id="eroomSelector" hidden disabled>
-                            <option value="all">All</option>
-                            {% for r in roomlist %}
-                            {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
-                            <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                            {%endif%}
-                            {% endfor %}
-                        </select>
-                        </p> 
+                            <select id="eroomSelector" hidden disabled>
+                                <option value="all">All</option>
+                                {% for r in roomlist %}
+                                {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
+                                <option value="{{r.RoomID}}">{{r.RoomName}}</option>
+                                {%endif%}
+                                {% endfor %}
+                            </select>
+                        </p>
                     </div>
                     <div class="float-left">
-                        <b>Type: </b> 
+                        <b>Type: </b>
                         <select id="BookTypeSelector" onchange="bookOnChange()">
                             <option value="r" selected="selected">Room Only</option>
                             <option value="e">Event Only</option>
                         </select>
                     </div>
-                    <br/><br/>
+                    <br /><br />
                     <!--Add Room Booking Modal-->
                     <div id="modaladdRBook" class="modal fade" role="dialog">
                         <div class="modal-dialog modal-lg" style="width:90%">
@@ -258,87 +258,86 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form action="/AddRBook" method="POST" enctype="multipart/form-data">
-                                        <div class="form-group" id="userType">
-                                            <div id="typeStudent"
-                                                <p>Student ID:
-                                                    <input type="text" class="form-control" id="studid" name="studid" value="{{user.StudID}}">
-                                                </p>
+                                        <form action="/AddRBook" method="POST" enctype="multipart/form-data">
+                                            <div class="form-group" id="userType">
+                                                <div id="typeStudent" <p>Student ID:
+                                                    <input type="text" class="form-control" id="studid" name="studid"
+                                                        value="{{user.StudID}}">
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Please select the room to book:</label></br>
-                                            <select id="roomSelect" name="roomSelect" required>
-                                                <option disabled selected value> -- select an option -- </option>
-                                                {% for r in roomlist %}
+                                            <div class="form-group">
+                                                <label>Please select the room to book:</label></br>
+                                                <select id="roomSelect" name="roomSelect" required>
+                                                    <option disabled selected value> -- select an option -- </option>
+                                                    {% for r in roomlist %}
                                                     {%if r.RoomStatus != "Closed" and r.RoomType == "Normal Room"%}
                                                     <option value="{{r.RoomID}}">{{r.RoomName}}</option>
                                                     {%endif%}
-                                                {% endfor %}
-                                            </select><br/>
-                                            <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
-                                                <pre><span id="roomInfoPreview"></span></pre>
+                                                    {% endfor %}
+                                                </select><br />
+                                                <div class="row ml-1 mt-1">
+                                                    <img id="roomPreview" src="placeholder.png" height="150" width="300"
+                                                        alt="" />
+                                                    <pre><span id="roomInfoPreview"></span></pre>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <h6>Each Room Booking is only allowed to be 2 hours long</h6>
-                                        <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="rbookstart" name="rbookstart" value=""> 
-                                                <select id="rbooktimeStart" name="rbooktimeStart">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                </select>
-                                            </p>
-                                            <p>End: 
-                                                <input type="date" id="rbookend" name="rbookend" value=""> 
-                                                <select id="rbooktimeEnd" name="rbooktimeEnd">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                    <option value="21:00:00">09:00 PM</option>
-                                                </select>
-                                            </p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "RBookPurpose" 
-                                                id="RBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="RBookPurpose" 
-                                                placeholder="Room Booking Purpose" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-dismiss="modal">Close</button>
-                                        </div>
-                                    </form>
-                                </div>
+                                            <h6>Each Room Booking is only allowed to be 2 hours long</h6>
+                                            <div class="form-group" id="startEndRBook">
+                                                <p>Start:
+                                                    <input type="date" id="rbookstart" name="rbookstart" value="">
+                                                    <select id="rbooktimeStart" name="rbooktimeStart">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                    </select>
+                                                </p>
+                                                <p>End:
+                                                    <input type="date" id="rbookend" name="rbookend" value="">
+                                                    <select id="rbooktimeEnd" name="rbooktimeEnd">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                        <option value="21:00:00">09:00 PM</option>
+                                                    </select>
+                                                </p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Purpose of Booking:</label></br>
+                                                <textarea name="RBookPurpose" id="RBookPurpose"
+                                                    class="form-control pull-left" rows="3" cols="2"
+                                                    v-model="RBookPurpose" placeholder="Room Booking Purpose"
+                                                    required></textarea><br>
+                                            </div>
+                                            <div class="form-group">
+                                                <button class="btn btn-primary mt-4" type="submit">Submit</button>
+                                                <button type="button" class="btn btn-default mt-4 btn-outline-secondary"
+                                                    data-dismiss="modal">Close</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -352,98 +351,93 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form action="/AddEBook" method="POST" enctype="multipart/form-data">
-                                        <div class="form-group" id="userType">
-                                            <div id="typeStudent"
-                                                <p>Student ID:
-                                                    <input type="text" class="form-control" id="studid" name="studid" value="{{user.StudID}}">
-                                                </p>
+                                        <form action="/AddEBook" method="POST" enctype="multipart/form-data">
+                                            <div class="form-group" id="userType">
+                                                <div id="typeStudent" <p>Student ID:
+                                                    <input type="text" class="form-control" id="studid" name="studid"
+                                                        value="{{user.StudID}}">
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Please select the event room to book:</label></br>
-                                            <select id="roomSelect" name="roomSelect" required>
-                                                <option disabled selected value> -- select an option -- </option>
-                                                {% for r in roomlist %}
+                                            <div class="form-group">
+                                                <label>Please select the event room to book:</label></br>
+                                                <select id="roomSelect" name="roomSelect" required>
+                                                    <option disabled selected value> -- select an option -- </option>
+                                                    {% for r in roomlist %}
                                                     {%if r.RoomStatus != "Closed" and r.RoomType == "Event Room"%}
                                                     <option value="{{r.RoomID}}">{{r.RoomName}}</option>
                                                     {%endif%}
-                                                {% endfor %}
-                                            </select><br/>
-                                            <div class="row ml-1 mt-1">
-                                                <img id="roomPreview" src="placeholder.png" height="150" width="300" alt=""/>
-                                                <pre><span id="roomInfoPreview"></span></pre>
+                                                    {% endfor %}
+                                                </select><br />
+                                                <div class="row ml-1 mt-1">
+                                                    <img id="roomPreview" src="placeholder.png" height="150" width="300"
+                                                        alt="" />
+                                                    <pre><span id="roomInfoPreview"></span></pre>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <div class="form-group" id="startEndRBook">
-                                            <p>Start: 
-                                                <input type="date" id="ebookstart" name="ebookstart"> 
-                                                <select id="ebooktimeStart" name="ebooktimeStart">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                </select>
-                                            </p>
-                                            <p>End: 
-                                                <input type="date" id="ebookend" name="ebookend"> 
-                                                <select id="ebooktimeEnd" name="ebooktimeEnd">
-                                                    <option disabled selected value> -- select an option -- </option>
-                                                    <option value="09:00:00">09:00 AM</option>
-                                                    <option value="10:00:00">10:00 AM</option>
-                                                    <option value="11:00:00">11:00 AM</option>
-                                                    <option value="12:00:00">12:00 PM</option>
-                                                    <option value="13:00:00">01:00 PM</option>
-                                                    <option value="14:00:00">02:00 PM</option>
-                                                    <option value="15:00:00">03:00 PM</option>
-                                                    <option value="16:00:00">04:00 PM</option>
-                                                    <option value="17:00:00">05:00 PM</option>
-                                                    <option value="18:00:00">06:00 PM</option>
-                                                    <option value="19:00:00">07:00 PM</option>
-                                                    <option value="20:00:00">08:00 PM</option>
-                                                    <option value="21:00:00">09:00 PM</option>
-                                                </select>
-                                            </p>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Purpose of Booking:</label></br>
-                                            <textarea 
-                                                name = "EBookPurpose" 
-                                                id="EBookPurpose"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookPurpose" 
-                                                placeholder="Event Booking Purpose" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <label>Additional Details:</label></br>
-                                            <textarea 
-                                                name = "EBookAddDetails" 
-                                                id="EBookAddDetails"
-                                                class="form-control pull-left" 
-                                                rows="3" 
-                                                cols="2" 
-                                                v-model="EBookAddDetails" 
-                                                placeholder="Event Booking Additional Details" 
-                                            required></textarea><br>
-                                        </div>
-                                        <div class="form-group">
-                                            <button class="btn btn-primary mt-4" type="submit">Submit</button>
-                                            <button type="button" class="btn btn-default mt-4 btn-outline-secondary" data-dismiss="modal" onclick="this.form.reset();">Close</button>
-                                        </div>
-                                    </form>
-                                </div>
+                                            <div class="form-group" id="startEndRBook">
+                                                <p>Start:
+                                                    <input type="date" id="ebookstart" name="ebookstart">
+                                                    <select id="ebooktimeStart" name="ebooktimeStart">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                    </select>
+                                                </p>
+                                                <p>End:
+                                                    <input type="date" id="ebookend" name="ebookend">
+                                                    <select id="ebooktimeEnd" name="ebooktimeEnd">
+                                                        <option disabled selected value> -- select an option --
+                                                        </option>
+                                                        <option value="09:00:00">09:00 AM</option>
+                                                        <option value="10:00:00">10:00 AM</option>
+                                                        <option value="11:00:00">11:00 AM</option>
+                                                        <option value="12:00:00">12:00 PM</option>
+                                                        <option value="13:00:00">01:00 PM</option>
+                                                        <option value="14:00:00">02:00 PM</option>
+                                                        <option value="15:00:00">03:00 PM</option>
+                                                        <option value="16:00:00">04:00 PM</option>
+                                                        <option value="17:00:00">05:00 PM</option>
+                                                        <option value="18:00:00">06:00 PM</option>
+                                                        <option value="19:00:00">07:00 PM</option>
+                                                        <option value="20:00:00">08:00 PM</option>
+                                                        <option value="21:00:00">09:00 PM</option>
+                                                    </select>
+                                                </p>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Purpose of Booking:</label></br>
+                                                <textarea name="EBookPurpose" id="EBookPurpose"
+                                                    class="form-control pull-left" rows="3" cols="2"
+                                                    v-model="EBookPurpose" placeholder="Event Booking Purpose"
+                                                    required></textarea><br>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Additional Details:</label></br>
+                                                <textarea name="EBookAddDetails" id="EBookAddDetails"
+                                                    class="form-control pull-left" rows="3" cols="2"
+                                                    v-model="EBookAddDetails"
+                                                    placeholder="Event Booking Additional Details"
+                                                    required></textarea><br>
+                                            </div>
+                                            <div class="form-group">
+                                                <button class="btn btn-primary mt-4" type="submit">Submit</button>
+                                                <button type="button" class="btn btn-default mt-4 btn-outline-secondary"
+                                                    data-dismiss="modal" onclick="this.form.reset();">Close</button>
+                                            </div>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -456,26 +450,27 @@
         </div>
     </section>
 </div>
-<scrip type = "text/javascript" src = "{{ url_for('static', filename='announcement.js')}}"></script>
-<script>
-    function bookOnChange(){
-        if (document.getElementById('BookTypeSelector').value == "r"){
-            document.getElementById('eroomSelector').disabled = true;
-            document.getElementById('eroomSelector').hidden = true;
-            document.getElementById('eroomSelectorLabel').hidden = true;
+<scrip type="text/javascript" src="{{ url_for('static', filename='announcement.js')}}">
+    </script>
+    <script>
+        function bookOnChange() {
+            if (document.getElementById('BookTypeSelector').value == "r") {
+                document.getElementById('eroomSelector').disabled = true;
+                document.getElementById('eroomSelector').hidden = true;
+                document.getElementById('eroomSelectorLabel').hidden = true;
 
-            document.getElementById('nroomSelector').disabled = false;
-            document.getElementById('nroomSelector').hidden = false;
-            document.getElementById('nroomSelectorLabel').hidden = false;
-        }else if (document.getElementById('BookTypeSelector').value == "e"){
-            document.getElementById('eroomSelector').disabled = false;
-            document.getElementById('eroomSelector').hidden = false;
-            document.getElementById('eroomSelectorLabel').hidden = false;
+                document.getElementById('nroomSelector').disabled = false;
+                document.getElementById('nroomSelector').hidden = false;
+                document.getElementById('nroomSelectorLabel').hidden = false;
+            } else if (document.getElementById('BookTypeSelector').value == "e") {
+                document.getElementById('eroomSelector').disabled = false;
+                document.getElementById('eroomSelector').hidden = false;
+                document.getElementById('eroomSelectorLabel').hidden = false;
 
-            document.getElementById('nroomSelector').disabled = true;
-            document.getElementById('nroomSelector').hidden = true;
-            document.getElementById('nroomSelectorLabel').hidden = true;
+                document.getElementById('nroomSelector').disabled = true;
+                document.getElementById('nroomSelector').hidden = true;
+                document.getElementById('nroomSelectorLabel').hidden = true;
+            }
         }
-    }
-</script>
-{% endblock %}
+    </script>
+    {% endblock %}
