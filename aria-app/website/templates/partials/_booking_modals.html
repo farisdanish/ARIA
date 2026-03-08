@@ -88,6 +88,27 @@
                             </div>
 
                             <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">CHECK-IN METHOD</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="checkinMethod" id="rbook-qr"
+                                            value="QR" checked onchange="toggleBiometricHint('rbook')">
+                                        <label class="form-check-label" for="rbook-qr">QR Code</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="checkinMethod"
+                                            id="rbook-face" value="Face" onchange="toggleBiometricHint('rbook')">
+                                        <label class="form-check-label" for="rbook-face">Face Recognition</label>
+                                    </div>
+                                </div>
+                                <div id="rbook-biometric-hint" class="alert alert-warning py-2 small mt-2 d-none">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    <strong>Note:</strong> You must register your face in <strong>Settings</strong>
+                                    before using Face Recognition for check-in.
+                                </div>
+                            </div>
+
+                            <div class="col-12">
                                 <label class="form-label fw-bold small text-muted">PURPOSE</label>
                                 <textarea name="RBookPurpose" id="RBookPurpose" class="form-control bg-light border-0"
                                     rows="4" placeholder="Explain the purpose of your booking..." required></textarea>
@@ -112,6 +133,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    function toggleBiometricHint(type) {
+        const faceRadio = document.getElementById(type + '-face');
+        const hint = document.getElementById(type + '-biometric-hint');
+        if (faceRadio && hint) {
+            if (faceRadio.checked) {
+                hint.classList.remove('d-none');
+            } else {
+                hint.classList.add('d-none');
+            }
+        }
+    }
+</script>
 
 <!-- Add Event Booking Modal -->
 <div id="modaladdEBook" class="modal fade" role="dialog">
@@ -193,6 +228,27 @@
                                         <option value="20:00:00">08:00 PM</option>
                                         <option value="21:00:00">09:00 PM</option>
                                     </select>
+                                </div>
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold small text-muted">CHECK-IN METHOD</label>
+                                <div class="d-flex gap-4">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="checkinMethod" id="ebook-qr"
+                                            value="QR" checked onchange="toggleBiometricHint('ebook')">
+                                        <label class="form-check-label" for="ebook-qr">QR Code</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="radio" name="checkinMethod"
+                                            id="ebook-face" value="Face" onchange="toggleBiometricHint('ebook')">
+                                        <label class="form-check-label" for="ebook-face">Face Recognition</label>
+                                    </div>
+                                </div>
+                                <div id="ebook-biometric-hint" class="alert alert-warning py-2 small mt-2 d-none">
+                                    <i class="fa fa-exclamation-triangle me-2"></i>
+                                    <strong>Note:</strong> You must register your face in <strong>Settings</strong>
+                                    before using Face Recognition for check-in.
                                 </div>
                             </div>
 

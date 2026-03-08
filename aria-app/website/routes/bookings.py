@@ -214,6 +214,7 @@ def add_room_booking():
             stud_id = current_user.StudID if current_user.is_Student() else None
             staff_id = current_user.StaffID if current_user.is_Staff() else None
             purpose = request.form.get('RBookPurpose')
+            checkin_method = request.form.get('checkinMethod', 'QR')
             
             # Parse dates and times
             start_date = datetime.strptime(request.form.get('rbookstart'), '%Y-%m-%d').date()
@@ -239,7 +240,8 @@ def add_room_booking():
                 staff_id=staff_id,
                 start=start,
                 end=end,
-                purpose=purpose
+                purpose=purpose,
+                checkin_method=checkin_method
             )
             
             if booking:
@@ -298,6 +300,7 @@ def add_event_booking():
             staff_id = current_user.StaffID if current_user.is_Staff() else None
             purpose = request.form.get('EBookPurpose')
             add_detail = request.form.get('EBookAddDetails')
+            checkin_method = request.form.get('checkinMethod', 'QR')
             
             # Parse dates and times
             start_date = datetime.strptime(request.form.get('ebookstart'), '%Y-%m-%d').date()
@@ -316,7 +319,8 @@ def add_event_booking():
                 start=start,
                 end=end,
                 purpose=purpose,
-                add_detail=add_detail
+                add_detail=add_detail,
+                checkin_method=checkin_method
             )
             
             if booking:

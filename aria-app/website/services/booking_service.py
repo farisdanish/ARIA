@@ -83,7 +83,7 @@ class BookingService:
     @staticmethod
     def create_room_booking(room_id: int, stud_id: str = None, staff_id: str = None,
                            start: datetime = None, end: datetime = None,
-                           purpose: str = None) -> Optional[RoomBooking]:
+                           purpose: str = None, checkin_method: str = 'QR') -> Optional[RoomBooking]:
         """Create a room booking."""
         # Validate duration
         is_valid, error_msg = BookingService.validate_booking_duration(start, end)
@@ -103,7 +103,8 @@ class BookingService:
             Start=start,
             End=end,
             Purpose=purpose,
-            RBookStatus='Upcoming'
+            RBookStatus='Upcoming',
+            CheckInMethod=checkin_method
         )
         db.session.add(booking)
         db.session.commit()
@@ -113,7 +114,8 @@ class BookingService:
     @staticmethod
     def create_event_booking(room_id: int, stud_id: str = None, staff_id: str = None,
                             start: datetime = None, end: datetime = None,
-                            purpose: str = None, add_detail: str = None) -> Optional[EventBooking]:
+                            purpose: str = None, add_detail: str = None,
+                            checkin_method: str = 'QR') -> Optional[EventBooking]:
         """Create an event booking."""
         if end < start:
             logger.warning("Invalid booking time")
@@ -132,7 +134,8 @@ class BookingService:
             End=end,
             Purpose=purpose,
             AddDetail=add_detail,
-            EbookStatus='Upcoming'
+            EbookStatus='Upcoming',
+            CheckInMethod=checkin_method
         )
         db.session.add(booking)
         db.session.commit()

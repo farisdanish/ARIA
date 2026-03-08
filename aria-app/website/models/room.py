@@ -37,6 +37,7 @@ class RoomBooking(db.Model):
     Purpose = Column(Text, nullable=False)
     RBookStatus = Column(Enum('Upcoming', 'Ongoing', 'Completed', 'Cancelled', name='booking_status'),
                         default='Upcoming', nullable=False)
+    CheckInMethod = Column(String(50), default='QR', nullable=False)
     
     def __repr__(self):
         return f'<RoomBooking {self.RBookID}: Room {self.RoomID}>'
@@ -56,6 +57,7 @@ class EventBooking(db.Model):
     AddDetail = Column(Text, nullable=True)
     EbookStatus = Column(Enum('Upcoming', 'Ongoing', 'Completed', 'Cancelled', name='booking_status'),
                         default='Upcoming', nullable=False)
+    CheckInMethod = Column(String(50), default='QR', nullable=False)
     
     def __repr__(self):
         return f'<EventBooking {self.EBookID}: Room {self.RoomID}>'
