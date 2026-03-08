@@ -3,7 +3,17 @@
 <title>{% block title %}Announcement Management{% endblock %}</title>
 
 {% block PageTitle %}
-{{ section_header("Announcements", "Manage ARIA-wide messaging") }}
+<div class="aria-title-card d-flex justify-content-between align-items-center">
+  <div>
+    <h2 class="fw-bold mb-1">Announcements</h2>
+    <p class="text-muted mb-0">Manage system-wide broadcast updates and notifications.</p>
+  </div>
+  <div class="header-actions">
+    <a href="/homeAdmin" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+      <i class="fa fa-arrow-left me-2"></i> Dashboard
+    </a>
+  </div>
+</div>
 {% endblock %}
 
 {% block content %}
@@ -12,7 +22,8 @@
     <div class="aria-section-card p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h4 class="mb-0">Published Announcements</h4>
-        <button class="btn btn-outline-primary btn-sm" hx-get="/ManageAnnouncements" hx-target="#announcement-list" hx-swap="innerHTML">Refresh</button>
+        <button class="btn btn-outline-primary btn-sm" hx-get="/ManageAnnouncements" hx-target="#announcement-list"
+          hx-swap="innerHTML">Refresh</button>
       </div>
       <div id="announcement-list">
         {% include "_announcement_list.html" %}
@@ -21,7 +32,8 @@
   </div>
 
   <div class="col-lg-5">
-    <form method="POST" class="aria-section-card p-3" hx-post="/ManageAnnouncements" hx-target="#announcement-list" hx-swap="innerHTML">
+    <form method="POST" class="aria-section-card p-3" hx-post="/ManageAnnouncements" hx-target="#announcement-list"
+      hx-swap="innerHTML">
       <h4>Add Announcement</h4>
       <div class="mb-3">
         <label for="ATitle" class="form-label">Title</label>
@@ -31,9 +43,10 @@
         <label for="AContent" class="form-label">Content</label>
         <textarea id="AContent" name="AContent" rows="4" class="form-control" required></textarea>
       </div>
-      <div class="d-flex gap-2">
-        <button type="submit" class="btn btn-primary">Publish</button>
-        <a href="/homeAdmin" class="btn btn-outline-secondary">Back</a>
+      <div class="d-flex">
+        <button type="submit" class="btn btn-primary rounded-pill px-4 w-100 shadow-sm fw-bold">
+          <i class="fa fa-paper-plane me-2"></i> Publish Announcement
+        </button>
       </div>
     </form>
   </div>

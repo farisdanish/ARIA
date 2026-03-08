@@ -1,108 +1,149 @@
 {% extends "base_aria.html" %}
-<title>{% block title %} Feedback {% endblock %}</title>
+<title>{% block title %} Booking Feedback - ARIA {% endblock %}</title>
 
-{% block PageTitle%}
-    <br/>
-    <center><h2>Booking Feedback</h2></center>
-{% endblock %}
-
-{% block content%}
-<br/>
-<div class="flex-container container-fluid" style="">
-    <center><button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/';">Go Back</button></center>
-    <div class="wrap row p-3 justify-content-center">
-        <form action="" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                {% if user.is_Student() %}
-                    <label for="StudID">Student ID:</label>
-                    <input type="text" class="form-control" id="StudID" name="StudID" value="{{user.StudID}}" readonly>
-                    <input type="hidden" class="form-control" id="StaffID" name="StaffID" value="">
-                {% elif user.is_Staff() %}
-                    <label for="StaffID">Staff ID:</label>
-                    <input type="hidden" class="form-control" id="StudID" name="StudID" value="">
-                    <input type="text" class="form-control" id="StaffID" name="StaffID" value="{{user.StaffID}}" readonly>
-                {%endif%}
-            </div>
-            <div class="form-group">
-                <label>Is this feedback for Room Booking or Event Booking?:</label></br>
-                <select id="feedbackType" name="feedbackType" required>
-                    <option disabled selected value> -- select an option -- </option>
-                    <option value="Room">Room Booking</option>
-                    <option value="Event">Event Booking</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <div id="feedbackRBookType" style="display:none;">
-                    <p>Room Booking:
-                    <select class="js-example-basic-single" id="rbook" name="rbook">
-                        <option disabled selected value> -- select an option -- </option>
-                        {%for rb in roombookings%}
-                            {% if user.is_Student() %}
-                            {%if rb.StudID == user.StudID%}
-                                {%for rm in roomlist%}
-                                    {%if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed"%}
-                                        <option value="{{rb.RBookID}}"> {{rb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
-                                    {%endif%}
-                                {%endfor%}
-                            {%endif%}
-                            {% elif user.is_Staff() %}
-                                {%if rb.StaffID == user.StaffID%}
-                                    {%for rm in roomlist%}
-                                        {%if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed"%}
-                                            <option value="{{rb.RBookID}}"> {{rb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
-                                        {%endif%}
-                                    {%endfor%}
-                                {%endif%}
-                            {%endif%}
-                        {%endfor%}
-                    </select>
-                    </p>
-                </div>
-                <div id="feedbackEBookType" style="display:none;">
-                    <p>Event Booking:
-                    <select class="js-example-basic-single" id="ebook" name="ebook">
-                        <option disabled selected value> -- select an option -- </option>
-                        {%for eb in eventbookings%}
-                            {% if user.is_Student() %}
-                            {%if eb.StudID == user.StudID%}
-                                {%for rm in roomlist%}
-                                    {%if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed"%}
-                                        <option value="{{eb.EBookID}}"> {{eb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
-                                    {%endif%}
-                                {%endfor%}
-                            {%endif%}
-                            {% elif user.is_Staff() %}
-                                {%if eb.StaffID == user.StaffID%}
-                                    {%for rm in roomlist%}
-                                        {%if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed"%}
-                                            <option value="{{eb.EBookID}}"> {{eb.Start.strftime('%m/%d/%Y') + " - " + rm.RoomName}} </option>
-                                        {%endif%}
-                                    {%endfor%}
-                                {%endif%}
-                            {%endif%}
-                        {%endfor%}
-                    </select>
-                    </p>
-                </div>
-            </div>
-            <div class="form-group">
-                <label>Your Feedback:</label></br>
-                <textarea 
-                    name = "FeedbackContent" 
-                    id="FeedbackContent"
-                    class="form-control pull-left" 
-                    rows="3" 
-                    cols="2" 
-                    v-model="FeedbackContent" 
-                    placeholder="Enter your thoughts on this booking." 
-                    required></textarea><br>
-            </div>
-            <div class="form-group">
-                <button class="btn btn-primary mt-4" type="submit">Submit</button>
-            </div>
-        </form>
+{% block PageTitle %}
+<div class="aria-title-card d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold mb-1">Booking Feedback</h2>
+        <p class="text-muted mb-0">Help us improve campus services by sharing your experience.</p>
+    </div>
+    <div class="header-actions">
+        <a href="/" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+            <i class="fa fa-arrow-left me-2"></i> Go Back
+        </a>
+        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill">
+            <i class="fa fa-commenting-o me-1"></i> Quality Assurance
+        </span>
     </div>
 </div>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="aria-section-card p-4 shadow-lg border-0">
+                <div class="text-center mb-4">
+                    <div class="feedback-icon-wrapper mb-3">
+                        <i class="fa fa-comments text-primary" style="font-size: 2.5rem;"></i>
+                    </div>
+                    <h3 class="fw-bold">Your Thoughts Matter</h3>
+                    <p class="text-muted small">Please select your booking and leave a brief comment below.</p>
+                </div>
+
+                <form action="" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        {% if user.is_Student() %}
+                        <label class="form-label fw-bold small text-uppercase">Student Information</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i
+                                    class="fa fa-user-circle text-muted"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0" value="{{user.StudID}}"
+                                readonly>
+                        </div>
+                        <input type="hidden" name="StudID" value="{{user.StudID}}">
+                        {% elif user.is_Staff() %}
+                        <label class="form-label fw-bold small text-uppercase">Staff Information</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0"><i
+                                    class="fa fa-id-badge text-muted"></i></span>
+                            <input type="text" class="form-control bg-light border-start-0" value="{{user.StaffID}}"
+                                readonly>
+                        </div>
+                        <input type="hidden" name="StaffID" value="{{user.StaffID}}">
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="feedbackType" class="form-label fw-bold small text-uppercase">Booking Type</label>
+                        <select id="feedbackType" name="feedbackType" class="form-select border-2" required>
+                            <option disabled selected value>Select type of booking...</option>
+                            <option value="Room">Room Booking</option>
+                            <option value="Event">Event Booking</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <div id="feedbackRBookType" style="display:none;">
+                            <label for="rbook" class="form-label fw-bold small text-uppercase">Select Room
+                                Booking</label>
+                            <select class="form-select border-2 js-example-basic-single" id="rbook" name="rbook">
+                                <option disabled selected value>Choose a completed booking...</option>
+                                {% for rb in roombookings %}
+                                {% if (user.is_Student() and rb.StudID == user.StudID) or (user.is_Staff() and
+                                rb.StaffID == user.StaffID) %}
+                                {% for rm in roomlist %}
+                                {% if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed" %}
+                                <option value="{{rb.RBookID}}"> {{rb.Start.strftime('%m/%d/%Y')}} - {{rm.RoomName}}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="feedbackEBookType" style="display:none;">
+                            <label for="ebook" class="form-label fw-bold small text-uppercase">Select Event
+                                Booking</label>
+                            <select class="form-select border-2 js-example-basic-single" id="ebook" name="ebook">
+                                <option disabled selected value>Choose a completed event...</option>
+                                {% for eb in eventbookings %}
+                                {% if (user.is_Student() and eb.StudID == user.StudID) or (user.is_Staff() and
+                                eb.StaffID == user.StaffID) %}
+                                {% for rm in roomlist %}
+                                {% if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed" %}
+                                <option value="{{eb.EBookID}}"> {{eb.Start.strftime('%m/%d/%Y')}} - {{rm.RoomName}}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="FeedbackContent" class="form-label fw-bold small text-uppercase">Your
+                            Message</label>
+                        <textarea name="FeedbackContent" id="FeedbackContent" class="form-control border-2" rows="4"
+                            placeholder="Tell us what you liked or how we can improve."></textarea>
+                    </div>
+
+                    <div class="d-grid">
+                        <button class="btn btn-primary btn-lg rounded-pill shadow-sm fw-bold" type="submit">
+                            <i class="fa fa-paper-plane me-2"></i> Submit Feedback
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+<script type="text/javascript" src="{{ url_for('static', filename='room.js')}}"></script>
+
+<style>
+    .aria-section-card {
+        border-radius: 20px;
+        transition: transform 0.3s ease;
+    }
+
+    .form-select,
+    .form-control {
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+    }
+
+    .form-select:focus,
+    .form-control:focus {
+        border-color: var(--aria-primary);
+        box-shadow: 0 0 0 0.25rem rgba(13, 79, 140, 0.1);
+    }
+
+    .input-group-text {
+        border-radius: 12px 0 0 12px;
+    }
+</style>
 {% endblock %}
