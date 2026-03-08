@@ -174,12 +174,13 @@
 <div class="row">
     <section class="two-column-list mb-sm-5 container-fluid" id="two-column-list">
         <div class="row g-4">
-            <!-- Left Column: Announcements -->
-            <div class="col-lg-4">
-                <div class="aria-section-card h-100 d-flex flex-column">
+            <!-- Left Column: Feed & Discovery -->
+            <div class="col-lg-4 d-flex flex-column gap-4">
+                <!-- Announcements -->
+                <div class="aria-section-card d-flex flex-column" style="max-height: 400px;">
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h4 class="fw-bold mb-0">Announcements</h4>
+                            <h5 class="fw-bold mb-0">Staff Notices</h5>
                             <div id="announcement-count" class="badge bg-soft-primary text-primary rounded-pill">{{ announcements|length }}</div>
                         </div>
                         <!-- Search Bar -->
@@ -188,7 +189,7 @@
                             <input type="text" 
                                    name="search" 
                                    class="form-control bg-transparent border-0 shadow-none" 
-                                   placeholder="Search updates..."
+                                   placeholder="Search notices..."
                                    hx-get="/announcements/feed"
                                    hx-trigger="keyup changed delay:500ms"
                                    hx-target="#announcement-feed-list"
@@ -196,10 +197,23 @@
                             <div id="search-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary align-self-center me-2"></div>
                         </div>
                     </div>
-                    <div class="card-body p-0 flex-grow-1 overflow-auto" style="max-height: 600px;">
+                    <div class="card-body p-0 flex-grow-1 overflow-auto">
                         <ul class="list-group list-group-flush" id="announcement-feed-list">
                             {% include 'partials/_announcement_list.html' %}
                         </ul>
+                    </div>
+                </div>
+
+                <!-- Room Discovery -->
+                <div class="aria-section-card flex-grow-1 p-4 overflow-auto" style="min-height: 500px;">
+                    <div id="discovery-sidebar-content" 
+                         hx-get="/rooms/discovery?type=r" 
+                         hx-trigger="load" 
+                         hx-indicator="#rooms-loader">
+                        <!-- Loaded via HTMX -->
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -219,27 +233,17 @@
                                 </select>
                             </div>
 
-                            <div id="nroomSelectorDiv" class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
-                                <span class="small fw-bold text-muted me-2 text-nowrap">FILTER:</span>
-                                <select id="nroomSelector" class="form-select form-select-sm border-0 bg-transparent">
-                                    <option value="all">All Rooms</option>
-                                    {% for r in roomlist %}
-                                    {%if r.RoomStatus != "Closed" and r.RoomType=="Normal Room"%}
-                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                    {%endif%}
-                                    {% endfor %}
+                            <!-- Hidden legacy selectors for FullCalendar compatibility -->
+                            <div id="nroomSelectorDiv" class="d-none">
+                                <select id="nroomSelector">
+                                    <option value="all">All</option>
+                                    {% for r in roomlist %}{%if r.RoomType=="Normal Room"%}<option value="{{r.RoomID}}">{{r.RoomName}}</option>{%endif%}{% endfor %}
                                 </select>
                             </div>
-
-                            <div id="eroomSelectorDiv" class="filter-group d-none align-items-center bg-light rounded-pill px-3 py-1">
-                                <span class="small fw-bold text-muted me-2 text-nowrap">FILTER:</span>
-                                <select id="eroomSelector" class="form-select form-select-sm border-0 bg-transparent" disabled>
-                                    <option value="all">All Halls</option>
-                                    {% for r in roomlist %}
-                                    {%if r.RoomStatus != "Closed" and r.RoomType=="Event Room"%}
-                                    <option value="{{r.RoomID}}">{{r.RoomName}}</option>
-                                    {%endif%}
-                                    {% endfor %}
+                            <div id="eroomSelectorDiv" class="d-none">
+                                <select id="eroomSelector" disabled>
+                                    <option value="all">All</option>
+                                    {% for r in roomlist %}{%if r.RoomType=="Event Room"%}<option value="{{r.RoomID}}">{{r.RoomName}}</option>{%endif%}{% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -451,28 +455,25 @@
 <script>
     function bookOnChange(){
         const val = document.getElementById('BookTypeSelector').value;
-        const nroomDiv = document.getElementById('nroomSelectorDiv');
-        const eroomDiv = document.getElementById('eroomSelectorDiv');
         const nroomSel = document.getElementById('nroomSelector');
         const eroomSel = document.getElementById('eroomSelector');
 
         if (val == "r"){
-            eroomDiv.classList.add('d-none');
-            eroomDiv.classList.remove('d-flex');
             eroomSel.disabled = true;
-            
-            nroomDiv.classList.remove('d-none');
-            nroomDiv.classList.add('d-flex');
             nroomSel.disabled = false;
+            nroomSel.value = "all";
         } else {
-            nroomDiv.classList.add('d-none');
-            nroomDiv.classList.remove('d-flex');
             nroomSel.disabled = true;
-            
-            eroomDiv.classList.remove('d-none');
-            eroomDiv.classList.add('d-flex');
             eroomSel.disabled = false;
+            eroomSel.value = "all";
         }
+
+        // 1. Refresh Discovery Sidebar via HTMX
+        htmx.ajax('GET', '/rooms/discovery?type=' + val, '#discovery-sidebar-content');
+
+        // 2. Refresh Calendar
+        const activeSelector = (val === 'r') ? nroomSel : eroomSel;
+        activeSelector.dispatchEvent(new Event('change'));
     }
 </script>
 {% endblock %}

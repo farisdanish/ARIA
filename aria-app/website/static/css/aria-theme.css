@@ -277,6 +277,109 @@ a:hover {
   transform: translateY(-2px);
 }
 
+/* Room Discovery & Sidebar */
+.discovery-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.aria-room-card {
+  background: var(--aria-surface);
+  border: 1px solid var(--aria-border);
+  border-radius: var(--aria-radius-md);
+  padding: 1rem;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.aria-room-card:hover {
+  border-color: var(--aria-primary);
+  background: var(--aria-surface-soft);
+  transform: translateX(4px);
+}
+
+.aria-room-card.active {
+  border-color: var(--aria-primary);
+  background: rgba(13, 79, 140, 0.05);
+  box-shadow: inset 4px 0 0 var(--aria-primary);
+}
+
+.room-thumbnail {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--aria-radius-sm);
+  background: var(--aria-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid var(--aria-border);
+}
+
+.room-thumbnail i {
+  font-size: 1.5rem;
+  color: var(--aria-text-muted);
+}
+
+.room-card-info {
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.room-card-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--aria-text);
+  margin-bottom: 0.15rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.room-status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.status-available { color: var(--aria-accent); }
+.status-available .status-dot { background-color: var(--aria-accent); box-shadow: 0 0 0 3px rgba(31, 157, 139, 0.2); }
+
+.status-occupied { color: var(--aria-danger); }
+.status-occupied .status-dot { background-color: var(--aria-danger); box-shadow: 0 0 0 3px rgba(180, 35, 24, 0.2); }
+
+.status-maintenance { color: var(--aria-warning); }
+.status-maintenance .status-dot { background-color: var(--aria-warning); box-shadow: 0 0 0 3px rgba(181, 71, 8, 0.2); }
+
+/* Room Type Badges */
+.room-type-tag {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  background: var(--aria-bg);
+  color: var(--aria-text-muted);
+  font-weight: 700;
+}
+
 .aria-page-header {
   padding: var(--aria-space-8) var(--aria-space-4) var(--aria-space-4);
 }

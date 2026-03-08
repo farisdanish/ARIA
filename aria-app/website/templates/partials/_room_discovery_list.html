@@ -1,0 +1,16 @@
+<div class="discovery-container" id="room-discovery-list">
+    <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+        <h6 class="fw-bold mb-0 text-muted small uppercase">Available Facilities</h6>
+        <div class="spinner-border spinner-border-sm text-primary htmx-indicator" id="rooms-loader" role="status"></div>
+    </div>
+    
+    {% if not rooms %}
+        <div class="text-center py-4 bg-light rounded">
+            <p class="text-muted small mb-0">No rooms matching criteria.</p>
+        </div>
+    {% endif %}
+
+    {% for room in rooms %}
+        {% include 'partials/_room_card.html' %}
+    {% endfor %}
+</div>

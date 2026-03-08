@@ -1,6 +1,7 @@
 """Room service."""
 from typing import List, Optional
-from ..models.room import RoomList
+from datetime import datetime
+from ..models.room import RoomList, RoomBooking, EventBooking
 from ..models.base import db
 import logging
 
@@ -14,6 +15,55 @@ class RoomService:
     def get_all() -> List[RoomList]:
         """Get all rooms."""
         return db.session.query(RoomList).all()
+
+    @staticmethod
+    def get_rooms_with_status(room_type: str = None) -> List[dict]:
+        """
+        Get all rooms with their current occupancy status.
+        Status: 'Available', 'Occupied', 'Maintenance'
+        """
+        now = datetime.now()
+        query = db.session.query(RoomList)
+        if room_type:
+            query = query.filter_by(RoomType=room_type)
+        
+        rooms = query.all()
+        rooms_with_status = []
+        
+        for room in rooms:
+            status = room.RoomStatus # Initial status from DB (Maintenance/Available)
+            
+            if status != 'Maintenance':
+                # Check for active bookings at this exact moment
+                active_rb = db.session.query(RoomBooking).filter(
+                    RoomBooking.RoomID == room.RoomID,
+                    RoomBooking.Start <= now,
+                    RoomBooking.End >= now,
+                    RoomBooking.RBookStatus != 'Cancelled'
+                ).first()
+                
+                active_eb = db.session.query(EventBooking).filter(
+                    EventBooking.RoomID == room.RoomID,
+                    EventBooking.Start <= now,
+                    EventBooking.End >= now,
+                    EventBooking.EbookStatus != 'Cancelled'
+                ).first()
+                
+                if active_rb or active_eb:
+                    status = 'Occupied'
+                else:
+                    status = 'Available'
+            
+            rooms_with_status.append({
+                'id': room.RoomID,
+                'name': room.RoomName,
+                'type': room.RoomType,
+                'info': room.RoomInfo,
+                'image': room.roomIMG,
+                'status': status
+            })
+            
+        return rooms_with_status
     
     @staticmethod
     def get_by_id(room_id: int) -> Optional[RoomList]:

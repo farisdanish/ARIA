@@ -1,5 +1,5 @@
 """Room management routes."""
-from flask import Blueprint, request, flash, redirect, url_for
+from flask import Blueprint, request, flash, redirect, url_for, render_template
 from flask_login import login_required, current_user
 from ..services.room_service import RoomService
 from ..schemas.room_schema import RoomCreateSchema, RoomUpdateSchema
@@ -169,3 +169,20 @@ def delete(room_id):
         flash('Failed to delete room. Please try again.', category='error')
     
     return redirect(url_for('rooms.manage'))
+
+
+@rooms.route('/rooms/discovery', methods=['GET'])
+@login_required
+def discovery():
+    """Get the interactive room discovery list (HTMX)."""
+    type_code = request.args.get('type', 'r')
+    room_type = "Normal Room" if type_code == 'r' else "Event Room"
+    active_id = request.args.get('active_id', type=int)
+    
+    rooms_data = RoomService.get_rooms_with_status(room_type=room_type)
+    
+    return render_template(
+        "partials/_room_discovery_list.html",
+        rooms=rooms_data,
+        active_room_id=active_id
+    )

@@ -115,6 +115,31 @@
   }
 
   /**
+   * ROOM DISCOVERY & CALENDAR SYNC
+   */
+  window.selectRoom = function (roomId, type) {
+    // 1. UI Highlight
+    document.querySelectorAll('.aria-room-card').forEach(c => c.classList.remove('active'));
+    const activeCard = document.querySelector(`.aria-room-card[data-room-id="${roomId}"]`);
+    if (activeCard) activeCard.classList.add('active');
+
+    // 2. Sync with hidden legacy selectors for FullCalendar
+    const selectorId = (type === 'r') ? "#nroomSelector" : "#eroomSelector";
+    const selector = document.querySelector(selectorId);
+    if (selector) {
+      selector.value = roomId;
+      selector.dispatchEvent(new Event('change'));
+    }
+
+    // 3. Pre-fill all booking modals
+    document.querySelectorAll('select[name="roomSelect"]').forEach(select => {
+      select.value = roomId;
+    });
+    
+    console.log(`[ARIA Discovery] Selected room ${roomId} (type: ${type})`);
+  };
+
+  /**
    * INITIALIZATION
    */
   function processLegacyFlashes() {
