@@ -25,8 +25,8 @@ RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
 # Copy project files
 COPY . .
 
-# Expose port
-EXPOSE 5000
+# Expose port (placeholder, Railway injects its own)
+EXPOSE ${PORT:-5000}
 
-# Command to run the application
-CMD ["python", "main.py"]
+# Command to run the application using sh to evaluate variables
+CMD ["sh", "-c", "python main.py"]
