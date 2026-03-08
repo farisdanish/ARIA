@@ -534,6 +534,111 @@ a:hover {
   .role-selection-container { grid-template-columns: 1fr; }
 }
 
+/* Accessibility Refinements */
+:focus-visible {
+  outline: 3px solid var(--aria-primary);
+  outline-offset: 2px;
+  border-radius: var(--aria-radius-sm);
+}
+
+.skip-to-content {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--aria-primary);
+  color: white;
+  padding: 0.5rem 1.5rem;
+  z-index: 9999;
+  transition: top 0.3s;
+  text-decoration: none;
+  font-weight: 700;
+  border-radius: 0 0 10px 10px;
+}
+
+.skip-to-content:focus {
+  top: 0;
+}
+
+/* Custom Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(13, 79, 140, 0.2) transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(13, 79, 140, 0.2);
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--aria-primary);
+}
+
+/* Interactive States */
+.btn, .aria-room-card, .stat-card, .role-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn:active, .aria-room-card:active, .stat-card:active {
+  transform: scale(0.97);
+}
+
+/* Advanced Shadows */
+.aria-section-card {
+  box-shadow: 
+    0 1px 3px rgba(0,0,0,0.02),
+    0 10px 20px -5px rgba(13, 79, 140, 0.05);
+}
+
+/* Micro-animations */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.aria-hero, .aria-section-card, .stat-card {
+  animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered entrance for list items */
+.announcement-item, .aria-room-card {
+  animation: fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.announcement-item:nth-child(1) { animation-delay: 0.05s; }
+.announcement-item:nth-child(2) { animation-delay: 0.1s; }
+.announcement-item:nth-child(3) { animation-delay: 0.15s; }
+
+/* Pulsing Status Dot */
+@keyframes statusPulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.5); opacity: 0.4; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.status-dot {
+  position: relative;
+}
+
+.status-dot::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: statusPulse 2s infinite ease-in-out;
+  z-index: -1;
+}
+
 .aria-page-header {
   padding: var(--aria-space-8) var(--aria-space-4) var(--aria-space-4);
 }

@@ -1,14 +1,16 @@
 <div class="aria-room-card shadow-sm {{ 'active' if active_room_id == room.id }}" 
      onclick="selectRoom('{{ room.id }}', '{{ 'r' if room.type == 'Normal Room' else 'e' }}')"
-     data-room-id="{{ room.id }}">
+     data-room-id="{{ room.id }}"
+     role="button"
+     aria-label="Select {{ room.name }}, currently {{ room.status }}">
     
     <div class="room-type-tag">{{ 'ROOM' if room.type == 'Normal Room' else 'HALL' }}</div>
     
     <div class="room-thumbnail">
         {% if room.image %}
-            <img src="{{ url_for('static', filename='uploads/roomImages/' + room.image) }}" alt="{{ room.name }}" class="img-fluid rounded">
+            <img src="{{ url_for('static', filename='uploads/roomImages/' + room.image) }}" alt="{{ room.name }}" class="img-fluid rounded" loading="lazy">
         {% else %}
-            <i class="fa {{ 'fa-briefcase' if room.type == 'Normal Room' else 'fa-university' }}"></i>
+            <i class="fa {{ 'fa-briefcase' if room.type == 'Normal Room' else 'fa-university' }}" aria-hidden="true"></i>
         {% endif %}
     </div>
     

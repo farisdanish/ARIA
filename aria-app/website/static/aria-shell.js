@@ -157,12 +157,19 @@
    * INITIALIZATION
    */
   function processLegacyFlashes() {
-    const flashes = document.querySelectorAll("#legacy-flash-messages .flash-data");
+    const container = document.getElementById("legacy-flash-messages");
+    if (!container) return;
+
+    const flashes = container.querySelectorAll(".flash-data");
     flashes.forEach((flash) => {
       const message = flash.getAttribute("data-message");
       const category = flash.getAttribute("data-category");
       window.showToast(message, category);
     });
+
+    // Clear the container to prevent double-toasts on HTMX partial swaps 
+    // or history navigations that might re-trigger init.
+    container.innerHTML = "";
   }
 
   function init() {

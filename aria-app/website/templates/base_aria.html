@@ -21,6 +21,8 @@
     {% endblock %}
   </head>
   <body>
+    <a href="#main-content" class="skip-to-content shadow">Skip to Content</a>
+    
     {% block top_nav %}
     <nav class="navbar navbar-expand-lg navbar-dark aria-navbar sticky-top" aria-label="Primary">
       <div class="container-fluid">
@@ -36,16 +38,16 @@
           <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
             {% if user.is_authenticated %}
               {% if user.is_Student() %}
-                <li class="nav-item"><a class="nav-link" href="/homeStud"><i class="fa fa-home d-lg-none me-2"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"></i>My Bookings</a></li>
-                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"></i>Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="/homeStud"><i class="fa fa-home d-lg-none me-2" title="Home"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2" title="My Bookings"></i>My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2" title="Feedback"></i>Feedback</a></li>
               {% elif user.is_Staff() %}
-                <li class="nav-item"><a class="nav-link" href="/homeStaff"><i class="fa fa-home d-lg-none me-2"></i>Home</a></li>
-                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"></i>My Bookings</a></li>
-                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"></i>Feedback</a></li>
+                <li class="nav-item"><a class="nav-link" href="/homeStaff"><i class="fa fa-home d-lg-none me-2" title="Home"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2" title="My Bookings"></i>My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2" title="Feedback"></i>Feedback</a></li>
               {% else %}
-                <li class="nav-item"><a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer d-lg-none me-2"></i>Dashboard</a></li>
-                <li class="nav-item"><a class="nav-link" href="/ManageRooms"><i class="fa fa-building d-lg-none me-2"></i>Rooms</a></li>
+                <li class="nav-item"><a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer d-lg-none me-2" title="Admin Dashboard"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/ManageRooms"><i class="fa fa-building d-lg-none me-2" title="Manage Rooms"></i>Rooms</a></li>
               {% endif %}
             {% else %}
               <li class="nav-item"><a class="nav-link" href="/">Home</a></li>

@@ -34,12 +34,19 @@
 {% endblock %}
 
 {% block calendar %}
-            document.addEventListener('DOMContentLoaded', function() {
+            (function() {
+                if (typeof FullCalendar === 'undefined') {
+                    console.warn('FullCalendar not loaded yet, deferring...');
+                    setTimeout(arguments.callee, 100);
+                    return;
+                }
                 let selector1 = document.querySelector("#nroomSelector");
                 let selector2 = document.querySelector("#eroomSelector");
                 let selector3 = document.querySelector("#BookTypeSelector");
                 var today = new Date().toISOString().slice(0,10);
                 var calendarEl = document.getElementById('calendar');
+                if (!calendarEl) return;
+
                 var calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
                     eventDisplay: 'block',
