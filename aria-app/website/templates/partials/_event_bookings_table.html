@@ -1,47 +1,69 @@
-<table id="ebookTable" class="table table-hover table-dark">
-    <thead>
-        <tr>
-            <th>Event ID</th>
-            <th>Name</th>
-            <th>ID</th>
-            <th>Room Name</th>
-            <th>Start</th>
-            <th>End</th>
-            <th>Purpose</th>
-            <th>Status</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for eb in eventbookings %}
-        <tr>
-            <td><center>{{eb.EBookID}}</center></td>
-            {% if is_Student %}
-                {%for stud in student %}{% if stud.StudID == eb.StudID %}<td>{{stud.StudName}}</td><td>{{stud.StudID}}</td>{% endif %}{% endfor %}
-            {% else %}
-                {%for st in staff %}{% if st.StaffID == eb.StaffID %}<td>{{st.StaffName}}</td><td>{{st.StaffID}}</td>{% endif %}{% endfor %}
-            {% endif %}
-            
-            {% for r in roomlist %}{%if r.RoomID == eb.RoomID%}<td>{{r.RoomName}}</td>{%endif%}{% endfor %}
-            <td>{{eb.Start.strftime('%Y-%m-%d %H:%M')}}</td>
-            <td>{{eb.End.strftime('%Y-%m-%d %H:%M')}}</td>
-            <td>{{eb.Purpose}}</td>
-            <td>
-                <span class="badge {{ 'bg-success' if eb.EbookStatus == 'Completed' else 'bg-primary' if eb.EbookStatus == 'Upcoming' else 'bg-danger' if eb.EbookStatus == 'Canceled' else 'bg-info' }}">
-                    {{eb.EbookStatus}}
-                </span>
-            </td>
-            <td>
-                {% if eb.EbookStatus != "Canceled" and eb.EbookStatus != "Completed" %}
-                <button class="btn btn-danger btn-sm" 
-                        hx-post="/cancel-booking/event/{{eb.EBookID}}" 
+<div class="table-responsive">
+    <table id="ebookTablePart" class="table table-hover align-middle">
+        <thead class="bg-light">
+            <tr>
+                <th class="border-0 small text-uppercase fw-bold text-muted">ID</th>
+                <th class="border-0 small text-uppercase fw-bold text-muted">User</th>
+                <th class="border-0 small text-uppercase fw-bold text-muted">Room</th>
+                <th class="border-0 small text-uppercase fw-bold text-muted">Schedule</th>
+                <th class="border-0 small text-uppercase fw-bold text-muted">Status</th>
+                <th class="border-0 small text-uppercase fw-bold text-muted text-end">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for eb in eventbookings %}
+            <tr>
+                <td class="text-muted small fw-bold">#{{eb.EBookID}}</td>
+                <td>
+                    {% if is_Student %}
+                    {% for stud in student %}
+                    {% if stud.StudID == eb.StudID %}
+                    <div class="fw-bold text-dark">{{stud.StudName}}</div>
+                    <div class="small text-muted">{{stud.StudID}}</div>
+                    {% endif %}
+                    {% endfor %}
+                    {% else %}
+                    {% for st in staff %}
+                    {% if st.StaffID == eb.StaffID %}
+                    <div class="fw-bold text-dark">{{st.StaffName}}</div>
+                    <div class="small text-muted">{{st.StaffID}}</div>
+                    {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% for r in roomlist %}
+                    {% if r.RoomID == eb.RoomID %}
+                    <span class="badge bg-soft-primary text-primary rounded-pill">{{r.RoomName}}</span>
+                    {% endif %}
+                    {% endfor %}
+                </td>
+                <td>
+                    <div class="small fw-bold text-dark">
+                        <i class="fa fa-calendar-o me-1 text-primary"></i> {{eb.Start.strftime('%Y-%m-%d %H:%M')}}
+                    </div>
+                </td>
+                <td>
+                    {% set status_class = 'status-available' if eb.EbookStatus == 'Ongoing' else 'status-occupied' if
+                    eb.EbookStatus == 'Canceled' else 'status-maintenance' if eb.EbookStatus == 'Upcoming' else
+                    'status-available' %}
+                    <div class="room-status-indicator {{ status_class }} small">
+                        <span class="status-dot"></span>
+                        <span>{{eb.EbookStatus}}</span>
+                    </div>
+                </td>
+                <td class="text-end">
+                    {% if eb.EbookStatus != "Canceled" and eb.EbookStatus != "Completed" %}
+                    <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                        hx-post="/cancel-booking/event/{{eb.EBookID}}"
                         hx-confirm="Are you sure you want to cancel this event booking?"
                         hx-target="#event-bookings-container">
-                    Cancel
-                </button>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                        <i class="fa fa-times me-1"></i> Cancel
+                    </button>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
