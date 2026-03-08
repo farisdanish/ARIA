@@ -120,6 +120,12 @@ For Windows, you have two options:
    - Create a MySQL database: `ariadb`
    - Update `DATABASE_URL` in `.env` with your database credentials
    - The application will use the existing schema (no migrations yet)
+   - (Optional) Seed the database with initial data:
+
+     ```bash
+     cd aria-app
+     python seed.py
+     ```
 
 6. **Run the application**
    
@@ -252,7 +258,9 @@ All configuration is managed through `config.py` using environment variables.
 - Rebrand templates use `.aria.html` suffix and are selected by UI rollout flags.
 - Shared ARIA layout shell is `aria-app/website/templates/base_aria.html`.
 - ARIA design tokens and components are in `aria-app/website/static/css/aria-theme.css`.
-- HTMX is used for server-rendered partial updates (starting with announcement management).
+- **HTMX** is used for server-rendered partial updates, including a modernized toast notification system.
+- **DataTables** are used for robust data management with initialization guards to prevent re-initialization conflicts.
+- **FullCalendar** is integrated for live booking schedule visualization.
 
 ## 🏗️ Architecture
 
@@ -268,6 +276,7 @@ All configuration is managed through `config.py` using environment variables.
 The system is deployed as a suite of Docker containers on a single `aria-network`:
 
 1.  **`flask-app`**: Core web app, API, and the booking scheduler thread.
+    - **Development Optimization**: The `static`, `templates`, and `routes` directories are volume-mapped for instant UI/logic updates without container restarts.
 2.  **`pi-simulator`**: Mimics the hardware client. Runs face recognition against test images and listens for QR validation events.
 3.  **`redis`**: Ephemeral message broker for fast, decoupled event flow.
 4.  **`db`**: MySQL persistence for `ariadb`.
@@ -278,6 +287,19 @@ Communication between the web cloud and the edge simulator is strictly event-bas
 - **`watch_room:{id}`**: Published by `flask-app` when a booking window opens.
 - **`face_matched:{id}`**: Published by `pi-simulator` on successful face identification.
 - **`token_validated:{id}`**: Published by `flask-app` after a successful QR check-in; consumed by `pi-simulator` to trigger the door.
+
+### 🛠️ Local Development & Docker
+
+For the most efficient developer experience using Docker:
+
+1. **One-Command Start**: `docker-compose up -d`
+2. **Instant UI Updates**: Since `static`, `templates`, and `routes` are bind-mounted, changes to your CSS, JS, HTML, or Python route logic reflect instantly.
+   - *Note: If CSS or JS changes don't appear, perform a **Hard Refresh** (Ctrl+Shift+R).*
+3. **Database Seeding in Docker**:
+
+   ```bash
+   docker exec -it aria-flask-app python seed.py
+   ```
 
 ## 🔐 Authentication
 
