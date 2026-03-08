@@ -1,0 +1,47 @@
+<table id="ebookTable" class="table table-hover table-dark">
+    <thead>
+        <tr>
+            <th>Event ID</th>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Room Name</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for eb in eventbookings %}
+        <tr>
+            <td><center>{{eb.EBookID}}</center></td>
+            {% if is_Student %}
+                {%for stud in student %}{% if stud.StudID == eb.StudID %}<td>{{stud.StudName}}</td><td>{{stud.StudID}}</td>{% endif %}{% endfor %}
+            {% else %}
+                {%for st in staff %}{% if st.StaffID == eb.StaffID %}<td>{{st.StaffName}}</td><td>{{st.StaffID}}</td>{% endif %}{% endfor %}
+            {% endif %}
+            
+            {% for r in roomlist %}{%if r.RoomID == eb.RoomID%}<td>{{r.RoomName}}</td>{%endif%}{% endfor %}
+            <td>{{eb.Start.strftime('%Y-%m-%d %H:%M')}}</td>
+            <td>{{eb.End.strftime('%Y-%m-%d %H:%M')}}</td>
+            <td>{{eb.Purpose}}</td>
+            <td>
+                <span class="badge {{ 'bg-success' if eb.EbookStatus == 'Completed' else 'bg-primary' if eb.EbookStatus == 'Upcoming' else 'bg-danger' if eb.EbookStatus == 'Canceled' else 'bg-info' }}">
+                    {{eb.EbookStatus}}
+                </span>
+            </td>
+            <td>
+                {% if eb.EbookStatus != "Canceled" and eb.EbookStatus != "Completed" %}
+                <button class="btn btn-danger btn-sm" 
+                        hx-post="/cancel-booking/event/{{eb.EBookID}}" 
+                        hx-confirm="Are you sure you want to cancel this event booking?"
+                        hx-target="#event-bookings-container">
+                    Cancel
+                </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

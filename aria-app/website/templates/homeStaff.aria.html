@@ -257,7 +257,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form hx-post="/AddRBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#rbook-indicator" enctype="multipart/form-data">
+                                    <form hx-post="/AddRBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#rbook-indicator" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('modaladdRBook')).hide();" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStaff"
                                                 <p>Staff ID:
@@ -355,7 +355,7 @@
                                 </div>
                                 <div class="modal-body">
                                     <div class="container-fluid">
-                                    <form hx-post="/AddEBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#ebook-indicator" enctype="multipart/form-data">
+                                    <form hx-post="/AddEBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#ebook-indicator" hx-on::after-request="if(event.detail.successful) bootstrap.Modal.getInstance(document.getElementById('modaladdEBook')).hide();" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStaff"
                                                 <p>Staff ID:

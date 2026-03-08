@@ -1,5 +1,5 @@
 """Booking management routes."""
-from flask import Blueprint, request, flash, redirect, url_for, jsonify, render_template
+from flask import Blueprint, request, flash, redirect, url_for, jsonify, render_template, make_response
 from flask_login import login_required, current_user
 from sqlalchemy import desc
 from datetime import datetime
@@ -42,6 +42,110 @@ def _redirect_after_booking_update():
     if current_user.is_Admin():
         return redirect(url_for('home.admin'))
     return redirect(url_for('bookings.my_bookings'))
+
+
+@bookings.route('/cancel-booking/<string:booking_type>/<int:booking_id>', methods=['POST'])
+@login_required
+def cancel_booking(booking_type, booking_id):
+    """Cancel a booking via HTMX."""
+    try:
+        if booking_type == 'room':
+            booking = db.session.query(RoomBooking).filter_by(RBookID=booking_id).first()
+            if booking:
+                booking.RBookStatus = 'Canceled'
+                db.session.commit()
+        else:
+            booking = db.session.query(EventBooking).filter_by(EBookID=booking_id).first()
+            if booking:
+                booking.EbookStatus = 'Canceled'
+                db.session.commit()
+        
+        # Determine if we should trigger other updates
+        response_headers = {'HX-Trigger': 'bookingUpdated'}
+        
+        # Return the updated table
+        if current_user.is_Student():
+            room_bookings = BookingService.get_user_room_bookings(current_user.StudID, is_student=True)
+            event_bookings = BookingService.get_user_event_bookings(current_user.StudID, is_student=True)
+            student = db.session.query(Student).all()
+            staff = []
+            is_student = True
+        else:
+            room_bookings = BookingService.get_user_room_bookings(current_user.StaffID, is_student=False)
+            event_bookings = BookingService.get_user_event_bookings(current_user.StaffID, is_student=False)
+            student = []
+            staff = db.session.query(Staff).all()
+            is_student = False
+
+        rooms = RoomService.get_all()
+        
+        if booking_type == 'room':
+            template = 'partials/_room_bookings_table.html'
+            html = render_template(template, 
+                                   roombookings=room_bookings,
+                                   roomlist=rooms,
+                                   student=student,
+                                   staff=staff,
+                                   is_Student=is_student)
+        else:
+            template = 'partials/_event_bookings_table.html'
+            html = render_template(template, 
+                                   eventbookings=event_bookings,
+                                   roomlist=rooms,
+                                   student=student,
+                                   staff=staff,
+                                   is_Student=is_student)
+        
+        res = make_response(html)
+        for k, v in response_headers.items():
+            res.headers[k] = v
+        return res
+
+    except Exception as e:
+        logger.error(f"Error canceling booking: {str(e)}")
+        return "Error canceling booking", 500
+
+
+@bookings.route('/filter-bookings', methods=['GET'])
+@login_required
+def filter_bookings():
+    """Filter bookings via HTMX."""
+    status = request.args.get('status', 'all')
+    booking_type = request.args.get('type', 'room')
+    
+    if current_user.is_Student():
+        room_bookings = BookingService.get_user_room_bookings(current_user.StudID, is_student=True)
+        event_bookings = BookingService.get_user_event_bookings(current_user.StudID, is_student=True)
+        student = db.session.query(Student).all()
+        staff = []
+        is_student = True
+    else:
+        room_bookings = BookingService.get_user_room_bookings(current_user.StaffID, is_student=False)
+        event_bookings = BookingService.get_user_event_bookings(current_user.StaffID, is_student=False)
+        student = []
+        staff = db.session.query(Staff).all()
+        is_student = False
+
+    rooms = RoomService.get_all()
+    
+    if booking_type == 'room':
+        if status != 'all':
+            room_bookings = [b for b in room_bookings if b.RBookStatus == status]
+        return render_template('partials/_room_bookings_table.html', 
+                               roombookings=room_bookings, 
+                               roomlist=rooms,
+                               student=student,
+                               staff=staff,
+                               is_Student=is_student)
+    else:
+        if status != 'all':
+            event_bookings = [b for b in event_bookings if b.EbookStatus == status]
+        return render_template('partials/_event_bookings_table.html', 
+                               eventbookings=event_bookings,
+                               roomlist=rooms,
+                               student=student,
+                               staff=staff,
+                               is_Student=is_student)
 
 
 @bookings.route('/MyBookings', methods=['GET', 'POST'])
@@ -158,7 +262,10 @@ def add_room_booking():
                 
                 success_msg = 'Room Booking was Added! Check your email for the QR code.'
                 if request.headers.get('HX-Request'):
-                    return render_template('partials/_toast.html', message=success_msg, type='success')
+                    response = render_template('partials/_booking_success.html')
+                    res = make_response(response)
+                    res.headers['HX-Trigger'] = 'bookingUpdated'
+                    return res
                 flash(success_msg, category='success')
             else:
                 error_msg = 'Room already occupied for that time or booking failed.'
@@ -232,7 +339,10 @@ def add_event_booking():
                 
                 success_msg = 'Event Booking was Added! Check your email for the QR code.'
                 if request.headers.get('HX-Request'):
-                    return render_template('partials/_toast.html', message=success_msg, type='success')
+                    response = render_template('partials/_booking_success.html')
+                    res = make_response(response)
+                    res.headers['HX-Trigger'] = 'bookingUpdated'
+                    return res
                 flash(success_msg, category='success')
             else:
                 error_msg = 'Room already occupied for that time or booking failed.'

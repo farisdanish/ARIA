@@ -68,14 +68,11 @@
     <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
 
     {% block flash_messages %}
-    <div class="container-fluid px-3 pt-3" role="status" aria-live="polite">
+    <div id="legacy-flash-messages" style="display: none;">
       {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="alert {{ 'alert-danger' if category == 'error' else 'alert-success' }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-          </div>
+          <span class="flash-data" data-category="{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}" data-message="{{ message }}"></span>
         {% endfor %}
       {% endif %}
       {% endwith %}

@@ -97,11 +97,21 @@
   /**
    * INITIALIZATION
    */
+  function processLegacyFlashes() {
+    const flashes = document.querySelectorAll("#legacy-flash-messages .flash-data");
+    flashes.forEach((flash) => {
+      const message = flash.getAttribute("data-message");
+      const category = flash.getAttribute("data-category");
+      window.showToast(message, category);
+    });
+  }
+
   function init() {
     document.body.classList.add("aria-ui");
     setupHtmx();
     setupLegacyLogic();
     initPlugins();
+    processLegacyFlashes();
   }
 
   if (document.readyState === "loading") {

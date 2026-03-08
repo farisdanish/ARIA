@@ -1,0 +1,47 @@
+<table id="rbookTable" class="table table-hover table-dark">
+    <thead>
+        <tr>
+            <th>Room Booking ID</th>
+            <th>Name</th>
+            <th>ID</th>
+            <th>Room Name</th>
+            <th>Start</th>
+            <th>End</th>
+            <th>Purpose</th>
+            <th>Status</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rb in roombookings %}
+        <tr>
+            <td><center>{{rb.RBookID}}</center></td>
+            {% if is_Student %}
+                {%for stud in student %}{% if stud.StudID == rb.StudID %}<td>{{stud.StudName}}</td><td>{{stud.StudID}}</td>{% endif %}{% endfor %}
+            {% else %}
+                {%for st in staff %}{% if st.StaffID == rb.StaffID %}<td>{{st.StaffName}}</td><td>{{st.StaffID}}</td>{% endif %}{% endfor %}
+            {% endif %}
+            
+            {% for r in roomlist %}{%if r.RoomID == rb.RoomID%}<td>{{r.RoomName}}</td>{%endif%}{% endfor %}
+            <td>{{rb.Start.strftime('%Y-%m-%d %H:%M')}}</td>
+            <td>{{rb.End.strftime('%Y-%m-%d %H:%M')}}</td>
+            <td>{{rb.Purpose}}</td>
+            <td>
+                <span class="badge {{ 'bg-success' if rb.RBookStatus == 'Completed' else 'bg-primary' if rb.RBookStatus == 'Upcoming' else 'bg-danger' if rb.RBookStatus == 'Canceled' else 'bg-info' }}">
+                    {{rb.RBookStatus}}
+                </span>
+            </td>
+            <td>
+                {% if rb.RBookStatus != "Canceled" and rb.RBookStatus != "Completed" %}
+                <button class="btn btn-danger btn-sm" 
+                        hx-post="/cancel-booking/room/{{rb.RBookID}}" 
+                        hx-confirm="Are you sure you want to cancel this booking?"
+                        hx-target="#room-bookings-container">
+                    Cancel
+                </button>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>

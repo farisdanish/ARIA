@@ -256,9 +256,9 @@
                                 <div class="modal-header">
                                     <h4 class="modal-title">Add Room Booking</h4>
                                 </div>
-                                <div class="modal-body">
+                                <div class="modal-body" id="modaladdRBookBody">
                                     <div class="container-fluid">
-                                    <form hx-post="/AddRBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#rbook-indicator" enctype="multipart/form-data">
+                                    <form hx-post="/AddRBook" hx-target="#modaladdRBookBody" hx-swap="innerHTML" hx-indicator="#rbook-indicator" hx-on::after-request="if(event.detail.successful) { /* Optional logic if needed */ }" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStudent"
                                                 <p>Student ID:
@@ -354,9 +354,9 @@
                                 <div class="modal-header">
                                     <h4 class="modal-title">Add Event Booking</h4>
                                 </div>
-                                <div class="modal-body">
+                                <div class="modal-body" id="modaladdEBookBody">
                                     <div class="container-fluid">
-                                    <form hx-post="/AddEBook" hx-target="#aria-toast-container" hx-swap="beforeend" hx-indicator="#ebook-indicator" enctype="multipart/form-data">
+                                    <form hx-post="/AddEBook" hx-target="#modaladdEBookBody" hx-swap="innerHTML" hx-indicator="#ebook-indicator" hx-on::after-request="if(event.detail.successful) { /* Optional logic if needed */ }" enctype="multipart/form-data">
                                         <div class="form-group" id="userType">
                                             <div id="typeStudent"
                                                 <p>Student ID:
