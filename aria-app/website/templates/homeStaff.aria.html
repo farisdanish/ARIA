@@ -37,63 +37,122 @@
 
 {% block calendar %}
 (function initCalendar() {
-if (typeof FullCalendar === 'undefined') {
-console.warn('FullCalendar not loaded yet, deferring...');
-setTimeout(initCalendar, 100);
-return;
-}
-let selector1 = document.querySelector("#nroomSelector");
-let selector2 = document.querySelector("#eroomSelector");
-let selector3 = document.querySelector("#BookTypeSelector");
-var today = new Date().toISOString().slice(0,10);
-var calendarEl = document.getElementById('calendar');
-if (!calendarEl) return;
+    if (typeof FullCalendar === 'undefined') {
+        console.warn('FullCalendar not loaded yet, deferring...');
+        setTimeout(initCalendar, 100);
+        return;
+    }
+    let selector1 = document.querySelector("#nroomSelector");
+    let selector2 = document.querySelector("#eroomSelector");
+    let selector3 = document.querySelector("#BookTypeSelector");
+    var today = new Date().toISOString().slice(0,10);
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
 
-var calendar = new FullCalendar.Calendar(calendarEl, {
-initialView: 'dayGridMonth',
-eventDisplay: 'block',
-selectable: true,
-headerToolbar: {
-left: 'prev,next',
-center: 'title',
-right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay' }, eventDidMount:
-    function(arg) { let val=selector1.value; let val2=selector2.value; let val3=selector3.value; if (val3=="r" ){ if
-    (!(val==arg.event.extendedProps.location || val=="all" )) { arg.el.style.display="none" ; } }else if (val3=="e" ){
-    if (!(val2==arg.event.extendedProps.location || val2=="all" )) { arg.el.style.display="none" ; } } }, events:
-    function (fetchInfo, successCallback, failureCallback) { let valBookType=selector3.value if (valBookType=="r" ){
-    successCallback([ {% for row in roombookings %} {% if row.StudID !=None: %} { id: '{{row.RBookID}}' ,
-    title: '{{row.StudID}}' , start: '{{row.Start}}' , end: '{{row.End}}' , description: '{{row.Purpose}}' ,
-    extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.RBookStatus}}' } }, {% else %} { id: '{{row.RBookID}}' ,
-    title: '{{row.StaffID}}' , start: '{{row.Start}}' , end: '{{row.End}}' , description: '{{row.Purpose}}' ,
-    extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.RBookStatus}}' } }, {% endif %} {% endfor %} ]); }else
-    if (valBookType=="e" ){ successCallback([ {% for row in eventbookings %} {% if row.StudID !=None: %} {
-    id: '{{row.EBookID}}' , title: '{{row.StudID}}' , start: '{{row.Start}}' , end: '{{row.End}}' ,
-    description: '{{row.Purpose}}' , extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } }, {%
-    else %} { id: '{{row.EBookID}}' , title: '{{row.StaffID}}' , start: '{{row.Start}}' , end: '{{row.End}}' ,
-    description: '{{row.Purpose}}' , extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } }, {%
-    endif %} {% endfor %} ]); } }, dateClick: function(info) { var clickedDate=getDateWithoutTime(info.date); var
-    nowDate=getDateWithoutTime(new Date()) let valBookType=selector3.value if (clickedDate>= nowDate) {
-    if (valBookType == "r"){
-    $("#modaladdRBook").modal("show");
-    $("#rbookstart").val(info.dateStr);
-    $("#rbookend").val(info.dateStr);
-    }else if (valBookType == "e"){
-    $("#modaladdEBook").modal("show");
-    $("#ebookstart").val(info.dateStr);
-    $("#ebookend").val(info.dateStr);
-    }
-    }
-    else alert("Cannot Select Past Date");
-    }
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        eventDisplay: 'block',
+        selectable: true,
+        headerToolbar: {
+            left: 'prev,next',
+            center: 'title',
+            right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay' 
+        }, 
+        eventDidMount: function(arg) { 
+            let val=selector1.value; 
+            let val2=selector2.value; 
+            let val3=selector3.value; 
+            if (val3=="r" ){ 
+                if (!(val==arg.event.extendedProps.location || val=="all" )) { 
+                    arg.el.style.display="none" ; 
+                } 
+            } else if (val3=="e" ){
+                if (!(val2==arg.event.extendedProps.location || val2=="all" )) { 
+                    arg.el.style.display="none" ; 
+                } 
+            } 
+        }, 
+        events: function (fetchInfo, successCallback, failureCallback) { 
+            let valBookType=selector3.value;
+            if (valBookType=="r" ){
+                successCallback([ 
+                    {% for row in roombookings %} 
+                        {% if row.StudID !=None: %} 
+                        { 
+                            id: '{{row.RBookID}}',
+                            title: '{{row.StudID}}', 
+                            start: '{{row.Start}}', 
+                            end: '{{row.End}}', 
+                            description: '{{row.Purpose}}',
+                            extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.RBookStatus}}' } 
+                        }, 
+                        {% else %} 
+                        { 
+                            id: '{{row.RBookID}}',
+                            title: '{{row.StaffID}}', 
+                            start: '{{row.Start}}', 
+                            end: '{{row.End}}' , 
+                            description: '{{row.Purpose}}',
+                            extendedProps:{ location: '{{row.RoomID}}', status: '{{row.RBookStatus}}' } 
+                        }, 
+                        {% endif %} 
+                    {% endfor %} 
+                ]); 
+            } else if (valBookType=="e" ){ 
+                successCallback([ 
+                    {% for row in eventbookings %} 
+                        {% if row.StudID !=None: %} 
+                        {
+                            id: '{{row.EBookID}}', 
+                            title: '{{row.StudID}}', 
+                            start: '{{row.Start}}', 
+                            end: '{{row.End}}',
+                            description: '{{row.Purpose}}', 
+                            extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } 
+                        }, 
+                        {% else %} 
+                        { 
+                            id: '{{row.EBookID}}', 
+                            title: '{{row.StaffID}}', 
+                            start: '{{row.Start}}' , 
+                            end: '{{row.End}}' ,
+                            description: '{{row.Purpose}}', 
+                            extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } 
+                        }, 
+                        {% endif %} 
+                    {% endfor %} 
+                ]); 
+            } 
+        }, 
+        dateClick: function(info) { 
+            var clickedDate = getDateWithoutTime(info.date); 
+            var nowDate = getDateWithoutTime(new Date()); 
+            let valBookType=selector3.value; 
+
+            if (clickedDate>= nowDate) {
+                if (valBookType == "r"){
+                    $("#modaladdRBook").modal("show");
+                    $("#rbookstart").val(info.dateStr);
+                    $("#rbookend").val(info.dateStr);
+                } else if (valBookType == "e"){
+                    $("#modaladdEBook").modal("show");
+                    $("#ebookstart").val(info.dateStr);
+                    $("#ebookend").val(info.dateStr);
+                }
+            } else {
+                alert("Cannot Select Past Date");
+            }
+        }
     });
+
     calendar.render();
     calendar.setOption('contentHeight', 650);
 
     selector1.addEventListener('change', function() { calendar.refetchEvents(); });
     selector2.addEventListener('change', function() { calendar.refetchEvents(); });
     selector3.addEventListener('change', function() { calendar.refetchEvents(); });
-    })();
-    {% endblock %}
+})();
+{% endblock %}
 
     {% block content%}
     <div class="container-fluid d-lg-none mb-4">

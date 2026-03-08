@@ -36,36 +36,65 @@
 
 {% block calendar %}
 (function initCalendar() {
-if (typeof FullCalendar === 'undefined') {
-console.warn('FullCalendar not loaded yet, deferring...');
-setTimeout(initCalendar, 100);
-return;
-}
-let selector1 = document.querySelector("#nroomSelector");
-let selector2 = document.querySelector("#eroomSelector");
-let selector3 = document.querySelector("#BookTypeSelector");
-var calendarEl = document.getElementById('calendar');
-if (!calendarEl) return;
+    if (typeof FullCalendar === 'undefined') {
+        console.warn('FullCalendar not loaded yet, deferring...');
+        setTimeout(initCalendar, 100);
+        return;
+    }
+    let selector1 = document.querySelector("#nroomSelector");
+    let selector2 = document.querySelector("#eroomSelector");
+    let selector3 = document.querySelector("#BookTypeSelector");
+    var calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
 
-var calendar = new FullCalendar.Calendar(calendarEl, {
-initialView: 'dayGridMonth',
-eventDisplay: 'block',
-selectable: true,
-headerToolbar: {
-left: 'prev,next',
-center: 'title',
-right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay' }, events:
-    function (fetchInfo, successCallback, failureCallback) { let valBookType=selector3.value if (valBookType=="r" ){
-    successCallback([ {% for row in roombookings %} { id: '{{row.RBookID}}' ,
-    title: '{{row.StudID if row.StudID else row.StaffID}}' , start: '{{row.Start}}' , end: '{{row.End}}' ,
-    extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.RBookStatus}}' } }, {% endfor %} ]); }else if
-    (valBookType=="e" ){ successCallback([ {% for row in eventbookings %} { id: '{{row.EBookID}}' ,
-    title: '{{row.StudID if row.StudID else row.StaffID}}' , start: '{{row.Start}}' , end: '{{row.End}}' ,
-    extendedProps:{ location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } }, {% endfor %} ]); } } });
-    calendar.render(); calendar.setOption('contentHeight', 600); selector1.addEventListener('change', function() {
-    calendar.refetchEvents(); }); selector2.addEventListener('change', function() { calendar.refetchEvents(); });
-    selector3.addEventListener('change', function() { calendar.refetchEvents(); }); })(); {% endblock %} {% block
-    content%} <div class="container-fluid d-lg-none mb-4">
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        eventDisplay: 'block',
+        selectable: true,
+        headerToolbar: {
+            left: 'prev,next',
+            center: 'title',
+            right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay' 
+        }, 
+        events: function (fetchInfo, successCallback, failureCallback) { 
+            let valBookType = selector3.value; 
+            if (valBookType == "r" ) {
+                successCallback([ 
+                    {% for row in roombookings %} 
+                    { 
+                        id: '{{row.RBookID}}',
+                        title: '{{row.StudID if row.StudID else row.StaffID}}', 
+                        start: '{{row.Start}}', 
+                        end: '{{row.End}}',
+                        extendedProps: { location: '{{row.RoomID}}' , status: '{{row.RBookStatus}}' } 
+                    }, 
+                    {% endfor %} 
+                ]); 
+            } else if (valBookType == "e" ) { 
+                successCallback([ 
+                    {% for row in eventbookings %} 
+                    { 
+                        id: '{{row.EBookID}}',
+                        title: '{{row.StudID if row.StudID else row.StaffID}}', 
+                        start: '{{row.Start}}', 
+                        end: '{{row.End}}',
+                        extendedProps: { location: '{{row.RoomID}}' , status: '{{row.EBookStatus}}' } 
+                    }, 
+                    {% endfor %} 
+                ]); 
+            } 
+        } 
+    });
+    calendar.render(); 
+    calendar.setOption('contentHeight', 600); 
+    selector1.addEventListener('change', function() { calendar.refetchEvents(); }); 
+    selector2.addEventListener('change', function() { calendar.refetchEvents(); });
+    selector3.addEventListener('change', function() { calendar.refetchEvents(); }); 
+})(); 
+{% endblock %} 
+
+{% block content%} 
+<div class="container-fluid d-lg-none mb-4">
     {% include 'partials/_admin_stat_cards.html' %}
     </div>
 
