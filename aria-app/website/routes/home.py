@@ -205,5 +205,16 @@ def ui_pulse():
 @home.route('/demo')
 def demo():
     """Browser webcam demo for portfolio showcase."""
-    return render_template('demo.html')
+    from flask_login import current_user
+    from .models.room import Room
+    roomlist = Room.query.all()
+    return render_ui_template(
+        'demo.html', 
+        ui_group='public', 
+        user=current_user,
+        roomlist=roomlist,
+        roombookings=[],
+        eventbookings=[],
+        announcements=[]
+    )
 
