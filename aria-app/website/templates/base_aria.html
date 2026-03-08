@@ -20,48 +20,107 @@
   </head>
   <body>
     {% block top_nav %}
-    <nav class="navbar navbar-expand-lg navbar-dark aria-navbar" aria-label="Primary">
+    <nav class="navbar navbar-expand-lg navbar-dark aria-navbar sticky-top" aria-label="Primary">
       <div class="container-fluid">
-        <a class="navbar-brand aria-brand" href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}">ARIA</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+        <a class="navbar-brand aria-brand d-flex align-items-center gap-2" href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}">
+          <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" height="30">
+          <span>ARIA</span>
+        </a>
+        
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#ariaSidebar" aria-controls="ariaSidebar" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbar">
-          {% if user.is_authenticated %}
-            {% if user.is_Student() %}
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item"><a class="nav-link" href="/homeStud">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="/MyBookings">My Bookings</a></li>
-              <li class="nav-item"><a class="nav-link" href="/feedback">Feedback</a></li>
-              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
-            </ul>
-            <span class="navbar-text">{{ user.StudID }}</span>
-            {% elif user.is_Staff() %}
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item"><a class="nav-link" href="/homeStaff">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="/MyBookings">My Bookings</a></li>
-              <li class="nav-item"><a class="nav-link" href="/feedback">Feedback</a></li>
-              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
-            </ul>
-            <span class="navbar-text">{{ user.StaffID }}</span>
+          <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+            {% if user.is_authenticated %}
+              {% if user.is_Student() %}
+                <li class="nav-item"><a class="nav-link" href="/homeStud"><i class="fa fa-home d-lg-none me-2"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"></i>My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"></i>Feedback</a></li>
+              {% elif user.is_Staff() %}
+                <li class="nav-item"><a class="nav-link" href="/homeStaff"><i class="fa fa-home d-lg-none me-2"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"></i>My Bookings</a></li>
+                <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"></i>Feedback</a></li>
+              {% else %}
+                <li class="nav-item"><a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer d-lg-none me-2"></i>Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" href="/ManageRooms"><i class="fa fa-building d-lg-none me-2"></i>Rooms</a></li>
+              {% endif %}
             {% else %}
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item"><a class="nav-link" href="/homeAdmin">Home</a></li>
-              <li class="nav-item"><a class="nav-link" href="/logout">Logout</a></li>
-            </ul>
-            <span class="navbar-text">{{ user.AdminID }}</span>
+              <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
             {% endif %}
-          {% else %}
-          <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-            <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="/login">Login</a></li>
-            <li class="nav-item"><a class="nav-link" href="/RegisterSelect">Register</a></li>
           </ul>
-          {% endif %}
+
+          <div class="navbar-nav align-items-lg-center">
+            {% if user.is_authenticated %}
+              <div class="nav-item dropdown">
+                <a class="user-dropdown-toggle dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                  <div class="user-avatar">
+                    {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+                  </div>
+                  <span class="d-none d-sm-inline">
+                    {{ user.StudName.split(' ')[0] if user.is_Student() else user.StaffName.split(' ')[0] if user.is_Staff() else 'Administrator' }}
+                  </span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+                  <li><h6 class="dropdown-header d-sm-none">{{ user.StudID if user.is_Student() else user.StaffID if user.is_Staff() else 'Admin' }}</h6></li>
+                  <li><a class="dropdown-item" href="/profile"><i class="fa fa-user"></i> My Profile</a></li>
+                  <li><a class="dropdown-item" href="/settings"><i class="fa fa-cog"></i> Settings</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" href="/logout"><i class="fa fa-sign-out"></i> Logout</a></li>
+                </ul>
+              </div>
+            {% else %}
+              <a href="/login" class="nav-link">Login</a>
+              <a href="/RegisterSelect" class="btn btn-outline-light ms-lg-2 px-4 rounded-pill">Register</a>
+            {% endif %}
+          </div>
         </div>
       </div>
     </nav>
+
+    <!-- Mobile Sidebar (Offcanvas) -->
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="ariaSidebar" aria-labelledby="ariaSidebarLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title d-flex align-items-center gap-2" id="ariaSidebarLabel">
+          <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" height="24">
+          <span>ARIA Menu</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body sidebar-nav">
+        {% if user.is_authenticated %}
+          <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-white rounded-3 shadow-sm">
+            <div class="user-avatar bg-primary">
+              {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+            </div>
+            <div>
+              <div class="fw-bold">{{ user.StudName if user.is_Student() else user.StaffName if user.is_Staff() else 'Administrator' }}</div>
+              <div class="small text-muted">{{ user.StudID if user.is_Student() else user.StaffID if user.is_Staff() else 'Admin Access' }}</div>
+            </div>
+          </div>
+          <div class="nav flex-column">
+            {% if user.is_Student() or user.is_Staff() %}
+              <a class="nav-link" href="{{ '/homeStud' if user.is_Student() else '/homeStaff' }}"><i class="fa fa-home"></i> Home</a>
+              <a class="nav-link" href="/MyBookings"><i class="fa fa-calendar"></i> My Bookings</a>
+              <a class="nav-link" href="/feedback"><i class="fa fa-comment"></i> Feedback</a>
+              <a class="nav-link" href="/profile"><i class="fa fa-user"></i> Profile</a>
+            {% else %}
+              <a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer"></i> Dashboard</a>
+              <a class="nav-link" href="/ManageRooms"><i class="fa fa-building"></i> Rooms</a>
+            {% endif %}
+            <hr>
+            <a class="nav-link text-danger" href="/logout"><i class="fa fa-sign-out"></i> Logout</a>
+          </div>
+        {% else %}
+          <div class="nav flex-column">
+            <a class="nav-link" href="/"><i class="fa fa-home"></i> Home</a>
+            <a class="nav-link" href="/login"><i class="fa fa-sign-in"></i> Login</a>
+            <a class="nav-link" href="/RegisterSelect"><i class="fa fa-user-plus"></i> Register</a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
     {% endblock %}
 
     <!-- Global Toast Container -->

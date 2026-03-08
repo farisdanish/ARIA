@@ -95,6 +95,26 @@
   }
 
   /**
+   * NAVIGATION LOGIC
+   * Handles active state tracking and navigation behaviors.
+   */
+  function updateActiveNavLink() {
+    const currentPath = window.location.pathname;
+    const navLinks = document.querySelectorAll('.nav-link');
+    
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && (currentPath === href || (href !== '/' && currentPath.startsWith(href)))) {
+        link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
+      } else {
+        link.classList.remove('active');
+        link.removeAttribute('aria-current');
+      }
+    });
+  }
+
+  /**
    * INITIALIZATION
    */
   function processLegacyFlashes() {
@@ -112,6 +132,7 @@
     setupLegacyLogic();
     initPlugins();
     processLegacyFlashes();
+    updateActiveNavLink();
   }
 
   if (document.readyState === "loading") {
