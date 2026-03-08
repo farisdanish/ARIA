@@ -36,17 +36,7 @@
       });
     }
 
-    // 4. Mobile Calendar Defaults
-    if (window.FullCalendar && window.innerWidth < 576) {
-      var calEl = container === document ? document.getElementById('calendar') : container.querySelector('#calendar');
-      if (calEl && calEl.__fc) {
-        var fc = calEl.__fc;
-        fc.changeView('listWeek');
-        fc.setOption('headerToolbar', { left: 'prev,next', center: 'title', right: 'listWeek,dayGridMonth' });
-      }
-    }
-
-    // 5. Calendar skeleton — hide once FullCalendar renders
+    // 4. Calendar skeleton — hide once FullCalendar renders
     var skel = document.getElementById('calendar-skeleton');
     if (skel && document.querySelector('.fc')) {
       skel.style.display = 'none';
