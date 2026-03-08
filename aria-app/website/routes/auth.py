@@ -52,6 +52,25 @@ def logout():
     return redirect(url_for('auth.login'))
 
 
+@auth.route('/api/auth/check-id', methods=['GET'])
+def check_id_availability():
+    """Real-time ID availability check for HTMX."""
+    user_id = request.args.get('id', '').strip()
+    role = request.args.get('role', 'student')
+    
+    if not user_id:
+        return ""
+        
+    if role == 'student':
+        exists = db.session.query(Student).filter_by(StudID=user_id).first() is not None
+    else:
+        exists = db.session.query(Staff).filter_by(StaffID=user_id).first() is not None
+        
+    if exists:
+        return '<span class="badge bg-danger">ID Taken</span>'
+    return '<span class="badge bg-success">ID Available</span>'
+
+
 @auth.route('/RegisterSelect', methods=['GET', 'POST'])
 def register_select():
     """Registration selection page."""

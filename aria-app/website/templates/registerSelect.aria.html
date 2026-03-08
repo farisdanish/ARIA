@@ -1,27 +1,35 @@
-{% extends "base_aria.html" %}
-<title>{% block title %} Student Registration {% endblock %}</title>
-{% block content%}
-<div class="flex-container container">
-    <form method="POST">
-        <br />
-        <h3 align="center">Select Registration for Staff or Student</h3>
-        <br />
-        <div class="container">
-            <div class="row">
-                <div class="col text-center">
-                    <button id="registerStud" class="btn btn-primary btn-lg" type="reset">STUDENT</button>
-                    <button id="registerStaff" class="btn btn-secondary btn-lg" type="reset">STAFF</button>
-                </div>
-            </div>
+{% extends "auth_aria_base.html" %}
+{% block title %}Register - ARIA{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+    <div class="mb-4">
+        <a href="/login" class="text-decoration-none small fw-bold mb-3 d-inline-block text-primary">
+            <i class="fa fa-arrow-left me-1"></i> Back to Login
+        </a>
+        <h2 class="fw-bold text-dark">Join the Community</h2>
+        <p class="text-muted">Select your primary role to begin the registration process.</p>
+    </div>
+
+    <div class="role-selection-container">
+        <a href="/studRegister" class="role-card shadow-sm">
+            <i class="fa fa-graduation-cap"></i>
+            <h4>Student</h4>
+            <p>For currently enrolled students at UMS.</p>
+        </a>
+
+        <a href="/staffRegister" class="role-card shadow-sm">
+            <i class="fa fa-briefcase"></i>
+            <h4>Staff</h4>
+            <p>For faculty, administration, and university staff.</p>
+        </a>
+    </div>
+
+    <div class="mt-5 p-4 bg-light rounded-3">
+        <div class="d-flex gap-3 align-items-center">
+            <i class="fa fa-info-circle text-primary fs-4"></i>
+            <p class="small text-muted mb-0">Registration is restricted to verified UMS members. All accounts undergo an administrative review before activation.</p>
         </div>
-    </form>
+    </div>
 </div>
-<script type="text/javascript">
-    document.getElementById("registerStud").onclick = function () {
-        location.href = "/studRegister";
-    };
-    document.getElementById("registerStaff").onclick = function () {
-        location.href = "/staffRegister";
-    };
-</script>
 {% endblock %}

@@ -1,60 +1,48 @@
-{% extends "base_aria.html" %}
-<title>{% block title %}Login {% endblock %}</title>
-{% block content%}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
-<section class="ftco-section" style="padding: 4em 0;">
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 text-center mb-5">
-                <h3 align="center">LOGIN - ARIA Smart Booking Platform</h3>
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-7 col-lg-5">
-                <div class="wrap">
-                    <!--<div></div>-->
-                    <div class="login-wrap p-4 p-md-5">
-                        <form method="POST">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                            <div class="form-group">
-                                <label for="userID">ID Number</label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id = "userID"
-                                    name = "userID"
-                                    placeholder = "Enter ID Number"
-                                /required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="userPassword">Password</label>
-                                    <input
-                                        type="password"
-                                        class="form-control"
-                                        id = "userPassword"
-                                        name = "userPassword"
-                                        placeholder = "Enter Your Password"
-                                    /required>
-                                </div>
-                                <div class="form-group">
-                                    <div class="row">
-                                        <div class="col text-center">   
-                                            <button type="submit" class="btn btn-primary btn-lg">Login</button>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="coontaier">
-                                    <div class="row">
-                                        <div class="col text-center">   
-                                            <a href="/RegisterSelect">Dont have an a registered account? Please <b>Register</b> (Students and staff only)</a>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
-                    </div>
-                </div>
-            </div>
-        </div>
+{% extends "auth_aria_base.html" %}
+{% block title %}Login - ARIA{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+    <div class="mb-4">
+        <h2 class="fw-bold text-dark">Welcome Back</h2>
+        <p class="text-muted">Enter your credentials to access your dashboard.</p>
     </div>
-</section>
+
+    <form method="POST" hx-boost="true" hx-indicator="#login-spinner">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        
+        <div class="form-floating mb-3">
+            <input type="text" class="form-control" id="userID" name="userID" placeholder="ID Number" required autofocus>
+            <label for="userID">User ID / Matric Number</label>
+        </div>
+
+        <div class="form-floating mb-3 position-relative">
+            <input type="password" class="form-control" id="userPassword" name="userPassword" placeholder="Password" required>
+            <label for="userPassword">Password</label>
+            <span class="password-toggle" data-target="#userPassword">
+                <i class="fa fa-eye"></i>
+            </span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="rememberMe">
+                <label class="form-check-label small text-muted" for="rememberMe">
+                    Remember me
+                </label>
+            </div>
+            <a href="#" class="small text-primary text-decoration-none fw-bold">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+            <span>Sign In</span>
+            <div id="login-spinner" class="htmx-indicator spinner-border spinner-border-sm" role="status"></div>
+        </button>
+    </form>
+
+    <div class="text-center mt-5">
+        <p class="text-muted small">Don't have an account yet?</p>
+        <a href="/RegisterSelect" class="btn btn-outline-primary px-4 rounded-pill fw-bold">Create an Account</a>
+    </div>
+</div>
 {% endblock %}

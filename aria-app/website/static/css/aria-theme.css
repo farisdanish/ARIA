@@ -380,6 +380,160 @@ a:hover {
   font-weight: 700;
 }
 
+/* Auth Split-Screen Layout */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+}
+
+.auth-hero {
+  flex: 1;
+  background: linear-gradient(135deg, var(--aria-primary) 0%, var(--aria-primary-strong) 100%);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.auth-hero::after {
+  content: '';
+  position: absolute;
+  bottom: -10%;
+  right: -5%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.auth-content {
+  width: 100%;
+  max-width: 550px;
+  background: var(--aria-surface);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 4rem;
+}
+
+.auth-feature-list {
+  margin-top: 3rem;
+  list-style: none;
+  padding: 0;
+}
+
+.auth-feature-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.auth-feature-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(255,255,255,0.1);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+/* Modern Form Styling */
+.form-floating > .form-control:focus, 
+.form-floating > .form-control:not(:placeholder-shown) {
+  padding-top: 1.625rem;
+  padding-bottom: 0.625rem;
+}
+
+.auth-card {
+  border: none;
+  box-shadow: none;
+}
+
+.password-toggle {
+  cursor: pointer;
+  position: absolute;
+  right: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  color: var(--aria-text-muted);
+  transition: color 0.2s ease;
+}
+
+.password-toggle:hover {
+  color: var(--aria-primary);
+}
+
+@media (max-width: 992px) {
+  .auth-wrapper { flex-direction: column; }
+  .auth-hero { padding: 3rem 2rem; flex: none; min-height: 300px; }
+  .auth-content { max-width: 100%; padding: 3rem 2rem; }
+  .auth-hero::after { width: 200px; height: 200px; }
+}
+
+/* Role Selection Cards */
+.role-selection-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.role-card {
+  border: 2px solid var(--aria-border);
+  border-radius: var(--aria-radius-lg);
+  padding: 2rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  background: var(--aria-surface);
+  text-decoration: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.role-card:hover {
+  border-color: var(--aria-primary);
+  transform: translateY(-5px);
+  box-shadow: var(--aria-shadow-md);
+  background: rgba(13, 79, 140, 0.02);
+}
+
+.role-card i {
+  font-size: 2.5rem;
+  color: var(--aria-primary);
+  opacity: 0.8;
+}
+
+.role-card:hover i {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+.role-card h4 {
+  font-weight: 800;
+  color: var(--aria-text);
+  margin: 0;
+}
+
+.role-card p {
+  font-size: 0.85rem;
+  color: var(--aria-text-muted);
+  margin: 0;
+}
+
+@media (max-width: 576px) {
+  .role-selection-container { grid-template-columns: 1fr; }
+}
+
 .aria-page-header {
   padding: var(--aria-space-8) var(--aria-space-4) var(--aria-space-4);
 }

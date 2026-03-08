@@ -1,79 +1,75 @@
-{% extends "base_aria.html" %}
-<title>{% block title %} Student Registration {% endblock %}</title>
-{% block content%}
-<link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
-<div class="flex-container container mt-3">
-    <form method="POST">
+{% extends "auth_aria_base.html" %}
+{% block title %}Student Register - ARIA{% endblock %}
+
+{% block auth_content %}
+<div class="auth-card">
+    <div class="mb-4">
+        <a href="/RegisterSelect" class="text-decoration-none small fw-bold mb-3 d-inline-block text-primary">
+            <i class="fa fa-arrow-left me-1"></i> Back to Selection
+        </a>
+        <h2 class="fw-bold text-dark">Student Registration</h2>
+        <p class="text-muted">Create your account to start booking library rooms.</p>
+    </div>
+
+    <form method="POST" hx-boost="true" hx-indicator="#reg-spinner">
         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-        <div class="row jumbotron box8" style="margin: auto">
-            <div class="col-sm-12 mx-t3 mb-4">
-                <h3 class="text-center">Student Registration</h3>
+        
+        <div class="row g-2">
+            <div class="col-md-12">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="StudID" name="StudID" placeholder="Matric Number" required 
+                           hx-get="/api/auth/check-id?role=student" hx-trigger="keyup changed delay:500ms" hx-target="#id-feedback" name="id">
+                    <label for="StudID">Matric Number</label>
+                    <div id="id-feedback" class="position-absolute" style="top: 1.25rem; right: 1rem; z-index: 5;"></div>
+                </div>
             </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudID">Matric Number</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id = "StudID"
-                    name = "StudID"
-                    placeholder = "Enter Matric Number"
-                required/>
+
+            <div class="col-md-12">
+                <div class="form-floating mb-3">
+                    <input type="text" class="form-control" id="StudName" name="StudName" placeholder="Full Name" required>
+                    <label for="StudName">Full Name</label>
+                </div>
             </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudName">Student Name</label>
-                <input
-                    type="text"
-                    class="form-control"
-                    id = "StudName"
-                    name = "StudName"
-                    placeholder = "Enter Your Full Name"
-                required/>
+
+            <div class="col-md-6">
+                <div class="form-floating mb-3">
+                    <input type="email" class="form-control" id="StudEmail" name="StudEmail" placeholder="Email" required>
+                    <label for="StudEmail">University Email</label>
+                </div>
             </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudEmail">Student Email</label>
-                <input
-                    type="email"
-                    class="form-control"
-                    id = "StudEmail"
-                    name = "StudEmail"
-                    placeholder = "Enter Your Student Email"
-                required/>
+
+            <div class="col-md-6">
+                <div class="form-floating mb-3">
+                    <input type="tel" class="form-control" id="StudContactNum" name="StudContactNum" placeholder="Phone" required>
+                    <label for="StudContactNum">Contact Number</label>
+                </div>
             </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudContactNum">Student Contact Number</label>
-                <input
-                    type="tel"
-                    class="form-control"
-                    id = "StudContactNum"
-                    name = "StudContactNum"
-                    placeholder = "Enter Your Contact Number"
-                required/>
+
+            <div class="col-md-6">
+                <div class="form-floating mb-3 position-relative">
+                    <input type="password" class="form-control" id="StudPassword1" name="StudPassword1" placeholder="Password" required>
+                    <label for="StudPassword1">Password</label>
+                    <span class="password-toggle" data-target="#StudPassword1"><i class="fa fa-eye"></i></span>
+                </div>
             </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudPassword1">Password</label>
-                <input
-                    type="password"
-                    class="form-control"
-                    id = "StudPassword1"
-                    name = "StudPassword1"
-                    placeholder = "Enter Your Password"
-                required/>
-            </div>
-            <div class="col-sm-6 form-group">
-                <label for="StudPassword2">Password (Confirm)</label>
-                <input
-                    type="password"
-                    class="form-control"
-                    id = "StudPassword2"
-                    name = "StudPassword2"
-                    placeholder = "Confirm Password"
-                required/>
-            </div>
-            <div class="col-sm-12 form-group mb-0">
-                <button type="submit" class="btn btn-primary" style="margin-bottom:10px;">Submit</button>
-                <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="history.back()">Go Back</button>
+
+            <div class="col-md-6">
+                <div class="form-floating mb-3 position-relative">
+                    <input type="password" class="form-control" id="StudPassword2" name="StudPassword2" placeholder="Confirm" required>
+                    <label for="StudPassword2">Confirm Password</label>
+                    <span class="password-toggle" data-target="#StudPassword2"><i class="fa fa-eye"></i></span>
+                </div>
             </div>
         </div>
+
+        <button type="submit" class="btn btn-primary btn-lg w-100 py-3 mt-3 rounded-pill fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2">
+            <span>Create Account</span>
+            <div id="reg-spinner" class="htmx-indicator spinner-border spinner-border-sm" role="status"></div>
+        </button>
     </form>
+
+    <div class="text-center mt-4">
+        <p class="text-muted small">Already have an account? <a href="/login" class="text-primary fw-bold text-decoration-none">Sign In</a></p>
+    </div>
 </div>
 {% endblock %}
