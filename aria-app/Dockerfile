@@ -18,12 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-COPY /aria-app/requirements.txt .
+COPY aria-app/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
-COPY . .
+COPY aria-app/ .
 
 # Expose port (placeholder, Railway injects its own)
 EXPOSE ${PORT:-5000}
