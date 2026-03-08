@@ -26,6 +26,8 @@ def login():
         user = AuthService.authenticate_user(user_id, password)
         
         if user:
+            # Clear any stale flashes (e.g. "You have logged out" from the redirect)
+            session.pop('_flashes', None)
             flash('Logged in successfully!', category='success')
             login_user(user, remember=True)
             session.permanent = True

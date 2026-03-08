@@ -6,11 +6,13 @@
     <div class="row align-items-center">
         <div class="col-lg-7">
             <div class="aria-hero-greeting">
-                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill">Staff Portal: Welcome, {{ user.StaffName.split(' ')[0] }}</span>
+                <span class="badge bg-primary mb-3 px-3 py-2 rounded-pill">Staff Portal: Welcome, {{
+                    user.StaffName.split(' ')[0] }}</span>
                 <h2 class="display-6 fw-bold">Manage Campus Resources</h2>
-                <p class="lead text-muted">Efficiently coordinate room bookings, host institutional events, and track facility occupancy from your staff dashboard.</p>
+                <p class="lead text-muted">Efficiently coordinate room bookings, host institutional events, and track
+                    facility occupancy from your staff dashboard.</p>
             </div>
-            
+
             <div class="quick-actions-row">
                 <button class="btn btn-quick-action shadow-sm" data-bs-toggle="modal" data-bs-target="#modaladdRBook">
                     <i class="fa fa-plus-circle text-primary"></i>
@@ -34,131 +36,131 @@
 {% endblock %}
 
 {% block calendar %}
-            (function() {
-                if (typeof FullCalendar === 'undefined') {
-                    console.warn('FullCalendar not loaded yet, deferring...');
-                    setTimeout(arguments.callee, 100);
-                    return;
-                }
-                let selector1 = document.querySelector("#nroomSelector");
-                let selector2 = document.querySelector("#eroomSelector");
-                let selector3 = document.querySelector("#BookTypeSelector");
-                var today = new Date().toISOString().slice(0,10);
-                var calendarEl = document.getElementById('calendar');
-                if (!calendarEl) return;
+(function initCalendar() {
+if (typeof FullCalendar === 'undefined') {
+console.warn('FullCalendar not loaded yet, deferring...');
+setTimeout(initCalendar, 100);
+return;
+}
+let selector1 = document.querySelector("#nroomSelector");
+let selector2 = document.querySelector("#eroomSelector");
+let selector3 = document.querySelector("#BookTypeSelector");
+var today = new Date().toISOString().slice(0,10);
+var calendarEl = document.getElementById('calendar');
+if (!calendarEl) return;
 
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    eventDisplay: 'block',
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector1.value;
-                        let val2 = selector2.value;
-                        let val3 = selector3.value;
-                        if (val3 == "r"){
-                            if (!(val == arg.event.extendedProps.location || val == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }else if (val3 == "e"){
-                            if (!(val2 == arg.event.extendedProps.location || val2 == "all")) {
-                                arg.el.style.display = "none";
-                            }
-                        }
-                    },
-                    events: function (fetchInfo, successCallback, failureCallback) {
-                        let valBookType = selector3.value
-                        if (valBookType == "r"){
-                            successCallback([
-                            {% for row in roombookings %}
-                            {% if row.StudID != None: %}
-                            {
-                                id: '{{row.RBookID}}',
-                                title: '{{row.StudID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    status: '{{row.RBookStatus}}' 
-                                }
-                            },
-                            {% else %}
-                            {
-                                id: '{{row.RBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    status: '{{row.RBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
-                            {% endfor %}
-                            ]);
-                        }else if (valBookType == "e"){
-                            successCallback([
-                            {% for row in eventbookings %}
-                            {% if row.StudID != None: %}
-                            {
-                                id: '{{row.EBookID}}',
-                                title: '{{row.StudID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    status: '{{row.EBookStatus}}' 
-                                }
-                            },
-                            {% else %}
-                            {
-                                id: '{{row.EBookID}}',
-                                title: '{{row.StaffID}}',
-                                start: '{{row.Start}}',
-                                end: '{{row.End}}',
-                                description: '{{row.Purpose}}',
-                                extendedProps:{
-                                    location: '{{row.RoomID}}',
-                                    status: '{{row.EBookStatus}}' 
-                                }
-                            },
-                            {% endif %}
-                            {% endfor %}
-                            ]);
-                        }
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        let valBookType = selector3.value 
-                        if (clickedDate >= nowDate) {
-                            if (valBookType == "r"){
-                                $("#modaladdRBook").modal("show");
-                                $("#rbookstart").val(info.dateStr);
-                                $("#rbookend").val(info.dateStr);
-                            }else if (valBookType == "e"){
-                                $("#modaladdEBook").modal("show");
-                                $("#ebookstart").val(info.dateStr);
-                                $("#ebookend").val(info.dateStr);
-                            }
-                        }
-                        else alert("Cannot Select Past Date");
-                    }
-                });
-                calendar.render();
-                calendar.setOption('contentHeight', 650);
+var calendar = new FullCalendar.Calendar(calendarEl, {
+initialView: 'dayGridMonth',
+eventDisplay: 'block',
+selectable: true,
+headerToolbar: {
+left: 'prev,next',
+center: 'title',
+right: 'dayGridMonth,timeGridWeek,timeGridDay'
+},
+eventDidMount: function(arg) {
+let val = selector1.value;
+let val2 = selector2.value;
+let val3 = selector3.value;
+if (val3 == "r"){
+if (!(val == arg.event.extendedProps.location || val == "all")) {
+arg.el.style.display = "none";
+}
+}else if (val3 == "e"){
+if (!(val2 == arg.event.extendedProps.location || val2 == "all")) {
+arg.el.style.display = "none";
+}
+}
+},
+events: function (fetchInfo, successCallback, failureCallback) {
+let valBookType = selector3.value
+if (valBookType == "r"){
+successCallback([
+{% for row in roombookings %}
+{% if row.StudID != None: %}
+{
+id: '{{row.RBookID}}',
+title: '{{row.StudID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.RBookStatus}}'
+}
+},
+{% else %}
+{
+id: '{{row.RBookID}}',
+title: '{{row.StaffID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.RBookStatus}}'
+}
+},
+{% endif %}
+{% endfor %}
+]);
+}else if (valBookType == "e"){
+successCallback([
+{% for row in eventbookings %}
+{% if row.StudID != None: %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StudID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.EBookStatus}}'
+}
+},
+{% else %}
+{
+id: '{{row.EBookID}}',
+title: '{{row.StaffID}}',
+start: '{{row.Start}}',
+end: '{{row.End}}',
+description: '{{row.Purpose}}',
+extendedProps:{
+location: '{{row.RoomID}}',
+status: '{{row.EBookStatus}}'
+}
+},
+{% endif %}
+{% endfor %}
+]);
+}
+},
+dateClick: function(info) {
+var clickedDate = getDateWithoutTime(info.date);
+var nowDate = getDateWithoutTime(new Date())
+let valBookType = selector3.value
+if (clickedDate >= nowDate) {
+if (valBookType == "r"){
+$("#modaladdRBook").modal("show");
+$("#rbookstart").val(info.dateStr);
+$("#rbookend").val(info.dateStr);
+}else if (valBookType == "e"){
+$("#modaladdEBook").modal("show");
+$("#ebookstart").val(info.dateStr);
+$("#ebookend").val(info.dateStr);
+}
+}
+else alert("Cannot Select Past Date");
+}
+});
+calendar.render();
+calendar.setOption('contentHeight', 650);
 
-                selector1.addEventListener('change', function() { calendar.refetchEvents(); });
-                selector2.addEventListener('change', function() { calendar.refetchEvents(); });
-                selector3.addEventListener('change', function() { calendar.refetchEvents(); });
-            });
+selector1.addEventListener('change', function() { calendar.refetchEvents(); });
+selector2.addEventListener('change', function() { calendar.refetchEvents(); });
+selector3.addEventListener('change', function() { calendar.refetchEvents(); });
+})();
 {% endblock %}
 
 {% block content%}
@@ -172,7 +174,9 @@
         <i class="fa fa-exclamation-triangle fa-2x text-warning"></i>
         <div>
             <h5 class="alert-heading mb-1 fw-bold">Biometric Data Required</h5>
-            <p class="mb-0 text-dark">You haven't registered your face for institutional room access. <b><a href="/register_face" class="alert-link text-danger text-decoration-underline">Enroll biometric data</a></b> to ensure your access permissions are active.</p>
+            <p class="mb-0 text-dark">You haven't registered your face for institutional room access. <b><a
+                        href="/register_face" class="alert-link text-danger text-decoration-underline">Enroll biometric
+                        data</a></b> to ensure your access permissions are active.</p>
         </div>
     </div>
 </div>
@@ -188,20 +192,20 @@
                     <div class="card-header bg-white border-bottom-0 pt-4 px-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="fw-bold mb-0">Staff Notices</h5>
-                            <div id="announcement-count" class="badge bg-soft-primary text-primary rounded-pill">{{ announcements|length }}</div>
+                            <div id="announcement-count" class="badge bg-soft-primary text-primary rounded-pill">{{
+                                announcements|length }}</div>
                         </div>
                         <!-- Search Bar -->
                         <div class="input-group input-group-sm mb-2 shadow-none border rounded-pill px-2 bg-light">
-                            <span class="input-group-text bg-transparent border-0"><i class="fa fa-search text-muted"></i></span>
-                            <input type="text" 
-                                   name="search" 
-                                   class="form-control bg-transparent border-0 shadow-none" 
-                                   placeholder="Search notices..."
-                                   hx-get="/announcements/feed"
-                                   hx-trigger="keyup changed delay:500ms"
-                                   hx-target="#announcement-feed-list"
-                                   hx-indicator="#search-indicator">
-                            <div id="search-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary align-self-center me-2"></div>
+                            <span class="input-group-text bg-transparent border-0"><i
+                                    class="fa fa-search text-muted"></i></span>
+                            <input type="text" name="search" class="form-control bg-transparent border-0 shadow-none"
+                                placeholder="Search notices..." hx-get="/announcements/feed"
+                                hx-trigger="keyup changed delay:500ms" hx-target="#announcement-feed-list"
+                                hx-indicator="#search-indicator">
+                            <div id="search-indicator"
+                                class="htmx-indicator spinner-border spinner-border-sm text-primary align-self-center me-2">
+                            </div>
                         </div>
                     </div>
                     <div class="card-body p-0 flex-grow-1 overflow-auto">
@@ -213,10 +217,8 @@
 
                 <!-- Room Discovery -->
                 <div class="aria-section-card flex-grow-1 p-4 overflow-auto" style="min-height: 500px;">
-                    <div id="discovery-sidebar-content" 
-                         hx-get="/rooms/discovery?type=r" 
-                         hx-trigger="load, refreshRoomStatus from:body" 
-                         hx-indicator="#rooms-loader">
+                    <div id="discovery-sidebar-content" hx-get="/rooms/discovery?type=r"
+                        hx-trigger="load, refreshRoomStatus from:body" hx-indicator="#rooms-loader">
                         <!-- Loaded via HTMX -->
                         <div class="text-center py-5">
                             <div class="spinner-border text-primary" id="rooms-loader" role="status">
@@ -232,11 +234,12 @@
                 <div class="aria-section-card p-4">
                     <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
                         <h4 class="fw-bold mb-0">Facility Schedule</h4>
-                        
+
                         <div class="d-flex flex-wrap gap-2 align-items-center">
                             <div class="filter-group d-flex align-items-center bg-light rounded-pill px-3 py-1">
                                 <span class="small fw-bold text-muted me-2 text-nowrap">TYPE:</span>
-                                <select id="BookTypeSelector" class="form-select form-select-sm border-0 bg-transparent" onchange="bookOnChange()">
+                                <select id="BookTypeSelector" class="form-select form-select-sm border-0 bg-transparent"
+                                    onchange="bookOnChange()">
                                     <option value="r" selected>Rooms</option>
                                     <option value="e">Event Halls</option>
                                 </select>
@@ -246,13 +249,15 @@
                             <div id="nroomSelectorDiv" class="d-none">
                                 <select id="nroomSelector">
                                     <option value="all">All</option>
-                                    {% for r in roomlist %}{%if r.RoomType=="Normal Room"%}<option value="{{r.RoomID}}">{{r.RoomName}}</option>{%endif%}{% endfor %}
+                                    {% for r in roomlist %}{%if r.RoomType=="Normal Room"%}<option value="{{r.RoomID}}">
+                                        {{r.RoomName}}</option>{%endif%}{% endfor %}
                                 </select>
                             </div>
                             <div id="eroomSelectorDiv" class="d-none">
                                 <select id="eroomSelector" disabled>
                                     <option value="all">All</option>
-                                    {% for r in roomlist %}{%if r.RoomType=="Event Room"%}<option value="{{r.RoomID}}">{{r.RoomName}}</option>{%endif%}{% endfor %}
+                                    {% for r in roomlist %}{%if r.RoomType=="Event Room"%}<option value="{{r.RoomID}}">
+                                        {{r.RoomName}}</option>{%endif%}{% endfor %}
                                 </select>
                             </div>
                         </div>
@@ -268,12 +273,12 @@
 {% include 'partials/_booking_modals.html' %}
 
 <script>
-    function bookOnChange(){
+    function bookOnChange() {
         const val = document.getElementById('BookTypeSelector').value;
         const nroomSel = document.getElementById('nroomSelector');
         const eroomSel = document.getElementById('eroomSelector');
 
-        if (val == "r"){
+        if (val == "r") {
             eroomSel.disabled = true;
             nroomSel.disabled = false;
             nroomSel.value = "all";

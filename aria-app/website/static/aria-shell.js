@@ -12,7 +12,7 @@
   function initPlugins(container = document) {
     // 1. DataTables
     if (window.jQuery && jQuery.fn.DataTable) {
-      $(container).find('table.dataTable, table.table').each(function() {
+      $(container).find('table.dataTable, table.table').each(function () {
         const $table = $(this);
         // Only initialize if not already a DataTable and not already processed by us
         if (!$.fn.DataTable.isDataTable(this) && !this.hasAttribute('data-aria-initialized')) {
@@ -27,7 +27,7 @@
 
     // 2. Select2
     if (window.jQuery && jQuery.fn.select2) {
-      $(container).find('select.select2:not(.initialized)').each(function() {
+      $(container).find('select.select2:not(.initialized)').each(function () {
         $(this).addClass('initialized').select2({
           width: '100%',
           theme: 'bootstrap-5'
@@ -76,7 +76,22 @@
       initPlugins(evt.detail.target);
     });
 
-    // 3. Global Error Handling
+    // 3. Initialize Toasts specifically (since they might be htmx:afterSettle)
+    document.addEventListener("htmx:afterSettle", (evt) => {
+      if (evt.detail.target.id === "aria-toast-container") {
+        const container = evt.detail.target;
+        container.querySelectorAll('.aria-toast-item:not([data-aria-init])').forEach(function (el) {
+          el.setAttribute('data-aria-init', 'true');
+          const bsToast = new bootstrap.Toast(el, { autohide: true, delay: 5000 });
+          el.addEventListener('hidden.bs.toast', function () {
+            el.remove();
+          });
+          bsToast.show();
+        });
+      }
+    });
+
+    // 4. Global Error Handling
     document.addEventListener("htmx:responseError", (evt) => {
       // SILENT FAILURE for background polling
       if (evt.detail.path === "/api/ui/pulse" || evt.detail.target.id === "aria-ui-pulse") {
@@ -96,7 +111,7 @@
   function setupLegacyLogic() {
     window.deleteAnnouncement = function (announceId) {
       if (!announceId) return;
-      
+
       const target = document.getElementById("announcement-list");
       if (window.htmx && target) {
         htmx.ajax("POST", "/delete-announcement", {
@@ -115,7 +130,7 @@
   function updateActiveNavLink() {
     const currentPath = window.location.pathname;
     const navLinks = document.querySelectorAll('.nav-link');
-    
+
     navLinks.forEach(link => {
       const href = link.getAttribute('href');
       if (href && (currentPath === href || (href !== '/' && currentPath.startsWith(href)))) {
@@ -149,7 +164,7 @@
     document.querySelectorAll('select[name="roomSelect"]').forEach(select => {
       select.value = roomId;
     });
-    
+
     console.log(`[ARIA Discovery] Selected room ${roomId} (type: ${type})`);
   };
 
