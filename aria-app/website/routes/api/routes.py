@@ -1,6 +1,6 @@
 """API route handlers."""
 from flask_restx import Resource, Namespace, fields
-from flask import send_from_directory, current_app
+from flask import send_from_directory, current_app, request
 from datetime import datetime
 from ...models.user import Student, Staff
 from ...models.room import RoomList, RoomBooking
@@ -8,7 +8,11 @@ from ...models.access import RoomAccessLog
 from ...models.base import db
 from ...services.mail_service import MailService
 from ...services.room_service import RoomService
+from ...services.face_service import FaceService
 import logging
+import base64
+import numpy as np
+import cv2
 
 logger = logging.getLogger(__name__)
 
@@ -304,3 +308,63 @@ class GetFacesEmbedsFileAPI(Resource):
         except Exception as e:
             logger.error(f"Error serving face embeddings file: {str(e)}")
             ns.abort(500, "Internal server error")
+
+@ns.route("/recognize_frame")
+class RecognizeFrameAPI(Resource):
+    """Recognize face from video frame."""
+    
+    @ns.doc(description="Process a base64 encoded frame for face recognition")
+    def post(self):
+        """Process a webcam frame."""
+        data = request.json
+        if not data or 'image' not in data:
+            return {"status": "error", "message": "No image data provided"}, 400
+            
+        try:
+            # Decode the base64 image
+            image_data = data['image'].split(',')[1]
+            image_bytes = base64.b64decode(image_data)
+            nparr = np.frombuffer(image_bytes, np.uint8)
+            frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+            
+            if frame is None:
+                return {"status": "error", "message": "Invalid image payload structure"}, 400
+                
+            face_service = FaceService()
+            # Ensure model is loaded implicitly or explicitly
+            face_service.load_trained_model()
+            
+            # Detect face
+            face, x1, x2, y1, y2 = face_service.get_face(frame)
+            if face is None:
+                return {"status": "searching", "message": "No face detected in frame"}
+            
+            # Recognize face
+            confidence_threshold = current_app.config.get('FACE_CONFIDENCE_THRESHOLD', 0.85)
+            identity, confidence = face_service.recognize_face(face, confidence_threshold)
+            
+            if identity and confidence >= confidence_threshold:
+                # Resolve true name if possible, assuming identity is StudentID or StaffID
+                user = db.session.query(Student).filter_by(StudID=identity).first()
+                if not user:
+                    user = db.session.query(Staff).filter_by(StaffID=identity).first()
+                
+                real_name = getattr(user, 'StudName', getattr(user, 'StaffName', identity)) if user else identity
+                
+                return {
+                    "status": "success",
+                    "identity": real_name,
+                    "confidence": confidence,
+                    "access": "granted"
+                }
+            else:
+                return {
+                    "status": "success",
+                    "identity": "Unknown",
+                    "confidence": confidence if identity else 0.0,
+                    "access": "denied"
+                }
+                
+        except Exception as e:
+            logger.error(f"Error processing frame: {str(e)}")
+            return {"status": "error", "message": "Server-side processing error"}, 500

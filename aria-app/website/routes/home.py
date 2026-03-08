@@ -201,3 +201,9 @@ def ui_pulse():
     response = make_response("", 204) # No content
     response.headers['HX-Trigger'] = json.dumps(triggers)
     return response
+
+@home.route('/demo')
+def demo():
+    """Browser webcam demo for portfolio showcase."""
+    return render_template('demo.html')
+

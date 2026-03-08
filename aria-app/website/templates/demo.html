@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}ARIA Webcam Demo{% endblock %}
+{% block content %}
+<style>
+  .demo-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+    background-color: #f4f6f9;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  .video-wrapper {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    margin-bottom: 2rem;
+  }
+  #webcam {
+    width: 640px;
+    height: 480px;
+    object-fit: cover;
+    background-color: #000;
+  }
+  .overlay {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #fff;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    transition: all 0.3s ease;
+  }
+  .door-status {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    transition: all 0.5s ease;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  .status-scanning {
+    background-color: #95a5a6;
+    animation: pulse 1.5s infinite;
+  }
+  .status-granted {
+    background-color: #2ecc71;
+    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
+  }
+  .status-denied {
+    background-color: #e74c3c;
+    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
+  }
+  @keyframes pulse {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(149, 165, 166, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(149, 165, 166, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(149, 165, 166, 0); }
+  }
+</style>
+
+<div class="demo-container">
+  <h1 class="mb-4 text-center">ARIA Access Control Demo</h1>
+  <div class="video-wrapper">
+    <video id="webcam" autoplay playsinline></video>
+    <div id="result-overlay" class="overlay">Initializing...</div>
+  </div>
+  
+  <div class="text-center">
+    <h3>Door Status</h3>
+    <div id="door-indicator" class="door-status status-scanning mx-auto">
+      <i id="door-icon" class="fa fa-spinner fa-spin"></i>
+    </div>
+    <p id="status-text" class="mt-3 font-weight-bold text-muted">Awaiting Face</p>
+  </div>
+  
+  <canvas id="capture-canvas" style="display:none;"></canvas>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  const video = document.getElementById("webcam");
+  const canvas = document.getElementById("capture-canvas");
+  const overlay = document.getElementById("result-overlay");
+  const doorIndicator = document.getElementById("door-indicator");
+  const doorIcon = document.getElementById("door-icon");
+  const statusText = document.getElementById("status-text");
+  
+  let isScanning = true;
+  let hasGranted = false;
+  
+  // Request webcam access
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        video.srcObject = stream;
+        video.play();
+        overlay.innerText = "Scanning...";
+        // Start capture loop
+        setInterval(processFrame, 1000); // Send frame every second
+      })
+      .catch(err => {
+        console.error("Error accessing webcam: ", err);
+        overlay.innerText = "Webcam Error";
+      });
+  } else {
+    overlay.innerText = "Webcam not supported";
+  }
+
+  function processFrame() {
+    if (!isScanning) return;
+    if (video.videoWidth === 0 || video.videoHeight === 0) return; // Wait for video to be ready
+    
+    const context = canvas.getContext("2d");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Scale down image to avoid heavy payload
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+    
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+    const headers = {
+      "Content-Type": "application/json"
+    };
+    if (csrfToken) {
+        headers["X-CSRFToken"] = csrfToken;
+    }
+
+    fetch("/api/recognize_frame", {
+      method: "POST",
+      headers: headers,
+      body: JSON.stringify({ image: dataUrl })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (hasGranted) return; // Ignore if already unlocked (cooldown)
+
+      if (data.status === "success" && data.identity) {
+        overlay.innerText = `${data.identity} (${(data.confidence * 100).toFixed(1)}%)`;
+        
+        if (data.access === "granted") {
+          doorIndicator.className = "door-status status-granted mx-auto";
+          doorIcon.className = "fa fa-unlock";
+          statusText.innerText = `Access Granted: Welcome ${data.identity}`;
+          statusText.className = "mt-3 font-weight-bold text-success";
+          
+          hasGranted = true;
+          isScanning = false;
+          
+          // Reset after 3 seconds
+          setTimeout(() => {
+            hasGranted = false;
+            isScanning = true;
+            doorIndicator.className = "door-status status-scanning mx-auto";
+            doorIcon.className = "fa fa-spinner fa-spin";
+            statusText.innerText = "Awaiting Face";
+            statusText.className = "mt-3 font-weight-bold text-muted";
+            overlay.innerText = "Scanning...";
+          }, 3000);
+        } else {
+          doorIndicator.className = "door-status status-denied mx-auto";
+          doorIcon.className = "fa fa-lock";
+          statusText.innerText = "Access Denied";
+          statusText.className = "mt-3 font-weight-bold text-danger";
+          
+          setTimeout(() => {
+            if (!hasGranted) {
+                doorIndicator.className = "door-status status-scanning mx-auto";
+                doorIcon.className = "fa fa-spinner fa-spin";
+                statusText.innerText = "Awaiting Face";
+                statusText.className = "mt-3 font-weight-bold text-muted";
+                overlay.innerText = "Scanning...";
+            }
+          }, 1500);
+        }
+      } else {
+        if (!hasGranted) {
+            overlay.innerText = data.message || "Scanning...";
+        }
+      }
+    })
+    .catch(err => console.error("API Error: ", err));
+  }
+});
+</script>
+{% endblock %}

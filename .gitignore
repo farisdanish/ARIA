@@ -53,7 +53,7 @@ aria-app/website/static/uploads/*
 # Face database files
 aria-app/website/static/MalaysianFacesDB/*
 !aria-app/website/static/MalaysianFacesDB/.gitkeep
-aria-app/website/static/registered-faces-db*.npz
+!aria-app/website/static/registered-faces-db*.npz
 
 # Simulator Specific
 pi-simulator/test_images/*
@@ -65,7 +65,6 @@ aria-app/**/*.log
 aria-app/client/*.log
 
 # Machine Learning models
-*.npz
 *.h5
 *.pkl
 aria-app/client/*.npz
