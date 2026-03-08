@@ -28,6 +28,9 @@ class Config:
     SQLALCHEMY_DATABASE_URI = db_url or 'mysql+mysqldb://root:@localhost:3306/ariadb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
+    # Redis
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    
     if SQLALCHEMY_DATABASE_URI.startswith('postgresql'):
         import sys
         print(f"DEBUG: SQLAlchemy is using PostgreSQL.", file=sys.stderr)
@@ -64,6 +67,9 @@ class Config:
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
     MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
     
+    # Redis
+    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+
     # JSON
     JSONIFY_PRETTYPRINT_REGULAR = True
 
