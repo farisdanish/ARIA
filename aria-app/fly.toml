@@ -1,29 +1,23 @@
-# fly.toml app configuration file generated for aria-3-pcva on 2026-04-06T08:54:42Z
+# fly.toml app configuration file generated for aria-n-wy7g on 2026-04-06T13:13:33Z
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'aria-3-pcva'
-primary_region = 'sin'
+app = 'aria-n-wy7g'
+primary_region = 'ams'
 
 [build]
-  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 8080
   force_https = true
   auto_stop_machines = 'stop'
   auto_start_machines = true
-  # Keep 1 machine always running — TensorFlow/FaceNet takes ~60s cold start
-  min_machines_running = 1
+  min_machines_running = 0
   processes = ['app']
 
 [[vm]]
-  # TensorFlow alone needs ~1.2GB RSS; 2GB gives breathing room for face training
-  memory = '2gb'
+  memory = '1gb'
   cpu_kind = 'shared'
   cpus = 1
-
-[mounts]
-  source = "aria_static"
-  destination = "/app/website/static"
+  memory_mb = 256
