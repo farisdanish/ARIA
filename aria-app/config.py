@@ -24,6 +24,15 @@ class Config:
         
     SQLALCHEMY_DATABASE_URI = db_url or 'mysql+mysqldb://root:@localhost:3306/ariadb'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    # Connection pool settings for Supabase pgBouncer (transaction mode, port 6543).
+    # pool_pre_ping checks liveness before handing out a connection — avoids
+    # "SSL connection has been closed unexpectedly" errors after idle periods.
+    SQLALCHEMY_ENGINE_OPTIONS = {
+        "pool_pre_ping": True,
+        "pool_size": 5,
+        "max_overflow": 2,
+        "pool_recycle": 300,
+    }
     
     # Redis
     REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
