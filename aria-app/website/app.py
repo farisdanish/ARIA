@@ -130,7 +130,7 @@ def create_app(config_name: str = None) -> Flask:
             f"default-src 'self'; "
             f"connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
             f"img-src 'self' data:; "
-            f"font-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; "
+            f"font-src 'self' data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;"
             f"script-src 'self' 'unsafe-inline' {_csp_hosts}; "
             f"style-src 'self' 'unsafe-inline' {_csp_hosts}"
         )
