@@ -17,6 +17,8 @@ psycopg2-binary==2.9.9
 # Authentication & Security
 bcrypt==4.1.2
 Flask-WTF==1.2.1
+Flask-Limiter[redis]==3.8.0
+APScheduler==3.10.4
 
 # Face Recognition & ML
 opencv-python==4.8.1.78

@@ -10,61 +10,23 @@ A comprehensive Flask-based application for managing library room bookings with 
 - **Room Booking**: Conflict-detected booking system for rooms and events
 - **Double-Factor Access**: Choice between **Face Recognition** (FaceNet) and **QR Check-in**
 - **Event-Driven Architecture**: Decoupled services communicating via Redis Pub/Sub
-- **Dockerized Environment**: One-command deployment for app, simulator, and database
+- **Docker Compose (local)**: Optional one-command stack for app, simulator, and DB (production VM steps are in **`CLOUD_SETUP.md`**)
 - **Access Logging**: Automated entry tracking and email notifications
 
 ## 📋 Requirements
 
-- Python 3.8+ (Note: Python 3.12+ requires `setuptools` for `distutils` compatibility)
-- MySQL 5.7+ or MariaDB
-- Webcam (for face recognition features)
-- MySQL client development libraries (required for `mysqlclient` package)
+- Python 3.8+ (Python 3.12+ supported; `setuptools` is listed in `requirements.txt` for `distutils` compatibility)
+- **Database:** **PostgreSQL** is the primary target (e.g. Supabase in production). The stack uses **`psycopg2-binary`** and **`DATABASE_URL`**. MySQL/MariaDB may still work with a suitable SQLAlchemy URL but is no longer the default documented path.
+- **Redis:** Used for pub/sub (Pi ↔ cloud), background booking notifications, and **rate limiting in production** (`FLASK_ENV=production` requires `REDIS_URL`).
+- Webcam (optional; for local face registration / streaming routes)
 
 ## 🛠️ Installation
 
 ### Prerequisites
 
-Before installing Python dependencies, you need to install MySQL client development libraries for your operating system. The `mysqlclient` package requires these libraries to compile.
-
-#### Linux (Ubuntu/Debian)
-```bash
-sudo apt-get update
-sudo apt-get install default-libmysqlclient-dev build-essential pkg-config python3-dev
-```
-
-> **Note:** For Python 3.12 specifically, you may also need `python3.12-dev`:
-> ```bash
-> sudo apt-get install python3.12-dev
-> ```
-
-#### Linux (Fedora/RHEL/CentOS)
-```bash
-sudo dnf install mysql-devel gcc pkg-config python3-devel
-# Or for older systems:
-# sudo yum install mysql-devel gcc pkg-config python3-devel
-```
-
-#### macOS
-```bash
-# Using Homebrew (recommended)
-brew install mysql pkg-config
-
-# Or using MacPorts
-sudo port install mysql8 +universal
-```
-
-#### Windows
-For Windows, you have two options:
-
-**Option 1: Use pre-compiled wheel (easiest)**
-- Download MySQL from [MySQL Installer](https://dev.mysql.com/downloads/installer/)
-- Install MySQL Connector/C or MySQL Server (which includes the client libraries)
-- Ensure MySQL is added to your system PATH
-- Install Visual C++ Build Tools from [Microsoft](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
-
-**Option 2: Use PyMySQL instead (no compilation needed)**
-- Replace `mysqlclient==2.2.0` with `PyMySQL==1.1.0` in `requirements.txt`
-- Update your `DATABASE_URL` in `.env` from `mysql+mysqldb://` to `mysql+pymysql://`
+- **PostgreSQL** (local or cloud) for a typical setup, or any DB supported by your `DATABASE_URL`.
+- **Redis** for full functionality (booking events + production rate limits).
+- Build tools may be needed for some wheels (OpenCV, etc.); on Ubuntu: `build-essential python3-dev`.
 
 ### Installation Steps
 
@@ -93,34 +55,36 @@ For Windows, you have two options:
    pip install --upgrade pip setuptools
    pip install -r requirements.txt
    ```
-   
-   > **Note:** 
-   > - If you encounter errors installing `mysqlclient`, ensure you've installed the MySQL client development libraries for your OS (see Prerequisites above).
-   > - For Python 3.12+, `setuptools` is required (included in requirements.txt) as `distutils` was removed from the standard library.
 
 4. **Set up environment variables**
    
-   Create a `.env` file in the `aria-app/` directory (or set environment variables):
+   Create a `.env` file in the `aria-app/` directory (or export variables). **There are no production-safe defaults for secrets** — see `config.py`.
+
    ```bash
-   # Required
+   # Required for normal local/dev runs
    SECRET_KEY=your-secret-key-here
-   DATABASE_URL=mysql+mysqldb://user:password@localhost:3306/ariadb
-   
-   # Optional (with defaults)
+   DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/ariadb
+
+   # Strongly recommended (required when FLASK_ENV=production)
+   REDIS_URL=redis://localhost:6379/0
+
+   # Optional
    FLASK_ENV=development
    MAIL_USERNAME=your-email@gmail.com
    MAIL_PASSWORD=your-app-password
    FACE_CONFIDENCE_THRESHOLD=0.85
    SESSION_LIFETIME_MINUTES=480
+   MAX_CONTENT_LENGTH=5242880
+   ARIA_INSTANCE_DIR=/absolute/path/to/instance   # default: aria-app/instance/
+   FLASK_SKIP_BACKGROUND_THREADS=1                 # e.g. for tests / one-off scripts
    ```
-   
-   See `config.py` for all available configuration options.
+
+   **Production (`FLASK_ENV=production`):** startup requires **`SECRET_KEY`**, **`DATABASE_URL`**, and **`REDIS_URL`**, or the app raises **`RuntimeError`**.
 
 5. **Set up the database**
-   - Create a MySQL database: `ariadb`
-   - Update `DATABASE_URL` in `.env` with your database credentials
-   - The application will use the existing schema (no migrations yet)
-   - (Optional) Seed the database with initial data:
+   - Create a Postgres database (or point `DATABASE_URL` at Supabase / another provider).
+   - With `AUTO_CREATE_DB=true` (default), tables are created via `db.create_all()` on startup where appropriate.
+   - (Optional) Seed sample data (development only — weak passwords):
 
      ```bash
      cd aria-app
@@ -168,17 +132,24 @@ For Windows, you have two options:
 ```
 ARIA/
 ├── README.md                # This file - project overview
+├── CLOUD_SETUP.md           # Supabase, Redis, Linux VM (Caddy, systemd) deploy
 ├── LICENSE                  # License file
 ├── aria-app/                # Main application directory
 │   ├── main.py              # Application entry point
 │   ├── config.py            # Configuration management
 │   ├── requirements.txt     # Python dependencies
+│   ├── gunicorn.conf.py     # Gunicorn settings (VM / systemd deploys)
+│   ├── aria.service         # systemd unit template
+│   ├── Caddyfile            # Reverse proxy + TLS (VM deploys)
+│   ├── instance/            # Runtime data (gitignored): uploads, faces, .npz
 │   ├── website/             # Main Flask application
 │   │   ├── __init__.py
 │   │   ├── app.py           # Flask app factory
+│   │   ├── extensions.py    # Flask-Limiter (shared)
 │   │   ├── models/          # SQLAlchemy models
 │   │   │   ├── base.py      # Database initialization
 │   │   │   ├── user.py      # Student, Staff, Admin models
+│   │   │   ├── guest.py     # Ephemeral guest_user (face cleanup)
 │   │   │   ├── room.py      # Room and booking models
 │   │   │   ├── announcement.py
 │   │   │   ├── face.py      # Face recognition models
@@ -200,6 +171,8 @@ ARIA/
 │   │   │   ├── auth_service.py
 │   │   │   ├── booking_service.py
 │   │   │   ├── face_service.py
+│   │   │   ├── scheduler.py # APScheduler (bookings + guest cleanup)
+│   │   │   ├── guest_cleanup.py
 │   │   │   ├── face_training.py
 │   │   │   ├── room_service.py
 │   │   │   ├── announcement_service.py
@@ -207,8 +180,9 @@ ARIA/
 │   │   ├── schemas/         # API schemas
 │   │   ├── utils/           # Utility functions
 │   │   │   ├── file_utils.py
+│   │   │   ├── upload_validation.py  # Image magic-byte + MIME checks
 │   │   │   └── validators.py
-│   │   ├── static/          # Static files (CSS, JS, images, uploads)
+│   │   ├── static/          # Static assets (CSS, JS, images — not user uploads)
 │   │   └── templates/       # Jinja2 templates
 │   └── client/              # Edge device client (Raspberry Pi)
 │       ├── __init__.py
@@ -232,25 +206,33 @@ The application uses environment variables for configuration managed through `co
 
 ### Key Configuration Variables
 
-**Required:**
-- `SECRET_KEY`: Flask secret key (required for sessions)
-- `DATABASE_URL`: MySQL connection string (default: `mysql+mysqldb://root:@localhost:3306/ariadb`)
+**Required (no insecure fallbacks in code):**
 
-**Optional (with defaults):**
-- `FLASK_ENV`: Environment mode (`development`, `production`, `testing`)
-- `FLASK_DEBUG`: Enable debug mode (`True`/`False`)
-- `MAIL_SERVER`: SMTP server (default: `smtp.gmail.com`)
-- `MAIL_PORT`: SMTP port (default: `465`)
-- `MAIL_USE_SSL`: Use SSL for mail (default: `True`)
-- `MAIL_USERNAME`: Email username for notifications
-- `MAIL_PASSWORD`: Email password/app password
-- `FACE_CONFIDENCE_THRESHOLD`: Face recognition confidence threshold (default: `0.85`)
-- `SESSION_LIFETIME_MINUTES`: Session duration in minutes (default: `480`)
-- `MAX_CONTENT_LENGTH`: Max upload size in bytes (default: `16777216` = 16 MB)
-- `ARIA_UI_ENABLED`: Enable ARIA rebrand templates (`True`/`False`, default: `False`)
-- `ARIA_UI_PHASE`: Frontend rollout phase (`public`, `dashboards`, `admin`, `all`; default: `public`)
+- `SECRET_KEY` — session signing; **must** be set for any real use. In **`FLASK_ENV=production`**, missing `SECRET_KEY` fails startup.
+- `DATABASE_URL` — SQLAlchemy URL (e.g. Postgres). **Required** except in **`testing`**; **required in production**.
 
-All configuration is managed through `config.py` using environment variables.
+**Production (`FLASK_ENV=production`):**
+
+- `REDIS_URL` — **required** (Flask-Limiter storage + Redis pub/sub). Development can omit Redis for the limiter (`memory://` fallback after `DevelopmentConfig.init_app`).
+- Session cookies: **`SESSION_COOKIE_SECURE=True`**, **`HTTPONLY`**, **`SameSite=Lax`**, **1 hour** lifetime (see `ProductionConfig` in `config.py`).
+
+**Optional:**
+
+- `FLASK_ENV` / `FLASK_DEBUG`
+- `MAIL_*` — SMTP (no credentials in repo)
+- `FACE_CONFIDENCE_THRESHOLD` (default `0.85`)
+- `SESSION_LIFETIME_MINUTES` — dev session length (production uses 1 hour from config class)
+- `MAX_CONTENT_LENGTH` — default **5 MB** (`5242880`)
+- `ARIA_INSTANCE_DIR` — override directory for `instance/uploads`, `instance/MalaysianFacesDB`, `.npz` files
+- `ARIA_UI_ENABLED`, `ARIA_UI_PHASE` — UI rollout
+- `FLASK_SKIP_BACKGROUND_THREADS` — skip APScheduler + Redis subscriber (e.g. tests)
+- `AUTO_CREATE_DB` — `db.create_all()` on startup when `true`
+
+Rate limits (Flask-Limiter): default **200/day**, **50/hour** globally; stricter limits on **`/login`** (POST), face registration, and face recognition routes. See `website/extensions.py` and route decorators.
+
+Security headers (non-HSTS) are set in `website/app.py` (`Content-Security-Policy: default-src 'self'`, etc.). **HSTS** should be configured at the reverse proxy (e.g. Caddy) in production.
+
+All options are centralized in `config.py`.
 
 ### Frontend Conventions
 
@@ -269,7 +251,9 @@ All configuration is managed through `config.py` using environment variables.
 - **Application Factory**: Flask app created via factory pattern
 - **Service Layer**: Business logic separated from routes
 - **Event-Driven**: Decoupled communication via **Redis Pub/Sub**
-- **Background Workers**: Booking scheduling handled via background threads
+- **Background workers**: **APScheduler** runs booking checks and hourly **guest face cleanup**; **Redis subscriber** runs in a daemon thread
+- **Rate limiting**: **Flask-Limiter** with Redis in production
+- **Upload validation**: Face and room image uploads require allowed extension, **`image/jpeg` or `image/png`**, and matching **magic bytes**
 
 ### Microservices Architecture
 
@@ -279,7 +263,7 @@ The system is deployed as a suite of Docker containers on a single `aria-network
     - **Development Optimization**: The `static`, `templates`, and `routes` directories are volume-mapped for instant UI/logic updates without container restarts.
 2.  **`pi-simulator`**: Mimics the hardware client. Runs face recognition against test images and listens for QR validation events.
 3.  **`redis`**: Ephemeral message broker for fast, decoupled event flow.
-4.  **`db`**: MySQL persistence for `ariadb`.
+4.  **`db`**: Database container (often Postgres in newer setups; legacy compose may use MySQL).
 
 ### Event Flow (Redis Pub/Sub)
 
@@ -332,7 +316,7 @@ The face recognition system uses:
 
 1. Register faces through the web interface (`/register_face`)
 2. Admin can trigger model training at `/train_data`
-3. Model files are saved in `static/` directory
+3. Training images and **`registered-faces-db*.npz`** files live under **`aria-app/instance/`** (see `FACES_DB_PATH` / `FACES_DB_FILE` in `config.py`), not under `website/static/`
 
 ## 🔌 Edge Device Client
 
@@ -347,12 +331,20 @@ See `client/README.md` for installation and configuration details.
 ## 🧪 Testing
 
 ```bash
-# Run tests (when implemented)
+cd aria-app
+export FLASK_SKIP_BACKGROUND_THREADS=1
 pytest
+```
 
-# With coverage
+`FLASK_SKIP_BACKGROUND_THREADS` avoids starting the APScheduler and Redis subscriber during tests. Pytest uses **`create_app('testing')`**, which sets an in-memory SQLite DB and a test `SECRET_KEY` (see `tests/conftest.py`).
+
+```bash
 pytest --cov=website
 ```
+
+## ☁️ Production & cloud
+
+For **Supabase + Redis + Linux VM** (systemd, Caddy, Gunicorn, env file, guest migration SQL), see **[`CLOUD_SETUP.md`](CLOUD_SETUP.md)**. Templates: `aria-app/gunicorn.conf.py`, `aria-app/aria.service`, `aria-app/Caddyfile`.
 
 ## 📝 Development
 
@@ -376,24 +368,9 @@ pytest --cov=website
 
 ## 🔧 Troubleshooting
 
-### MySQL Client Library Issues
+### Database connection
 
-**Error: `Can not find valid pkg-config name` or `mysql_config not found`**
-
-This means the MySQL client development libraries are not installed. Follow the Prerequisites section above for your operating system.
-
-**Error: `Python.h: No such file or directory`**
-
-This means Python development headers are missing. Install them:
-- **Ubuntu/Debian:** `sudo apt-get install python3-dev` (or `python3.12-dev` for Python 3.12)
-- **Fedora/RHEL:** `sudo dnf install python3-devel`
-- **macOS:** Usually included with Xcode Command Line Tools (`xcode-select --install`)
-
-**Windows: Alternative Solution**
-If you continue to have issues on Windows, consider using PyMySQL instead:
-1. Edit `requirements.txt` and replace `mysqlclient==2.2.0` with `PyMySQL==1.1.0`
-2. Update your `.env` file: change `DATABASE_URL` from `mysql+mysqldb://` to `mysql+pymysql://`
-3. Reinstall dependencies: `pip install -r requirements.txt`
+Verify **`DATABASE_URL`** matches your provider (Postgres URI, pooler port for Supabase, etc.). The app does not fall back to a local MySQL URL.
 
 ### Python 3.12+ Issues
 
@@ -422,14 +399,6 @@ Python 3.12+ removed `distutils` from the standard library. The `requirements.tx
 **Windows:** If activation fails, ensure you're using the correct path:
 - Command Prompt: `venv\Scripts\activate.bat`
 - PowerShell: `venv\Scripts\Activate.ps1` (may require execution policy change)
-
-### Database Connection Issues
-
-Ensure MySQL/MariaDB is running and accessible:
-- **Linux/macOS:** `sudo systemctl status mysql` or `brew services list`
-- **Windows:** Check Services panel for MySQL service
-
-Verify your `DATABASE_URL` in `.env` matches your MySQL setup.
 
 ## 🚀 CI/CD Pipeline
 

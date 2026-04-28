@@ -1,87 +1,113 @@
-"""Background scheduler to monitor bookings and publish Redis events."""
-import time
-import threading
+"""Background APScheduler jobs: booking notifications and guest cleanup."""
+from __future__ import annotations
+
 import logging
-from datetime import datetime, timedelta
+from typing import Optional
+
+from apscheduler.schedulers.background import BackgroundScheduler
+
 from .redis_service import RedisService
 from ..models.room import RoomBooking, EventBooking
 
 logger = logging.getLogger(__name__)
 
+_scheduler: Optional[BackgroundScheduler] = None
+
+
 class BookingScheduler:
-    """Background thread that watches for upcoming bookings."""
-    
-    _thread = None
-    _stop_event = threading.Event()
-    
-    # How often to check for new bookings (seconds)
-    CHECK_INTERVAL = 60
-    # How many minutes before start to notify the Pi (lead time)
+    """Schedules booking checks and periodic guest face cleanup."""
+
+    CHECK_INTERVAL_SECONDS = 60
     LEAD_TIME_MINUTES = 10
 
     @classmethod
     def start(cls, app):
-        """Start the scheduler in a background thread."""
-        if cls._thread is not None:
+        """Start APScheduler jobs."""
+        global _scheduler
+        if _scheduler is not None:
             return
 
-        cls._stop_event.clear()
-        cls._thread = threading.Thread(
-            target=cls._run_loop,
-            args=(app,),
-            daemon=True,
-            name="BookingSchedulerThread"
+        sched = BackgroundScheduler(timezone='UTC')
+
+        def booking_job():
+            with app.app_context():
+                try:
+                    cls._check_upcoming_bookings()
+                except Exception as e:
+                    logger.error('Error in booking scheduler job: %s', e)
+
+        def guest_cleanup_job():
+            with app.app_context():
+                try:
+                    from .guest_cleanup import cleanup_expired_guests
+
+                    cleanup_expired_guests(app)
+                except Exception:
+                    logger.exception('Error in guest cleanup job.')
+
+        sched.add_job(
+            booking_job,
+            'interval',
+            seconds=cls.CHECK_INTERVAL_SECONDS,
+            id='booking_notifications',
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
         )
-        cls._thread.start()
-        logger.info("Booking scheduler background thread started.")
+        sched.add_job(
+            guest_cleanup_job,
+            'interval',
+            hours=1,
+            id='guest_face_cleanup',
+            replace_existing=True,
+            max_instances=1,
+            coalesce=True,
+        )
+        sched.start()
+        _scheduler = sched
+        logger.info('APScheduler started (booking notifications + hourly guest cleanup).')
 
     @classmethod
     def stop(cls):
-        """Stop the scheduler."""
-        cls._stop_event.set()
-        if cls._thread:
-            cls._thread.join(timeout=2)
-            cls._thread = None
-        logger.info("Booking scheduler background thread stopped.")
-
-    @classmethod
-    def _run_loop(cls, app):
-        """Main loop for the background thread."""
-        while not cls._stop_event.is_set():
-            try:
-                with app.app_context():
-                    cls._check_upcoming_bookings()
-            except Exception as e:
-                logger.error(f"Error in booking scheduler loop: {str(e)}")
-            
-            # Sleep until next check
-            time.sleep(cls.CHECK_INTERVAL)
+        """Stop the scheduler (e.g. tests)."""
+        global _scheduler
+        if _scheduler is not None:
+            _scheduler.shutdown(wait=False)
+            _scheduler = None
+            logger.info('APScheduler stopped.')
 
     @classmethod
     def _check_upcoming_bookings(cls):
         """Query DB for bookings starting soon and publish Redis events."""
+        from datetime import datetime, timedelta
+
         now = datetime.now()
         threshold = now + timedelta(minutes=cls.LEAD_TIME_MINUTES)
-        
-        # 1. Check Room Bookings
-        # We look for "Upcoming" bookings that are about to start
+
         upcoming_rooms = RoomBooking.query.filter(
             RoomBooking.RBookStatus == 'Upcoming',
             RoomBooking.Start >= now,
-            RoomBooking.Start <= threshold
+            RoomBooking.Start <= threshold,
         ).all()
-        
+
         for booking in upcoming_rooms:
-            logger.info(f"Notify Pi: Upcoming room booking {booking.RBookID} starting at {booking.Start}")
+            logger.info(
+                'Notify Pi: Upcoming room booking %s starting at %s',
+                booking.RBookID,
+                booking.Start,
+            )
             RedisService.publish_watch_room(booking.RoomID)
-            
-        # 2. Check Event Bookings
+
         upcoming_events = EventBooking.query.filter(
             EventBooking.EbookStatus == 'Upcoming',
             EventBooking.Start >= now,
-            EventBooking.Start <= threshold
+            EventBooking.Start <= threshold,
         ).all()
-        
+
         for booking in upcoming_events:
-            logger.info(f"Notify Pi: Upcoming event booking {booking.EBookID} starting at {booking.Start}")
+            logger.info(
+                'Notify Pi: Upcoming event booking %s starting at %s',
+                booking.EBookID,
+                booking.Start,
+            )
             RedisService.publish_watch_room(booking.RoomID)

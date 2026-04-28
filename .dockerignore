@@ -73,7 +73,6 @@ celerybeat.pid
 .gitignore
 .dockerignore
 Dockerfile
-fly.toml
 README.md
 docs/
 

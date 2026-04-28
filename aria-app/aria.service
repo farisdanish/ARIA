@@ -1,0 +1,23 @@
+[Unit]
+Description=ARIA Flask application (Gunicorn)
+After=network.target redis-server.service
+Wants=redis-server.service
+
+[Service]
+Type=simple
+User=aria
+Group=aria
+WorkingDirectory=/opt/aria/aria-app
+EnvironmentFile=/etc/aria/.env
+ExecStart=/opt/aria/venv/bin/gunicorn -c /opt/aria/aria-app/gunicorn.conf.py main:app0
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ReadWritePaths=/opt/aria/aria-app/instance /var/log/aria
+
+[Install]
+WantedBy=multi-user.target

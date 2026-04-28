@@ -1,6 +1,7 @@
 """Authentication routes."""
 from flask import Blueprint, request, flash, redirect, url_for, session
 from flask_login import login_user, login_required, logout_user, current_user
+from ..extensions import limiter
 from ..services.auth_service import AuthService
 from ..models.user import Student, Staff, Admin
 from ..models.base import db
@@ -13,6 +14,7 @@ auth = Blueprint('auth', __name__)
 
 
 @auth.route('/login', methods=['GET', 'POST'])
+@limiter.limit('10 per minute', exempt_when=lambda: request.method != 'POST')
 def login():
     """Login route."""
     if request.method == 'POST':

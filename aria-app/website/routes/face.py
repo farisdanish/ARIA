@@ -1,17 +1,19 @@
 """Face recognition routes."""
 from flask import Blueprint, Response, request, flash, redirect, url_for, current_app, session, jsonify
 from flask_login import login_required, current_user
+from ..extensions import limiter
 from ..services.face_service import FaceService
 from ..models.user import Student, Staff
 from ..models.face import RegisteredFace
 from ..models.base import db
 from ..app import executor
 from ..utils.ui import render_ui_template
+from ..utils.file_utils import allowed_file
+from ..utils.upload_validation import parse_data_url_image, validate_image_upload
 import cv2
 import logging
 import time
 import numpy as np
-import base64
 
 logger = logging.getLogger(__name__)
 
@@ -78,6 +80,7 @@ def generate_face_recognition_stream():
 
 @facenet.route('/face_recog', methods=['GET', 'POST'])
 @login_required
+@limiter.limit('5 per minute', exempt_when=lambda: request.method != 'POST')
 def face_recognition():
     """Face recognition stream route."""
     return Response(
@@ -119,6 +122,7 @@ def register_face():
 
 @facenet.route('/process_scanner_frame', methods=['POST'])
 @login_required
+@limiter.limit('5 per minute')
 def process_scanner_frame():
     """Process a single frame sent from the client-side scanner."""
     data = request.json
@@ -126,9 +130,16 @@ def process_scanner_frame():
         return jsonify({'status': 'error', 'message': 'No image data'})
     
     try:
-        # Decode base64 image
-        image_data = data['image'].split(',')[1]
-        image_bytes = base64.b64decode(image_data)
+        mime_declared, image_bytes = parse_data_url_image(data['image'])
+        if not image_bytes:
+            return jsonify({'status': 'error', 'message': 'Invalid image data'})
+        ok, err_msg, _ = validate_image_upload(
+            image_bytes,
+            mime_declared,
+            require_content_type=mime_declared is not None,
+        )
+        if not ok:
+            return jsonify({'status': 'error', 'message': err_msg or 'Invalid image'})
         nparr = np.frombuffer(image_bytes, np.uint8)
         frame = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
@@ -219,6 +230,7 @@ def process_scanner_frame():
 
 @facenet.route('/register_face_upload', methods=['POST'])
 @login_required
+@limiter.limit('5 per minute')
 def register_face_upload():
     """Handle face registration via image upload."""
     if 'face_image' not in request.files:
@@ -226,8 +238,8 @@ def register_face_upload():
         return redirect(url_for('facenet.register_face'))
     
     file = request.files['face_image']
-    if file.filename == '':
-        flash('No image selected.', category='error')
+    if file.filename == '' or not allowed_file(file.filename):
+        flash('No image selected or file type not allowed (JPEG/PNG only).', category='error')
         return redirect(url_for('facenet.register_face'))
     
     if current_user.is_Student():
@@ -239,8 +251,15 @@ def register_face_upload():
         return redirect(url_for('home.index'))
     
     try:
-        # Read image
-        file_bytes = np.frombuffer(file.read(), np.uint8)
+        raw = file.read()
+        if not file.content_type:
+            flash('Invalid upload: missing Content-Type.', category='error')
+            return redirect(url_for('facenet.register_face'))
+        ok, err_msg, _ = validate_image_upload(raw, file.content_type)
+        if not ok:
+            flash(err_msg or 'Invalid image file.', category='error')
+            return redirect(url_for('facenet.register_face'))
+        file_bytes = np.frombuffer(raw, np.uint8)
         image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
         
         if image is None:

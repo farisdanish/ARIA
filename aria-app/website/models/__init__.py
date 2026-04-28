@@ -3,6 +3,7 @@ from .user import Student, Staff, Admin
 from .announcement import Announcement
 from .room import RoomList, RoomBooking, EventBooking
 from .face import RegisteredFace
+from .guest import GuestUser
 from .access import RoomAccessLog
 from .feedback import Feedback
 from .report import Report
@@ -16,6 +17,7 @@ __all__ = [
     'RoomBooking',
     'EventBooking',
     'RegisteredFace',
+    'GuestUser',
     'RoomAccessLog',
     'Feedback',
     'Report',

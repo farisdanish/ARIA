@@ -31,7 +31,8 @@ def test_home_uses_aria_template_when_enabled(app):
     text = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert "ARIA Smart Booking Platform" in text
+    # home.aria.html + base_aria branding (footer string lives on auth templates only)
+    assert "ARIA is an intelligent room booking" in text
 
 
 def test_home_falls_back_to_legacy_when_disabled(app):

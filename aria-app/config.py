@@ -1,90 +1,86 @@
 """
 Configuration management for ARIA application.
-Uses environment variables with sensible defaults.
+Secrets and database URLs must come from the environment — no production-safe fallbacks.
 """
 import os
 from pathlib import Path
 from datetime import timedelta
 
 
+def _normalize_database_url(url: str) -> str:
+    if url.startswith('postgres://'):
+        return url.replace('postgres://', 'postgresql://', 1)
+    return url
+
+
 class Config:
     """Base configuration class."""
-    
-    # Flask
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
+
+    # Flask — must be set via SECRET_KEY env (see TestingConfig for tests)
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+
     DEBUG = os.environ.get('FLASK_DEBUG', 'False').lower() == 'true'
-    
-    # Database
-    db_url = os.environ.get('DATABASE_URL')
-    if db_url:
-        if db_url.startswith('postgres://'):
-            db_url = db_url.replace('postgres://', 'postgresql://', 1)
-    else:
-        pass
-        
-    SQLALCHEMY_DATABASE_URI = db_url or 'mysql+mysqldb://root:@localhost:3306/ariadb'
+
+    # Database — required for non-testing runs (set DATABASE_URL)
+    _raw_db = os.environ.get('DATABASE_URL')
+    SQLALCHEMY_DATABASE_URI = _normalize_database_url(_raw_db) if _raw_db else None
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    # Connection pool settings for Supabase pgBouncer (transaction mode, port 6543).
-    # pool_pre_ping checks liveness before handing out a connection — avoids
-    # "SSL connection has been closed unexpectedly" errors after idle periods.
     SQLALCHEMY_ENGINE_OPTIONS = {
-        "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 2,
-        "pool_recycle": 300,
+        'pool_pre_ping': True,
+        'pool_size': 5,
+        'max_overflow': 2,
+        'pool_recycle': 300,
     }
-    
-    # Redis
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
-    
-    if SQLALCHEMY_DATABASE_URI.startswith('postgresql'):
-        pass
-    else:
-        pass
-    
+
+    # Redis — optional in development (rate limiter falls back to memory)
+    REDIS_URL = os.environ.get('REDIS_URL')
+
+    # Rate limiting storage (Flask-Limiter reads RATELIMIT_STORAGE_URI)
+    RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI')
+
     # Session
-    PERMANENT_SESSION_LIFETIME = timedelta(minutes=int(
-        os.environ.get('SESSION_LIFETIME_MINUTES', '480')
-    ))
-    REMEMBER_COOKIE_DURATION = timedelta(minutes=int(
-        os.environ.get('SESSION_LIFETIME_MINUTES', '480')
-    ))
-    
-    # File Uploads
-    BASE_DIR = Path(__file__).parent
-    UPLOAD_FOLDER = BASE_DIR / 'website' / 'static' / 'uploads'
-    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', '16777216'))  # 16 MB
+    PERMANENT_SESSION_LIFETIME = timedelta(
+        minutes=int(os.environ.get('SESSION_LIFETIME_MINUTES', '60'))
+    )
+    REMEMBER_COOKIE_DURATION = timedelta(
+        minutes=int(os.environ.get('SESSION_LIFETIME_MINUTES', '60'))
+    )
+    SESSION_COOKIE_HTTPONLY = True
+    SESSION_COOKIE_SAMESITE = 'Lax'
+    SESSION_COOKIE_SECURE = False
+
+    # Application data outside website/static (uploads, face training data, npz artifacts)
+    BASE_DIR = Path(__file__).parent.resolve()
+    INSTANCE_DIR = Path(
+        os.environ.get('ARIA_INSTANCE_DIR', str(BASE_DIR / 'instance'))
+    ).resolve()
+    UPLOAD_FOLDER = INSTANCE_DIR / 'uploads'
+    MAX_CONTENT_LENGTH = int(os.environ.get('MAX_CONTENT_LENGTH', str(5 * 1024 * 1024)))
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-    
-    # Face Recognition
-    FACES_DB_PATH = BASE_DIR / 'website' / 'static' / 'MalaysianFacesDB'
-    FACES_EMBEDDINGS_PATH = BASE_DIR / 'website' / 'static' / 'registered-faces-db-embeddings.npz'
-    FACES_DB_FILE = BASE_DIR / 'website' / 'static' / 'registered-faces-db.npz'
+
+    FACES_DB_PATH = INSTANCE_DIR / 'MalaysianFacesDB'
+    FACES_EMBEDDINGS_PATH = INSTANCE_DIR / 'registered-faces-db-embeddings.npz'
+    FACES_DB_FILE = INSTANCE_DIR / 'registered-faces-db.npz'
     FACE_CONFIDENCE_THRESHOLD = float(os.environ.get('FACE_CONFIDENCE_THRESHOLD', '0.85'))
-    
-    # Mail Configuration
+
+    # Mail — no credentials in code
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')
     MAIL_PORT = int(os.environ.get('MAIL_PORT', '465'))
     MAIL_USE_TLS = os.environ.get('MAIL_USE_TLS', 'False').lower() == 'true'
     MAIL_USE_SSL = os.environ.get('MAIL_USE_SSL', 'True').lower() == 'true'
     MAIL_USERNAME = os.environ.get('MAIL_USERNAME')
     MAIL_PASSWORD = os.environ.get('MAIL_PASSWORD')
-    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER', MAIL_USERNAME)
-    
-    # Redis
-    REDIS_URL = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
+    MAIL_DEFAULT_SENDER = os.environ.get('MAIL_DEFAULT_SENDER') or MAIL_USERNAME
 
-    # JSON
     JSONIFY_PRETTYPRINT_REGULAR = True
 
-    # UI rollout
     ARIA_UI_ENABLED = os.environ.get('ARIA_UI_ENABLED', 'False').lower() == 'true'
     ARIA_UI_PHASE = os.environ.get('ARIA_UI_PHASE', 'public').lower()
-    
+
     @staticmethod
     def init_app(app):
         """Initialize configuration for app."""
-        # Ensure upload directories exist
+        Config.INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
         Config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
         (Config.UPLOAD_FOLDER / 'roomImages').mkdir(parents=True, exist_ok=True)
         Config.FACES_DB_PATH.mkdir(parents=True, exist_ok=True)
@@ -92,23 +88,73 @@ class Config:
 
 class DevelopmentConfig(Config):
     """Development configuration."""
+
     DEBUG = True
+
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+        # Longer dev sessions unless overridden
+        mins = int(os.environ.get('SESSION_LIFETIME_MINUTES', '480'))
+        app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=mins)
+        app.config['REMEMBER_COOKIE_DURATION'] = timedelta(minutes=mins)
+        if not app.config.get('RATELIMIT_STORAGE_URI'):
+            app.config['RATELIMIT_STORAGE_URI'] = (
+                app.config.get('REDIS_URL') or 'memory://'
+            )
 
 
 class ProductionConfig(Config):
     """Production configuration."""
+
     DEBUG = False
+    PERMANENT_SESSION_LIFETIME = timedelta(hours=1)
+    REMEMBER_COOKIE_DURATION = timedelta(hours=1)
+    SESSION_COOKIE_SECURE = True
+
+    @classmethod
+    def init_app(cls, app):
+        Config.init_app(app)
+        app.config['PERMANENT_SESSION_LIFETIME'] = cls.PERMANENT_SESSION_LIFETIME
+        app.config['REMEMBER_COOKIE_DURATION'] = cls.REMEMBER_COOKIE_DURATION
+        redis_url = app.config.get('REDIS_URL')
+        if not redis_url:
+            raise RuntimeError(
+                'REDIS_URL must be set in production for rate limiting and background services.'
+            )
+        app.config['RATELIMIT_STORAGE_URI'] = redis_url
 
 
 class TestingConfig(Config):
     """Testing configuration."""
+
     TESTING = True
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'test-secret-key-not-for-production')
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+    # In-memory SQLite cannot use connection pool options meant for Postgres.
+    SQLALCHEMY_ENGINE_OPTIONS = {}
+    WTF_CSRF_ENABLED = False
+    RATELIMIT_STORAGE_URI = 'memory://'
 
 
 config = {
     'development': DevelopmentConfig,
     'production': ProductionConfig,
     'testing': TestingConfig,
-    'default': DevelopmentConfig
+    'default': DevelopmentConfig,
 }
+
+
+def assert_production_ready():
+    """Validate mandatory settings when FLASK_ENV=production."""
+    if os.environ.get('FLASK_ENV') != 'production':
+        return
+    if not os.environ.get('SECRET_KEY'):
+        raise RuntimeError(
+            'SECRET_KEY must be set when FLASK_ENV=production. '
+            'Generate a strong random value and set it in the environment.'
+        )
+    if not os.environ.get('DATABASE_URL'):
+        raise RuntimeError(
+            'DATABASE_URL must be set when FLASK_ENV=production.'
+        )

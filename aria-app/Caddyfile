@@ -1,0 +1,22 @@
+# TLS + HTTP/2 handled by Caddy; origin is Gunicorn on loopback only.
+aria.placeholder.com {
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		-Server
+	}
+
+	# Serve Flask static assets from disk (same layout as website/static/).
+	handle /static/* {
+		root * /opt/aria/aria-app/website
+		file_server
+	}
+	handle {
+		reverse_proxy 127.0.0.1:8000
+	}
+
+	log {
+		output file /var/log/caddy/aria.log
+	}
+}
