@@ -1,0 +1,22 @@
+name: Deploy to GCP
+
+on:
+  push:
+    branches: [master]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.GCP_VM_HOST }}
+          username: ${{ secrets.GCP_VM_USER }}
+          key: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
+          script: |
+            cd /home/aria/ARIA
+            git pull origin master
+            source aria-app/venv/bin/activate
+            pip install -r aria-app/requirements.txt --quiet
+            sudo systemctl restart aria
