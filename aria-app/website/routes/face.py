@@ -1,5 +1,5 @@
 """Face recognition routes."""
-from flask import Blueprint, Response, request, flash, redirect, url_for, current_app, session, jsonify
+from flask import Blueprint, Response, request, flash, redirect, url_for, current_app, session, jsonify, render_template
 from flask_login import login_required, current_user
 from ..extensions import limiter
 from ..services.face_service import FaceService
@@ -7,7 +7,6 @@ from ..models.user import Student, Staff
 from ..models.face import RegisteredFace
 from ..models.base import db
 from ..app import executor
-from ..utils.ui import render_ui_template
 from ..utils.file_utils import allowed_file
 from ..utils.upload_validation import parse_data_url_image, validate_image_upload
 import cv2
@@ -98,18 +97,16 @@ def register_face():
     session['registration_faces'] = []
     
     if current_user.is_Student():
-        return render_ui_template(
+        return render_template(
             "faceRegister.html",
-            ui_group="dashboards",
             user=current_user,
             is_Student=True,
             is_Staff=False,
             is_Admin=False
         )
     elif current_user.is_Staff():
-        return render_ui_template(
+        return render_template(
             "faceRegister.html",
-            ui_group="dashboards",
             user=current_user,
             is_Student=False,
             is_Staff=True,

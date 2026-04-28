@@ -32,8 +32,6 @@ services:
     environment:
       - DATABASE_URL=postgresql://root:${POSTGRES_PASSWORD:-rootpassword}@db:5432/ariadb
       - REDIS_URL=redis://redis:6379/0
-      - ARIA_UI_ENABLED=${ARIA_UI_ENABLED:-False}
-      - ARIA_UI_PHASE=${ARIA_UI_PHASE:-public}
     depends_on:
       - db
       - redis

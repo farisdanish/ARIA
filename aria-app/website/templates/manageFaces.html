@@ -1,63 +1,110 @@
 {% extends "base.html" %}
-<title>{% block title %} Face Manager {% endblock %}</title>
+<title>{% block title %} Face Manager - ARIA {% endblock %}</title>
 
-{% block PageTitle%}
-    <br/>
-    <center><h2>Face Manager - ADMINISTRATION</h2></center>
+{% block PageTitle %}
+<div class="aria-title-card d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold mb-1">Face Manager</h2>
+        <p class="text-muted mb-0">System-wide biometric identification and data administration.</p>
+    </div>
+    <div class="header-actions">
+        <a href="/homeAdmin" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold me-2">
+            <i class="fa fa-arrow-left me-2"></i> Go Back
+        </a>
+        <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="location.href = '/train_data';">
+            <i class="fa fa-refresh me-2"></i> Retrain Detection
+        </button>
+    </div>
+</div>
 {% endblock %}
 
-{% block content%}
-<br/>
-<div class="flex-container container-fluid" style="">
-    <div class="row">
-        <div class="col md-12">
-            <button class="btn btn-secondary" style="margin-bottom:10px;" onclick="location.href = '/homeAdmin';">Go Back</button>
-            <button class="btn btn-primary float-right" style="margin-bottom:10px;" onclick="location.href = '/train_data';">Retrain Face Detection</button>
-            <div class="jumbotron p-3">
-                <table id="regFacesTable" class="table table-hover table-dark display">
-                    <thead>
-                        <tr>
-                            <th>FaceID</th>
-                            <th>Faces</th>
-                            <th>Student or Staff?</th>
-                            <th>Names</th>
-                            <th>Action</th>
-                        </tr>
-                    </thead>
+{% block content %}
+<div class="container-fluid py-4">
+
+    <div class="aria-section-card p-4">
+        <div class="table-responsive">
+            <table id="regFacesTable" class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>Face ID</th>
+                        <th>Biometric Samples</th>
+                        <th>Role</th>
+                        <th>Name</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
                     {% for r in registeredfaces %}
-                        <tr>
-                            <td>{{r.FaceID}}</td>
-                            <td>
-                            {% for line in r.FaceIMG.split('\n') %}
-                            <img src="/static/MalaysianFacesDB/{{line}}" height="50" width="50" alt="{{line}}"/>
-                            {% endfor %}
-                            </td>
+                    <tr>
+                        <td class="fw-bold text-primary">#{{r.FaceID}}</td>
+                        <td>
+                            <div class="d-flex gap-2">
+                                {% for line in r.FaceIMG.split('\n') %}
+                                <div class="face-thumb-container">
+                                    <img src="/static/MalaysianFacesDB/{{line}}" class="rounded-circle border shadow-sm"
+                                        height="45" width="45" alt="Face Sample">
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td>
                             {% if r.StudID != None %}
-                                {%for stud in student %}
-                                    {% if stud.StudID == r.StudID %}
-                                    <td>Student</td>
-                                    <td>{{stud.StudName}}</td>
-                                    {% endif %}
-                                {% endfor %}
+                            <span class="badge bg-soft-info text-info rounded-pill">Student</span>
                             {% elif r.StaffID != None %}
-                                {%for staff in staff %}
-                                    {% if staff.StaffID == r.StaffID %}
-                                    <td>Staff</td>
-                                    <td>{{staff.StaffName}}</td>
-                                    {% endif %}
-                                {% endfor %}
+                            <span class="badge bg-soft-accent text-accent rounded-pill">Staff</span>
                             {% endif %}
-                            <td>
-                                <!--<a href="/updateRoom/{{r.RoomID}}" class="btn btn-warning btn-xs" data-toggle="modal" data-target="#modaleditroom{{r.RoomID}}">Edit</a>-->
-                                <a href="/deleteFace/{{r.FaceID}}" class="btn btn-danger btn-xs" onclick="return confirm('Delete face from listing?')">Delete</a>
-                            </td>
-                        </tr>
+                        </td>
+                        <td>
+                            {% if r.StudID != None %}
+                            {% for stud in student %}
+                            {% if stud.StudID == r.StudID %}
+                            <div class="fw-bold">{{stud.StudName}}</div>
+                            <div class="small text-muted">{{stud.StudID}}</div>
+                            {% endif %}
+                            {% endfor %}
+                            {% elif r.StaffID != None %}
+                            {% for staff in staff %}
+                            {% if staff.StaffID == r.StaffID %}
+                            <div class="fw-bold">{{staff.StaffName}}</div>
+                            <div class="small text-muted">{{staff.StaffID}}</div>
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <span data-bs-toggle="tooltip" title="Delete Face Profile">
+                                <a href="/deleteFace/{{r.FaceID}}" class="btn btn-soft-danger rounded-pill px-3"
+                                    onclick="return confirm('Permanently delete this face profile?')">
+                                    <i class="fa fa-trash-o"></i>
+                                </a>
+                            </span>
+                        </td>
+                    </tr>
                     {% endfor %}
-                </table>
-            <!</div>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='room.js')}}"></script>
+
+<style>
+    .btn-soft-danger {
+        background-color: rgba(180, 35, 24, 0.1);
+        color: var(--aria-danger);
+        border: none;
+    }
+
+    .btn-soft-danger:hover {
+        background-color: var(--aria-danger);
+        color: white;
+    }
+
+    .bg-soft-info {
+        background-color: rgba(13, 79, 140, 0.1);
+    }
+
+    .bg-soft-accent {
+        background-color: rgba(31, 157, 139, 0.1);
+    }
+</style>
 {% endblock %}

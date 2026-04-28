@@ -6,7 +6,6 @@ from ..services.mail_service import MailService
 from ..models.base import db
 from ..schemas.announcement_schema import AnnouncementCreateSchema
 from ..utils.validation import validate_form_data
-from ..utils.ui import render_ui_template
 from flask import current_app
 import logging
 
@@ -56,9 +55,8 @@ def manage():
             announcements=all_announcements
         )
 
-    return render_ui_template(
+    return render_template(
         "manageAnnounce.html",
-        ui_group="admin",
         user=current_user,
         announcements=all_announcements,
         is_Student=False,

@@ -74,9 +74,6 @@ class Config:
 
     JSONIFY_PRETTYPRINT_REGULAR = True
 
-    ARIA_UI_ENABLED = os.environ.get('ARIA_UI_ENABLED', 'False').lower() == 'true'
-    ARIA_UI_PHASE = os.environ.get('ARIA_UI_PHASE', 'public').lower()
-
     @staticmethod
     def init_app(app):
         """Initialize configuration for app."""

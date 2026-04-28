@@ -1,96 +1,54 @@
 {% extends "base.html" %}
-<title>{% block title %} Announcements {% endblock %}</title>
-{% block content%}
-<br/>
-<div class="row">
-    <section class="two-column-list mb-sm-5 pr-lg-3 container-fluid" id="two-column-list">
-        <div class="flex-container container-fluid" style="">
-            <div class="row">
-                <div class="col-lg-6 pr-0">
-                    <section aria-label="Announcements" class="announcements">
-                        <h4 class="font-weight-bold border-bottom pb-3 mt-3 mb-0 pr-5" style="text-align: center;">Announcements - ADMINISTRATION</h4>
-                        <ul class="list-group list-group-flush" id="announcements">
-                            {% for a in announcements %}
-                            <li class="list-group-item">
-                                <p>{{ a.PostDate.strftime('%Y-%m-%d') }}</p>
-                                <button type="button" class="close display:inline-block; position:relative;" onClick="confirmDeleteAnnnouncement({{ a.AnnounceID }});">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                                <h5><a href="/updateAnnounce/{{a.AnnounceID}}" data-toggle="modal" data-target="#modaleditannounce{{a.AnnounceID}}">{{ a.Title }}</a></h5>
-                                <hr/>
-                            </li>
-                            <!--UPDATE ANNOUNCEMENT MODAL-->
-                            <div id="modaleditannounce{{a.AnnounceID}}" class="modal fade" role="dialog">
-                                <div class="modal-dialog">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h4 class="modal-title">Edit Room</h4>
-                                        </div>
-                                        <div class="modal-body">
-                                            <form action="{{url_for('views.updateAnnounce')}}" method="POST">
-                                                <div class="form-group">
-                                                    <label>Room Name:</label>
-                                                    <input type="hidden" id="AnnounceID" name="AnnounceID" value="{{a.AnnounceID}}">
-                                                    <input type="text" class="form-control" id="Title" name="Title" value="{{a.Title}}" >
-                                                </div>
-                                                <div class="form-group">
-                                                    <label>Announcement Content</label>
-                                                    <textarea 
-                                                        name = "Content" 
-                                                        id="Content" 
-                                                        class="form-control pull-left" 
-                                                        rows="3" 
-                                                        cols="2" 
-                                                        v-model="updateAnnounce"
-                                                    required>{{a.Content}}</textarea><br>
-                                                </div>
-                                                <div class="form-group">
-                                                    <button class="btn btn-primary mt-4" type="submit">Edit Room</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endfor %}
-                        </ul>
-                    </section>
-                </div>
-                <div class="col-lg-6 pl-0">
-                        <div class="container mt-5">
-                            <form name="formA" method="POST" class="card card-color form-border">
-                              <div class="card-header px-3">
-                               <p class="font-weight-bold"> Add new Announcement</p>
-                              </div>
-                              <div class="card-block mx-2">
-                                <label for="ATitle">Title</label>
-                                <input
-                                    type="text"
-                                    class="form-control"
-                                    id = "ATitle"
-                                    name = "ATitle"
-                                    placeholder = "Enter Announcement Title"
-                                required/>
-                              </div>
-                              <div class="card-block mx-2">
-                                <label for="AContent">Content</label>
-                                <textarea name = "AContent" id="AContent" class="form-control pull-left" rows="3" cols="2" v-model="newAnnouncement" placeholder="New announcement details" required></textarea>
-                              </div>
-                              <div class="card-footer px-3">
-                                <button type="submit" class="btn btn-sm btn-success ml-2" onclick="submit_form()">Add Announcement</button>
-                              </div>
-                            </form>
-                            <!--<p v-if="error" class="error mt-2 alert alert-danger"> {{ error }}</p>--><br/>
-                            <button class="btn btn-secondary" onclick="location.href = '/homeAdmin';">Go Back</button>
-                        </div>
-                </div>
-            </div>
-        </div>
-    </section>
+{% from "_section_header.html" import section_header %}
+<title>{% block title %}Announcement Management{% endblock %}</title>
+
+{% block PageTitle %}
+<div class="aria-title-card d-flex justify-content-between align-items-center">
+  <div>
+    <h2 class="fw-bold mb-1">Announcements</h2>
+    <p class="text-muted mb-0">Manage system-wide broadcast updates and notifications.</p>
+  </div>
+  <div class="header-actions">
+    <a href="/homeAdmin" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold">
+      <i class="fa fa-arrow-left me-2"></i> Dashboard
+    </a>
+  </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.5.17/vue.js"></script>
-<script type = "text/javascript" src = "{{ url_for('static', filename='announcement.js')}}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="aria-section-card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Published Announcements</h4>
+        <button class="btn btn-outline-primary btn-sm" hx-get="/ManageAnnouncements" hx-target="#announcement-list"
+          hx-swap="innerHTML">Refresh</button>
+      </div>
+      <div id="announcement-list">
+        {% include "_announcement_list.html" %}
+      </div>
+    </div>
+  </div>
+
+  <div class="col-lg-5">
+    <form method="POST" class="aria-section-card p-3" hx-post="/ManageAnnouncements" hx-target="#announcement-list"
+      hx-swap="innerHTML">
+      <h4>Add Announcement</h4>
+      <div class="mb-3">
+        <label for="ATitle" class="form-label">Title</label>
+        <input type="text" class="form-control" id="ATitle" name="ATitle" required />
+      </div>
+      <div class="mb-3">
+        <label for="AContent" class="form-label">Content</label>
+        <textarea id="AContent" name="AContent" rows="4" class="form-control" required></textarea>
+      </div>
+      <div class="d-flex">
+        <button type="submit" class="btn btn-primary rounded-pill px-4 w-100 shadow-sm fw-bold">
+          <i class="fa fa-paper-plane me-2"></i> Publish Announcement
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 {% endblock %}

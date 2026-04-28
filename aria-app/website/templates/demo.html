@@ -1,197 +1,187 @@
 {% extends "base.html" %}
 {% block title %}ARIA Webcam Demo{% endblock %}
-{% block content %}
-<style>
-  .demo-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 80vh;
-    background-color: #f4f6f9;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  }
-  .video-wrapper {
-    position: relative;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-    margin-bottom: 2rem;
-  }
-  #webcam {
-    width: 640px;
-    height: 480px;
-    object-fit: cover;
-    background-color: #000;
-  }
-  .overlay {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #fff;
-    background: rgba(0,0,0,0.6);
-    backdrop-filter: blur(4px);
-    transition: all 0.3s ease;
-  }
-  .door-status {
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    margin-top: 1rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 3rem;
-    color: white;
-    transition: all 0.5s ease;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-  }
-  .status-scanning {
-    background-color: #95a5a6;
-    animation: pulse 1.5s infinite;
-  }
-  .status-granted {
-    background-color: #2ecc71;
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6);
-  }
-  .status-denied {
-    background-color: #e74c3c;
-    box-shadow: 0 0 20px rgba(231, 76, 60, 0.6);
-  }
-  @keyframes pulse {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(149, 165, 166, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(149, 165, 166, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(149, 165, 166, 0); }
-  }
-</style>
 
-<div class="demo-container">
-  <h1 class="mb-4 text-center">ARIA Access Control Demo</h1>
-  <div class="video-wrapper">
-    <video id="webcam" autoplay playsinline></video>
-    <div id="result-overlay" class="overlay">Initializing...</div>
-  </div>
-  
-  <div class="text-center">
-    <h3>Door Status</h3>
-    <div id="door-indicator" class="door-status status-scanning mx-auto">
-      <i id="door-icon" class="fa fa-spinner fa-spin"></i>
+{% block content %}
+<div class="aria-hero landing-hero text-center mb-5">
+    <div class="container py-4">
+        <h1 class="display-5 fw-800 mb-3" style="color: var(--aria-primary);">Face ID Access Control</h1>
+        <p class="lead text-muted mb-0 mx-auto" style="max-width: 700px;">
+            Experience our intelligent security system. Stand in front of your camera to simulate a secure room entry.
+        </p>
     </div>
-    <p id="status-text" class="mt-3 font-weight-bold text-muted">Awaiting Face</p>
-  </div>
-  
-  <canvas id="capture-canvas" style="display:none;"></canvas>
 </div>
+
+<div class="row justify-content-center mb-5">
+    <div class="col-lg-8">
+        <div class="aria-section-card p-0 overflow-hidden shadow-lg border-primary-o20">
+            <div class="position-relative">
+                <video id="webcam" autoplay playsinline class="w-100 bg-dark" style="min-height: 400px; object-fit: cover;"></video>
+                <div id="result-overlay" class="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill bg-dark-60 text-white fw-bold" style="backdrop-filter: blur(8px); z-index: 10;">
+                    Initializing...
+                </div>
+                
+                <!-- Door Status Indicator Overlay -->
+                <div class="position-absolute bottom-0 end-0 m-4 text-center" style="z-index: 10;">
+                    <div id="door-indicator" class="door-status-ring mx-auto mb-2 status-scanning">
+                        <i id="door-icon" class="fa fa-spinner fa-spin"></i>
+                    </div>
+                    <div id="status-text" class="badge rounded-pill bg-dark-60 px-3 py-2 text-white">Awaiting Face</div>
+                </div>
+            </div>
+            
+            <div class="p-4 bg-light border-top">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="flex-grow-1">
+                        <h5 class="fw-bold mb-1">Live Recognition Feed</h5>
+                        <p class="text-muted small mb-0">Frames are processed in real-time via the ARIA FaceID API.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill">Model: Facenet-v2</span>
+                        <span class="badge bg-soft-accent text-accent px-3 py-2 rounded-pill">Status: Online</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<canvas id="capture-canvas" style="display:none;"></canvas>
+
+<style>
+    .door-status-ring {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        color: white;
+        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 4px solid rgba(255, 255, 255, 0.3);
+    }
+    .status-scanning {
+        background: rgba(108, 117, 125, 0.8);
+        animation: ring-pulse 2s infinite;
+    }
+    .status-granted {
+        background: rgba(31, 157, 139, 0.9);
+        box-shadow: 0 0 30px rgba(31, 157, 139, 0.4);
+        border-color: #ffffff;
+    }
+    .status-denied {
+        background: rgba(180, 35, 24, 0.9);
+        box-shadow: 0 0 30px rgba(180, 35, 24, 0.4);
+        border-color: #ffffff;
+    }
+    .bg-dark-60 { background: rgba(0, 0, 0, 0.6); }
+    .bg-soft-primary { background: rgba(13, 79, 140, 0.1); }
+    .bg-soft-accent { background: rgba(31, 157, 139, 0.1); }
+    .border-primary-o20 { border-color: rgba(13, 79, 140, 0.2); }
+    
+    @keyframes ring-pulse {
+        0% { transform: scale(1); opacity: 0.8; }
+        50% { transform: scale(1.05); opacity: 1; }
+        100% { transform: scale(1); opacity: 0.8; }
+    }
+</style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  const video = document.getElementById("webcam");
-  const canvas = document.getElementById("capture-canvas");
-  const overlay = document.getElementById("result-overlay");
-  const doorIndicator = document.getElementById("door-indicator");
-  const doorIcon = document.getElementById("door-icon");
-  const statusText = document.getElementById("status-text");
-  
-  let isScanning = true;
-  let hasGranted = false;
-  
-  // Request webcam access
-  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
-        video.srcObject = stream;
-        video.play();
-        overlay.innerText = "Scanning...";
-        // Start capture loop
-        setInterval(processFrame, 1000); // Send frame every second
-      })
-      .catch(err => {
-        console.error("Error accessing webcam: ", err);
-        overlay.innerText = "Webcam Error";
-      });
-  } else {
-    overlay.innerText = "Webcam not supported";
-  }
-
-  function processFrame() {
-    if (!isScanning) return;
-    if (video.videoWidth === 0 || video.videoHeight === 0) return; // Wait for video to be ready
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("capture-canvas");
+    const overlay = document.getElementById("result-overlay");
+    const doorIndicator = document.getElementById("door-indicator");
+    const doorIcon = document.getElementById("door-icon");
+    const statusText = document.getElementById("status-text");
     
-    const context = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    let isScanning = true;
+    let hasGranted = false;
     
-    // Scale down image to avoid heavy payload
-    const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-    
-    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-    const headers = {
-      "Content-Type": "application/json"
-    };
-    if (csrfToken) {
-        headers["X-CSRFToken"] = csrfToken;
+    // Request webcam access
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+                overlay.innerText = "Scanning Environment...";
+                setInterval(processFrame, 1000);
+            })
+            .catch(err => {
+                console.error("Webcam error: ", err);
+                overlay.innerText = "Camera Access Denied";
+                overlay.className += " bg-danger";
+            });
+    } else {
+        overlay.innerText = "Webcam API Not Supported";
     }
 
-    fetch("/api/recognize_frame", {
-      method: "POST",
-      headers: headers,
-      body: JSON.stringify({ image: dataUrl })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (hasGranted) return; // Ignore if already unlocked (cooldown)
-
-      if (data.status === "success" && data.identity) {
-        overlay.innerText = `${data.identity} (${(data.confidence * 100).toFixed(1)}%)`;
+    function processFrame() {
+        if (!isScanning) return;
+        if (video.videoWidth === 0) return;
         
-        if (data.access === "granted") {
-          doorIndicator.className = "door-status status-granted mx-auto";
-          doorIcon.className = "fa fa-unlock";
-          statusText.innerText = `Access Granted: Welcome ${data.identity}`;
-          statusText.className = "mt-3 font-weight-bold text-success";
-          
-          hasGranted = true;
-          isScanning = false;
-          
-          // Reset after 3 seconds
-          setTimeout(() => {
-            hasGranted = false;
-            isScanning = true;
-            doorIndicator.className = "door-status status-scanning mx-auto";
-            doorIcon.className = "fa fa-spinner fa-spin";
-            statusText.innerText = "Awaiting Face";
-            statusText.className = "mt-3 font-weight-bold text-muted";
-            overlay.innerText = "Scanning...";
-          }, 3000);
-        } else {
-          doorIndicator.className = "door-status status-denied mx-auto";
-          doorIcon.className = "fa fa-lock";
-          statusText.innerText = "Access Denied";
-          statusText.className = "mt-3 font-weight-bold text-danger";
-          
-          setTimeout(() => {
-            if (!hasGranted) {
-                doorIndicator.className = "door-status status-scanning mx-auto";
-                doorIcon.className = "fa fa-spinner fa-spin";
-                statusText.innerText = "Awaiting Face";
-                statusText.className = "mt-3 font-weight-bold text-muted";
-                overlay.innerText = "Scanning...";
+        const context = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+        
+        fetch("/api/recognize_frame", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({ image: dataUrl })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (hasGranted) return;
+
+            if (data.status === "success" && data.identity) {
+                overlay.innerText = `${data.identity} (${(data.confidence * 100).toFixed(0)}%)`;
+                
+                if (data.access === "granted") {
+                    doorIndicator.className = "door-status-ring mx-auto mb-2 status-granted";
+                    doorIcon.className = "fa fa-unlock";
+                    statusText.innerText = "Access Granted";
+                    statusText.className = "badge rounded-pill bg-success px-3 py-2";
+                    
+                    hasGranted = true;
+                    isScanning = false;
+                    
+                    setTimeout(() => {
+                        hasGranted = false;
+                        isScanning = true;
+                        doorIndicator.className = "door-status-ring mx-auto mb-2 status-scanning";
+                        doorIcon.className = "fa fa-spinner fa-spin";
+                        statusText.innerText = "Awaiting Face";
+                        statusText.className = "badge rounded-pill bg-dark-60 px-3 py-2 text-white";
+                        overlay.innerText = "Scanning...";
+                    }, 4000);
+                } else {
+                    doorIndicator.className = "door-status-ring mx-auto mb-2 status-denied";
+                    doorIcon.className = "fa fa-lock";
+                    statusText.innerText = "Identity Unknown";
+                    statusText.className = "badge rounded-pill bg-danger px-3 py-2";
+                    
+                    setTimeout(() => {
+                        if (!hasGranted) {
+                            doorIndicator.className = "door-status-ring mx-auto mb-2 status-scanning";
+                            doorIcon.className = "fa fa-spinner fa-spin";
+                            statusText.innerText = "Awaiting Face";
+                            statusText.className = "badge rounded-pill bg-dark-60 px-3 py-2 text-white";
+                        }
+                    }, 2000);
+                }
+            } else {
+                if (!hasGranted) overlay.innerText = data.message || "Searching...";
             }
-          }, 1500);
-        }
-      } else {
-        if (!hasGranted) {
-            overlay.innerText = data.message || "Scanning...";
-        }
-      }
-    })
-    .catch(err => console.error("API Error: ", err));
-  }
+        })
+        .catch(err => console.error("Recognition failure", err));
+    }
 });
 </script>
 {% endblock %}

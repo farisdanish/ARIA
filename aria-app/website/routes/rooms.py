@@ -6,7 +6,6 @@ from ..schemas.room_schema import RoomCreateSchema, RoomUpdateSchema
 from ..utils.validation import validate_form_data
 from ..utils.file_utils import save_uploaded_file, delete_file
 from ..models.base import db
-from ..utils.ui import render_ui_template
 import logging
 
 logger = logging.getLogger(__name__)
@@ -65,9 +64,8 @@ def manage():
                     flash('Failed to create room. Please try again.', category='error')
     
     all_rooms = RoomService.get_all()
-    return render_ui_template(
+    return render_template(
         "manageRoom.html",
-        ui_group="admin",
         user=current_user,
         roomlist=all_rooms,
         is_Student=False,

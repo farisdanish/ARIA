@@ -10,7 +10,6 @@ from flask_wtf.csrf import CSRFProtect
 from config import assert_production_ready, config
 from .models.base import db
 from .models import Student, Staff, Admin
-from .utils.ui import is_aria_ui_enabled, ui_phase
 from .extensions import limiter
 
 # Initialize extensions
@@ -138,8 +137,8 @@ def create_app(config_name: str = None) -> Flask:
     def inject_ui_flags():
         """Expose UI rollout flags to templates."""
         return {
-            'aria_ui_enabled': is_aria_ui_enabled(),
-            'aria_ui_phase': ui_phase(),
+            'aria_ui_enabled': True,
+            'aria_ui_phase': 'all',
         }
 
     # Start background scheduler and Redis subscriber

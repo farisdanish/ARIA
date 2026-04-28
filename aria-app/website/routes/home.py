@@ -9,7 +9,6 @@ from ..models.face import RegisteredFace
 from ..models.base import db
 from ..services.announcement_service import AnnouncementService
 from ..services.room_service import RoomService
-from ..utils.ui import render_ui_template
 import logging
 
 logger = logging.getLogger(__name__)
@@ -35,9 +34,8 @@ def index():
         elif current_user.is_Student():
             return redirect(url_for('home.student'))
     
-    return render_ui_template(
+    return render_template(
         "home.html",
-        ui_group="public",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -71,9 +69,8 @@ def student():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StudID=current_user.StudID).first()
     
-    return render_ui_template(
+    return render_template(
         "homeStud.html",
-        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -112,9 +109,8 @@ def staff():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StaffID=current_user.StaffID).first()
     
-    return render_ui_template(
+    return render_template(
         "homeStaff.html",
-        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -154,9 +150,8 @@ def admin():
     feedbacks = db.session.query(Feedback).all()
     announcements = db.session.query(Announcement).all()
     
-    return render_ui_template(
+    return render_template(
         "homeAdmin.html",
-        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -208,9 +203,8 @@ def demo():
     from flask_login import current_user
     from ..models.room import RoomList
     roomlist = RoomList.query.all()
-    return render_ui_template(
+    return render_template(
         'demo.html', 
-        ui_group='public', 
         user=current_user,
         roomlist=roomlist,
         roombookings=[],

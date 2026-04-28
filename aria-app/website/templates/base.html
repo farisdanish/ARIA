@@ -1,412 +1,236 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1"/>
-        <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"/>
-        <meta name="csrf-token" content="{{ csrf_token() }}">
-        <!-- Bootstrap CSS & Font-Awesome -->
-        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-        <link
-            rel="stylesheet"
-            href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
-            crossorigin="anonymous"
-        />
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" rel="stylesheet">
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" integrity="sha256-8EcfIJRWyvnu/U0OsfCk05x1JGVmeC2a7sJQHrbWYSA=" crossorigin="anonymous"></script>
-        <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-        <link href="https://cdn.datatables.net/v/bs4/dt-1.13.7/datatables.min.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/rowreorder/1.4.1/css/rowReorder.dataTables.min.css" rel="stylesheet">
-        <link href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.dataTables.min.css" rel="stylesheet">
-        <style>
-            html,body{
-                width: 100%;
-                height: 100%;
-                margin: 0px;
-                padding: 0px;
-                overflow-x: hidden; 
-            }
+<html lang="en">
 
-            .body {
-                padding: 0;
-                margin: 0;
-            }
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}ARIA{% endblock %}</title>
 
-            .bg-custom{
-                background-color: #3F51B5;
-            }
-            .navbar-brand {
-                font-size: 24px;
-            }
+  {% block head_assets %}
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    crossorigin="anonymous" />
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <link href="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/responsive/3.0.3/css/responsive.bootstrap5.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/aria-theme.css') }}" />
+  {% endblock %}
+</head>
 
-            .navbar-brand img {
-                height: 30px;
-                /* put value of image height as your need */
-                float: left;
-                margin-right: 7px;
-            }
-            
-            .scrollable {
-                height: 100px; /* or any value */
-                overflow-y: auto;
-            }
-        </style>
-        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}" />
-        <link type="text/css" rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}" />
+<body>
+  <a href="#main-content" class="skip-to-content shadow">Skip to Content</a>
 
-        <script>
-            var date = new Date();
-            var d = date.getDate();
-            var m = date.getMonth();
-            var y = date.getFullYear();
-            console.log(y + "-" + m + "-" + d);
+  {% block top_nav %}
+  <nav class="navbar navbar-expand-lg navbar-dark aria-navbar sticky-top" aria-label="Primary">
+    <div class="container-fluid">
+      <a class="navbar-brand aria-brand d-flex align-items-center gap-2"
+        href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}">
+        <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" height="30">
+      </a>
 
-            {% block calendar %}
-            document.addEventListener('DOMContentLoaded', function() {
-                let selector1 = document.querySelector("#selector");
-                let selector2 = document.querySelector("#eventselector");
-                var today = new Date().toISOString().slice(0,10);
-                var calendarEl = document.getElementById('calendar');
-                var calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    eventDisplay: 'block',
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector.value;
-                        if (!(val == arg.event.extendedProps.location || val == "all")) {
-                            arg.el.style.display = "none";
-                        }
-                    },
-                    events: function (fetchInfo, successCallback, failureCallback) {
-                        successCallback([
-                        {% for row in roombookings %}
-                        {% if row.StudID != None: %}
-                        {
-                            id: '{{row.RBookID}}',
-                            title: '{{row.StudID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.RBookStatus}}' 
-                            }
-                        },
-                        {% else %}
-                        {
-                            id: '{{row.RBookID}}',
-                            title: '{{row.StaffID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.RBookStatus}}' 
-                            }
-                        },
-                        {% endif %}
-                        {% endfor %}
-                        ]);
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        if (clickedDate >= nowDate) {
-                            $("#modaladdRBook").modal("show");
-                            $("#rbookstart").val(info.dateStr);
-                            $("#rbookend").val(info.dateStr);
-                        }
-                        else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
-                    }
-                });
-                calendar.render();
-                calendar.setOption('contentHeight', 650);
+      <button class="navbar-toggler border-0" type="button" data-bs-toggle="offcanvas" data-bs-target="#ariaSidebar"
+        aria-controls="ariaSidebar" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
 
-                //Event only calendar
-                var calendarE2 = document.getElementById('eventcalendar');
-                var eventCalendar = new FullCalendar.Calendar(calendarE2, {
-                    initialView: 'dayGridMonth',
-                    eventDisplay: 'block',
-                    selectable: true,
-                    headerToolbar: {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay' // user can switch between the two
-                    },
-                    eventDidMount: function(arg) {
-                        let val = selector.value;
-                        if (!(val == arg.event.extendedProps.location || val == "all")) {
-                            arg.el.style.display = "none";
-                        }
-                    },
-                    events: function (fetchInfo, successCallback, failureCallback) {
-                        successCallback([
-                        {% for row in eventbookings %}
-                        {% if row.StudID != None: %}
-                        {
-                            id: '{{row.EBookID}}',
-                            title: '{{row.StudID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.EBookStatus}}' 
-                            }
-                        },
-                        {% else %}
-                        {
-                            id: '{{row.EBookID}}',
-                            title: '{{row.StaffID}}',
-                            start: '{{row.Start}}',
-                            end: '{{row.End}}',
-                            description: '{{row.Purpose}}',
-                            extendedProps:{
-                                location: '{{row.RoomID}}',
-                                status: '{{row.EBookStatus}}' 
-                            }
-                        },
-                        {% endif %}
-                        {% endfor %}
-                        ]);
-                    },
-                    dateClick: function(info) {
-                        var clickedDate = getDateWithoutTime(info.date);
-                        var nowDate = getDateWithoutTime(new Date())
-                        if (clickedDate >= nowDate) {
-                            $("#modaladdEBook").modal("show");
-                            $("#ebookstart").val(info.dateStr);
-                            $("#ebookend").val(info.dateStr);
-                        }
-                        else alert("Cannot Select Past Date");
-                    },
-                    select: function(info) {
-                        //alert('selected ' + info.startStr + ' to ' + info.endStr);
-                    }
-                });
-                eventCalendar.render();
-                eventCalendar.setOption('contentHeight', 650);
+      <div class="collapse navbar-collapse" id="navbar">
+        <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
+          {% if user.is_authenticated %}
+          {% if user.is_Student() %}
+          <li class="nav-item"><a class="nav-link" href="/homeStud"><i class="fa fa-home d-lg-none me-2"
+                title="Home"></i>Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"
+                title="My Bookings"></i>My Bookings</a></li>
+          <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"
+                title="Feedback"></i>Feedback</a></li>
+          {% elif user.is_Staff() %}
+          <li class="nav-item"><a class="nav-link" href="/homeStaff"><i class="fa fa-home d-lg-none me-2"
+                title="Home"></i>Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"
+                title="My Bookings"></i>My Bookings</a></li>
+          <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"
+                title="Feedback"></i>Feedback</a></li>
+          {% else %}
+          <li class="nav-item"><a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer d-lg-none me-2"
+                title="Admin Dashboard"></i>Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link" href="/ManageRooms"><i class="fa fa-building d-lg-none me-2"
+                title="Manage Rooms"></i>Rooms</a></li>
+          {% endif %}
+          <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+          <li class="nav-item"><a class="nav-link" href="/demo">Face Demo</a></li>
+          {% endif %}
+        </ul>
 
-                selector1.addEventListener('change', function() {
-                    calendar.refetchEvents();
-                });
-                
-                selector2.addEventListener('change', function() {
-                    eventCalendar.refetchEvents();
-                });
-            });
-            {% endblock %}
-            
-            //get date without the time of day
-            function getDateWithoutTime(dt)
-            {
-                dt.setHours(0,0,0,0);
-                return dt;
-            }
-          </script>
-        <title>{% block title %} Home {% endblock %}</title>
-    </head>
-    <body>
-        <nav class="navbar navbar-expand-lg navbar-dark bg-custom">
-            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="navbar-collapse collapse" id="navbar" style="">
-                {% if user.is_authenticated %}
-                    {% if user.is_Student() %}
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="/homeStud" class="navbar-brand"><img src={{ url_for('static', filename='LOGO_UMS_putih.png') }}></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="logout" href="/logout">Logout</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="home" href="/homeStud">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="home" href="/MyBookings">My Bookings</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="home" href="/feedback">Feedback</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="/demo">Face Demo</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" id="studProfile" href="#">{{user.StudID}}</a>
-                        </li>
-                    </ul>
-                    {% elif user.is_Staff() %}
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="/homeStaff" class="navbar-brand navbar-left"><img src={{ url_for('static', filename='LOGO_UMS_putih.png') }}></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-item nav-link navbar-left" id="logout" href="/logout">Logout</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-item nav-link navbar-left" id="home" href="/homeStaff">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="home" href="/MyBookings">My Bookings</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" id="home" href="/feedback">Feedback</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" id="staffProfile" href="#">{{user.StaffID}}</a>
-                        </li>
-                    </ul>
-                    {% elif user.is_Admin() %}
-                    <ul class="navbar-nav">
-                        <li class="nav-item">
-                            <a href="/homeAdmin" class="navbar-brand navbar-left"><img src={{ url_for('static', filename='LOGO_UMS_putih.png') }}></a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-item nav-link navbar-left" id="logout" href="/logout">Logout</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-item nav-link navbar-left" id="home" href="/homeAdmin">Home</a>
-                        </li>
-                    </ul>
-                    <ul class="navbar-nav ml-auto">
-                        <li class="nav-item">
-                            <a class="nav-link" id="AdminProfile" href="#">{{user.AdminID}}</a>
-                        </li>
-                    </ul>
-                    {% endif %}
-                {% else %}
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a href="/" class="navbar-brand"><img src={{ url_for('static', filename='LOGO_UMS_putih.png') }}></a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-item nav-link navbar-left" id="home" href="/">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/demo">Face Demo</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-item nav-link navbar-left" id="login" href="/login">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-item nav-link navbar-left" id="RegisterSelect" href="/RegisterSelect">Register</a>
-                    </li>
-                </ul>
-                {% endif %}
-            </div>
-        </nav>
+        <div class="navbar-nav align-items-lg-center">
+          {% if user.is_authenticated %}
+          <div class="nav-item dropdown">
+            <a class="user-dropdown-toggle dropdown-toggle" href="#" id="userDropdown" role="button"
+              data-bs-toggle="dropdown" aria-expanded="false">
+              <div class="user-avatar">
+                {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+              </div>
+              <span class="d-none d-sm-inline">
+                {{ user.StudName.split(' ')[0] if user.is_Student() else user.StaffName.split(' ')[0] if user.is_Staff()
+                else 'Administrator' }}
+              </span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
+              <li>
+                <h6 class="dropdown-header d-sm-none">{{ user.StudID if user.is_Student() else user.StaffID if
+                  user.is_Staff() else 'Admin' }}</h6>
+              </li>
+              <li><a class="dropdown-item" href="/profile"><i class="fa fa-user"></i> My Profile</a></li>
+              <li><a class="dropdown-item" href="/settings"><i class="fa fa-cog"></i> Settings</a></li>
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+              <li><a class="dropdown-item text-danger" href="/logout"><i class="fa fa-sign-out"></i> Logout</a></li>
+            </ul>
+          </div>
+          {% else %}
+          <a href="/login" class="nav-link">Login</a>
+          <a href="/RegisterSelect" class="btn btn-outline-light ms-lg-2 px-4 rounded-pill">Register</a>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </nav>
 
-        {% with messages = get_flashed_messages(with_categories=true) %} {% if
-            messages %} {% for category, message in messages %} {% if category ==
-            'error' %}
-            <div class="alert alert-danger alter-dismissable fade show" role="alert">
-              {{ message }}
-              <button type="button" class="close" data-dismiss="alert">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            {% else %}
-            <div class="alert alert-success alter-dismissable fade show" role="alert">
-              {{ message }}
-              <button type="button" class="close" data-dismiss="alert">
-                <span aria-hidden="true">&times;</span>
-              </button>
-            </div>
-            {% endif %} {% endfor %} {% endif %} {% endwith %}
+  <!-- Mobile Sidebar (Offcanvas) -->
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="ariaSidebar" aria-labelledby="ariaSidebarLabel">
+    <div class="offcanvas-header">
+      <h5 class="offcanvas-title d-flex align-items-center gap-2" id="ariaSidebarLabel">
+        <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" height="24">
+        <span>ARIA Menu</span>
+      </h5>
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body sidebar-nav">
+      {% if user.is_authenticated %}
+      <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-white rounded-3 shadow-sm">
+        <div class="user-avatar bg-primary">
+          {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+        </div>
+        <div>
+          <div class="fw-bold">{{ user.StudName if user.is_Student() else user.StaffName if user.is_Staff() else
+            'Administrator' }}</div>
+          <div class="small text-muted">{{ user.StudID if user.is_Student() else user.StaffID if user.is_Staff() else
+            'Admin Access' }}</div>
+        </div>
+      </div>
+      <div class="nav flex-column">
+        {% if user.is_Student() or user.is_Staff() %}
+        <a class="nav-link" href="{{ '/homeStud' if user.is_Student() else '/homeStaff' }}"><i class="fa fa-home"></i>
+          Home</a>
+        <a class="nav-link" href="/MyBookings"><i class="fa fa-calendar"></i> My Bookings</a>
+        <a class="nav-link" href="/demo"><i class="fa fa-camera"></i> Face Demo</a>
+        <a class="nav-link" href="/feedback"><i class="fa fa-comment"></i> Feedback</a>
+        <a class="nav-link" href="/profile"><i class="fa fa-user"></i> Profile</a>
+        {% else %}
+        <a class="nav-link" href="/homeAdmin"><i class="fa fa-tachometer"></i> Dashboard</a>
+        <a class="nav-link" href="/ManageRooms"><i class="fa fa-building"></i> Rooms</a>
+        {% endif %}
+        <hr>
+        <a class="nav-link text-danger" href="/logout"><i class="fa fa-sign-out"></i> Logout</a>
+      </div>
+      {% else %}
+      <div class="nav flex-column">
+        <a class="nav-link" href="/"><i class="fa fa-home"></i> Home</a>
+        <a class="nav-link" href="/demo"><i class="fa fa-camera"></i> Face Demo</a>
+        <a class="nav-link" href="/login"><i class="fa fa-sign-in"></i> Login</a>
+        <a class="nav-link" href="/RegisterSelect"><i class="fa fa-user-plus"></i> Register</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% endblock %}
 
-        <!--Page Title BLock-->
-        {% block PageTitle%}
-        {% endblock %}
-        <!--Site Title BLock End-->
+  {% if user.is_authenticated %}
+  <!-- Global UI Pulse (Real-time Sync) -->
+  <div hx-get="/api/ui/pulse" hx-trigger="every 60s" hx-swap="none" class="d-none" id="aria-ui-pulse"></div>
+  {% endif %}
 
-        <!--Content Block-->
-        {% block content%}
-        {% endblock %}
-        <!--Content Block End-->
-        
-        <!--Optional JS-->
-        <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js" integrity="sha512-57oZ/vW8ANMjR/KQ6Be9v/+/h6bq9/l3f0Oc7vn6qMqyhvPd1cvKBRWWpzu0QoneImqr2SkmO4MSqU+RpHom3Q==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js" integrity="sha512-CryKbMe7sjSCDPl18jtJI5DR5jtkUWxPXWaLCst6QjH8wxDexfRJic2WRmRXmstr2Y8SxDDWuBO6CQC6IE4KTA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" integrity="sha256-8EcfIJRWyvnu/U0OsfCk05x1JGVmeC2a7sJQHrbWYSA=" crossorigin="anonymous"></script>
-        <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-        <script src="https://cdn.datatables.net/v/bs4/dt-1.13.7/datatables.min.js"></script>
-        <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-        <script src="https://cdn.datatables.net/rowreorder/1.4.1/js/dataTables.rowReorder.min.js"></script>
-        <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
-        <script
-            type = "text/javascript"
-            src = "{{ url_for('static', filename='index.js')}}">
-        </script>
-        <script
-            type = "text/javascript"
-            src = "{{ url_for('static', filename='announcement.js')}}">
-        </script>
-        <script type="text/javascript">
-            function deleteAnnouncement(AnnounceId) {
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-                fetch("/delete-announcement", {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    "X-CSRFToken": csrfToken
-                  },
-                  body: JSON.stringify({ AnnounceId: AnnounceId }),
-                }).then((_res) => {
-                    alert("Selected Announcement has been deleted.")
-                    window.location.href = "/ManageAnnouncements";
-                });
-            }
-        </script>
-        <script type="text/javascript">
-            function submit_form() {
-                document.formA.submit();
-                document.formA.reset(); 
-            }
-        </script>
-        <script>
-            function confirmDeleteAnnnouncement(AnnounceId) {
-              let text = "Delete this announcement? \nThis action cannot be undone";
-              if (confirm(text) == true) {
-                deleteAnnouncement(AnnounceId);
-              }
-            }
-        </script>
-        <script>
-            function setRoomInfo() {
-                var img = document.getElementById("roomPreview");
-                var imginfo = document.getElementById('roomInfoPreview');
-                {% for r in roomlist %}
-                if (this.value == {{r.RoomID|tojson}} ){
-                    var temp = {{r.roomIMG|tojson}}.splice(10, 0, "\\");
-                    img.src = "\\static\\uploads\\"+temp;
-                    img.alt = temp;
-                    imginfo.innerHTML = {{r.RoomInfo|tojson}};
-                }
-                {%endfor%}
-                return false;
-            }
-            document.getElementById("roomSelect").onchange = setRoomInfo;
-        </script>
-    </body>
+  <!-- Global Toast Container -->
+  <div id="aria-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  {% if user.is_authenticated and (user.is_Student() or user.is_Staff()) %}
+  <!-- Mobile Floating Action Button -->
+  <a href="#" class="aria-fab d-lg-none" data-bs-toggle="modal" data-bs-target="#modaladdRBook"
+    aria-label="Quick Book Room">
+    <i class="fa fa-plus"></i>
+  </a>
+  {% endif %}
+
+  <!-- Shared Announcement Modal -->
+  <div id="ariaAnnouncementModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content border-0 shadow-lg" id="ariaAnnouncementModalContent">
+        <!-- Content loaded via HTMX -->
+        <div class="modal-body text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% block flash_messages %}
+  <div id="legacy-flash-messages" style="display: none;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <span class="flash-data"
+      data-category="{{ 'error' if category == 'error' else 'success' if category == 'success' else 'info' }}"
+      data-message="{{ message }}"></span>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+  </div>
+  {% endblock %}
+
+  {% block page_header %}
+  <header class="aria-page-header container-fluid">
+    {% block PageTitle %}{% endblock %}
+  </header>
+  {% endblock %}
+
+  <main class="container-fluid pb-4" id="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  {% block page_scripts %}
+  <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+  <script src="https://cdn.datatables.net/v/bs5/dt-2.1.8/datatables.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/3.0.3/js/dataTables.responsive.min.js"></script>
+  <script src="https://cdn.datatables.net/responsive/3.0.3/js/responsive.bootstrap5.min.js"></script>
+  <script src="{{ url_for('static', filename='index.js') }}"></script>
+  <script src="{{ url_for('static', filename='announcement.js') }}"></script>
+  <script src="{{ url_for('static', filename='aria-shell.js') }}"></script>
+  <script>
+    function getDateWithoutTime(dt) {
+      dt.setHours(0, 0, 0, 0);
+      return dt;
+    }
+    {% block calendar %} {% endblock %}
+  </script>
+  {% block custom_scripts %}{% endblock %}
+  {% endblock %}
+</body>
+
 </html>

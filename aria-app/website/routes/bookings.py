@@ -12,7 +12,6 @@ from ..utils.validation import validate_form_data
 from ..models.user import Student, Staff
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
-from ..utils.ui import render_ui_template
 from flask import current_app
 from sqlalchemy import and_
 import logging
@@ -180,9 +179,8 @@ def my_bookings():
     from ..services.announcement_service import AnnouncementService
     announcements = AnnouncementService.get_all()
     
-    return render_ui_template(
+    return render_template(
         template,
-        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         student=students if is_student else [],
@@ -529,9 +527,8 @@ def manage_room_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_ui_template(
+    return render_template(
         "manageRBooking.html",
-        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -559,9 +556,8 @@ def manage_event_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_ui_template(
+    return render_template(
         "manageEBooking.html",
-        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -589,8 +585,7 @@ def qr_checkin():
     if not token or not booking_id:
         if request.is_json:
             return jsonify({"success": False, "message": "Missing token or booking ID."}), 400
-        return render_ui_template("checkin_qr.html", ui_group="dashboards", success=False,
-                               message="Invalid QR code.")
+        return render_template("checkin_qr.html", success=False, message="Invalid QR code.")
 
     try:
         booking_id = int(booking_id)
@@ -630,4 +625,4 @@ def qr_checkin():
             booking_id=booking_id,
             booking_type=booking_type
         )
-    return render_ui_template("checkin_qr.html", ui_group="dashboards", success=success, message=message)
+    return render_template("checkin_qr.html", success=success, message=message)
