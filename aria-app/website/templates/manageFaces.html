@@ -11,9 +11,12 @@
         <a href="/homeAdmin" class="btn btn-light rounded-pill px-4 shadow-sm fw-bold me-2">
             <i class="fa fa-arrow-left me-2"></i> Go Back
         </a>
-        <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" onclick="location.href = '/train_data';">
-            <i class="fa fa-refresh me-2"></i> Retrain Detection
-        </button>
+        <form action="{{ url_for('facenet.train_data') }}" method="POST" class="d-inline">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-bold" type="submit">
+                <i class="fa fa-refresh me-2"></i> Retrain Detection
+            </button>
+        </form>
     </div>
 </div>
 {% endblock %}
@@ -41,7 +44,7 @@
                             <div class="d-flex gap-2">
                                 {% for line in r.FaceIMG.split('\n') %}
                                 <div class="face-thumb-container">
-                                    <img src="/static/MalaysianFacesDB/{{line}}" class="rounded-circle border shadow-sm"
+                                    <img src="{{ url_for('facenet.face_sample', sample_path=line) }}" class="rounded-circle border shadow-sm"
                                         height="45" width="45" alt="Face Sample">
                                 </div>
                                 {% endfor %}
@@ -73,8 +76,8 @@
                         </td>
                         <td class="text-end">
                             <span data-bs-toggle="tooltip" title="Delete Face Profile">
-                                <a href="/deleteFace/{{r.FaceID}}" class="btn btn-soft-danger rounded-pill px-3"
-                                    onclick="return confirm('Permanently delete this face profile?')">
+                                <a href="#" class="btn btn-soft-danger rounded-pill px-3 disabled"
+                                    aria-disabled="true" onclick="return false;">
                                     <i class="fa fa-trash-o"></i>
                                 </a>
                             </span>

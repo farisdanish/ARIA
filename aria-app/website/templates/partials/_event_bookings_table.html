@@ -45,7 +45,7 @@
                 </td>
                 <td>
                     {% set status_class = 'status-available' if eb.EbookStatus == 'Ongoing' else 'status-occupied' if
-                    eb.EbookStatus == 'Canceled' else 'status-maintenance' if eb.EbookStatus == 'Upcoming' else
+                    eb.EbookStatus == 'Cancelled' else 'status-maintenance' if eb.EbookStatus == 'Upcoming' else
                     'status-available' %}
                     <div class="room-status-indicator {{ status_class }} small">
                         <span class="status-dot"></span>
@@ -53,7 +53,7 @@
                     </div>
                 </td>
                 <td class="text-end">
-                    {% if eb.EbookStatus != "Canceled" and eb.EbookStatus != "Completed" %}
+                    {% if eb.EbookStatus != "Cancelled" and eb.EbookStatus != "Completed" %}
                     <button class="btn btn-outline-danger btn-sm rounded-pill px-3"
                         hx-post="/cancel-booking/event/{{eb.EBookID}}"
                         hx-confirm="Are you sure you want to cancel this event booking?"

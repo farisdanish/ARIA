@@ -85,7 +85,7 @@
                         </td>
                         <td>
                             {% set status_class = 'status-available' if eb.EbookStatus == 'Ongoing' else
-                            'status-occupied' if eb.EbookStatus == 'Canceled' else 'status-maintenance' if
+                            'status-occupied' if eb.EbookStatus == 'Cancelled' else 'status-maintenance' if
                             eb.EbookStatus == 'Upcoming' else 'status-available' %}
                             <div class="room-status-indicator {{ status_class }} small">
                                 <span class="status-dot"></span>
@@ -104,11 +104,13 @@
                                     <i class="fa fa-edit me-1"></i> Edit
                                 </button>
                                 {% endif %}
-                                <a href="/deleteEBook/{{eb.EBookID}}"
-                                    class="btn btn-sm btn-outline-danger rounded-end-pill px-3"
-                                    onclick="return confirm('Delete room booking permanently? This action cannot be undone.')">
-                                    <i class="fa fa-trash me-1"></i>
-                                </a>
+                                <form action="{{ url_for('bookings.delete_event_booking', booking_id=eb.EBookID) }}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-end-pill px-3"
+                                        onclick="return confirm('Delete room booking permanently? This action cannot be undone.')">
+                                        <i class="fa fa-trash me-1"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -251,8 +253,8 @@
                                                             %}selected{% endif %}>Ongoing</option>
                                                         <option value="Completed" {% if eb.EbookStatus=="Completed"
                                                             %}selected{% endif %}>Completed</option>
-                                                        <option value="Canceled" {% if eb.EbookStatus=="Canceled"
-                                                            %}selected{% endif %}>Canceled</option>
+                                                        <option value="Cancelled" {% if eb.EbookStatus=="Cancelled"
+                                                            %}selected{% endif %}>Cancelled</option>
                                                     </select>
                                                     <label for="eBookStatusType{{eb.EBookID}}">Booking Status</label>
                                                 </div>

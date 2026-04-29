@@ -137,7 +137,7 @@ def update():
     return redirect(url_for('rooms.manage'))
 
 
-@rooms.route('/deleteRoom/<int:room_id>/', methods=['GET', 'POST'])
+@rooms.route('/deleteRoom/<int:room_id>/', methods=['POST'])
 @login_required
 def delete(room_id):
     """Delete a room (admin only)."""
