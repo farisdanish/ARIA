@@ -11,6 +11,7 @@ class ClientConfig:
     # API Configuration
     API_BASE_URL = os.environ.get('ARIA_API_URL', 'http://localhost:5000/api')
     API_TIMEOUT = int(os.environ.get('API_TIMEOUT', '30'))
+    DEVICE_API_TOKEN = os.environ.get('DEVICE_API_TOKEN')
     
     # Hardware Configuration
     RELAY_GPIO_PIN = int(os.environ.get('RELAY_GPIO_PIN', '17'))
@@ -46,6 +47,9 @@ class ClientConfig:
         
         if not cls.API_BASE_URL:
             errors.append("API_BASE_URL is required")
+
+        if not cls.DEVICE_API_TOKEN:
+            errors.append("DEVICE_API_TOKEN is required")
         
         if cls.RELAY_GPIO_PIN < 1 or cls.RELAY_GPIO_PIN > 40:
             errors.append("RELAY_GPIO_PIN must be between 1 and 40")
@@ -54,4 +58,3 @@ class ClientConfig:
             errors.append("FACE_CONFIDENCE_THRESHOLD must be between 0 and 1")
         
         return errors
-

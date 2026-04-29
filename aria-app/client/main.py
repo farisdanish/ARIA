@@ -80,8 +80,8 @@ def select_room(rooms: list) -> int:
 
 
 def detect_and_verify_face(face_recognizer: FaceRecognizer, door_controller: DoorController,
-                          expected_identity: str, room_id: int, api_client: APIClient,
-                          students: list, staff: list) -> bool:
+    expected_identity: str, room_id: int, api_client: APIClient,
+    booking: dict) -> bool:
     """
     Detect and verify face for access.
     
@@ -137,24 +137,15 @@ def detect_and_verify_face(face_recognizer: FaceRecognizer, door_controller: Doo
             # Grant access
             logger.info("Access granted - unlocking door")
             
-            # Determine user type
-            stud_id = None
-            staff_id = None
-            
-            for student in students:
-                if student.get('StudID') == expected_identity:
-                    stud_id = expected_identity
-                    break
-            
-            if not stud_id:
-                for staff_member in staff:
-                    if staff_member.get('StaffID') == expected_identity:
-                        staff_id = expected_identity
-                        break
-            
             # Log access
             timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            api_client.log_access(room_id, stud_id, staff_id, status=1, timestamp=timestamp)
+            api_client.log_access(
+                room_id,
+                booking.get('StudID'),
+                booking.get('StaffID'),
+                status=1,
+                timestamp=timestamp,
+            )
             
             # Unlock door
             door_controller.unlock()
@@ -226,9 +217,7 @@ def main():
                 continue
             
             # Get expected user
-            expected_identity = monitor.get_expected_user(
-                booking, data['students'], data['staff']
-            )
+            expected_identity = monitor.get_expected_user(booking)
             
             if not expected_identity:
                 logger.warning("Could not determine expected user from booking")
@@ -240,7 +229,7 @@ def main():
             # Perform face recognition
             access_granted = detect_and_verify_face(
                 face_recognizer, door_controller, expected_identity,
-                room_id, api_client, data['students'], data['staff']
+                room_id, api_client, booking
             )
             
             if access_granted:
@@ -271,4 +260,3 @@ def main():
 if __name__ == '__main__':
     setup_logging()
     sys.exit(main())
-

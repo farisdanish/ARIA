@@ -21,6 +21,8 @@ class APIClient:
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         })
+        if ClientConfig.DEVICE_API_TOKEN:
+            self.session.headers['Authorization'] = f'Bearer {ClientConfig.DEVICE_API_TOKEN}'
     
     def _get(self, endpoint: str) -> Optional[Dict]:
         """Make GET request."""
@@ -43,16 +45,6 @@ class APIClient:
         except requests.exceptions.RequestException as e:
             logger.error(f"POST request failed for {url}: {str(e)}")
             return False
-    
-    def get_students(self) -> List[Dict]:
-        """Get all students."""
-        result = self._get('studentlist')
-        return result if result else []
-    
-    def get_staff(self) -> List[Dict]:
-        """Get all staff."""
-        result = self._get('stafflist')
-        return result if result else []
     
     def get_rooms(self) -> List[Dict]:
         """Get all rooms."""
@@ -98,7 +90,7 @@ class APIClient:
             logger.error(f"Failed to download face embeddings: {str(e)}")
             return False
     
-    def log_access(self, room_id: int, stud_id: str = None, staff_id: str = None, 
+    def log_access(self, room_id: int, stud_id: str = None, staff_id: str = None,
                    status: int = 1, timestamp: str = None) -> bool:
         """
         Log room access.
@@ -122,4 +114,3 @@ class APIClient:
         }
         
         return self._post('accesslogs', data)
-
