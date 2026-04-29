@@ -1,5 +1,5 @@
 """Face recognition routes."""
-from flask import Blueprint, Response, request, flash, redirect, url_for, current_app, session, jsonify, render_template
+from flask import Blueprint, Response, request, flash, redirect, url_for, current_app, session, jsonify, render_template, send_from_directory, abort
 from flask_login import login_required, current_user
 from ..extensions import limiter
 from ..services.face_service import FaceService
@@ -13,6 +13,7 @@ import cv2
 import logging
 import time
 import numpy as np
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -207,7 +208,7 @@ def process_scanner_frame():
                     'message': 'Face Registered!', 
                     'count': count, 
                     'limit': train_limit,
-                    'redirect': url_for('home.homeStud' if student else 'home.homeStaff')
+                    'redirect': url_for('home.student' if student else 'home.staff')
                 })
             
             return jsonify({'status': 'processing', 'message': f'Capturing... {count}/{train_limit}', 'count': count, 'limit': train_limit})
@@ -307,8 +308,8 @@ def register_face_upload():
         executor.submit(face_service.train_model)
         
         if student:
-            return redirect(url_for('home.homeStud'))
-        return redirect(url_for('home.homeStaff'))
+            return redirect(url_for('home.student'))
+        return redirect(url_for('home.staff'))
         
     except Exception as e:
         logger.error(f"Error processing face upload: {str(e)}")
@@ -316,7 +317,7 @@ def register_face_upload():
         return redirect(url_for('facenet.register_face'))
 
 
-@facenet.route('/train_data')
+@facenet.route('/train_data', methods=['POST'])
 @login_required
 def train_data():
     """Train face recognition model (admin only)."""
@@ -328,3 +329,21 @@ def train_data():
     executor.submit(face_service.train_model)
     flash('Face Detection Model is refreshing...', category='info')
     return redirect(url_for('home.index'))
+
+
+@facenet.route('/face_samples/<path:sample_path>', methods=['GET'])
+@login_required
+def face_sample(sample_path: str):
+    """Serve stored face samples from instance storage to admins only."""
+    if not current_user.is_Admin():
+        abort(403)
+
+    normalized = Path(sample_path)
+    if normalized.is_absolute() or '..' in normalized.parts:
+        abort(400)
+
+    return send_from_directory(
+        str(current_app.config['FACES_DB_PATH']),
+        sample_path,
+        as_attachment=False,
+    )

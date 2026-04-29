@@ -1,5 +1,6 @@
 """Face recognition service."""
 import os
+import threading
 from pathlib import Path
 from typing import Optional, Tuple
 
@@ -21,6 +22,7 @@ class FaceService:
         self.model = None
         self.label_encoder = None
         self.normalizer = None
+        self._model_lock = threading.RLock()
 
     def _cv2(self):
         import cv2
@@ -206,6 +208,15 @@ class FaceService:
             savez_compressed(str(embeddings_file), newTrainX, trainy, newTestX, testy)
             logger.info('Saved embeddings to %s', embeddings_file)
 
+            with self._model_lock:
+                self.model = None
+                self.label_encoder = None
+                self.normalizer = None
+
+            if not self.load_trained_model(force_reload=True):
+                logger.error('Failed to reload face recognition model after training.')
+                return False
+
             logger.info('Face recognition model training completed successfully')
             return True
 
@@ -213,7 +224,7 @@ class FaceService:
             logger.error('Error training face recognition model: %s', e)
             return False
 
-    def load_trained_model(self) -> bool:
+    def load_trained_model(self, force_reload: bool = False) -> bool:
         """Load the trained face recognition model."""
         try:
             from sklearn.preprocessing import LabelEncoder, Normalizer
@@ -225,23 +236,28 @@ class FaceService:
                 logger.warning('Face embeddings file not found. Model needs to be trained first.')
                 return False
 
-            if self.model is not None:
-                return True
+            with self._model_lock:
+                if self.model is not None and not force_reload:
+                    return True
 
-            data = load(str(embeddings_file))
-            trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
+                data = load(str(embeddings_file))
+                trainX, trainy, testX, testy = data['arr_0'], data['arr_1'], data['arr_2'], data['arr_3']
 
-            self.normalizer = Normalizer(norm='l2')
-            trainX = self.normalizer.transform(trainX)
-            testX = self.normalizer.transform(testX)
+                normalizer = Normalizer(norm='l2')
+                trainX = normalizer.transform(trainX)
+                testX = normalizer.transform(testX)
 
-            self.label_encoder = LabelEncoder()
-            self.label_encoder.fit(trainy)
-            trainy_encoded = self.label_encoder.transform(trainy)
-            testy_encoded = self.label_encoder.transform(testy)
+                label_encoder = LabelEncoder()
+                label_encoder.fit(trainy)
+                trainy_encoded = label_encoder.transform(trainy)
+                testy_encoded = label_encoder.transform(testy)
 
-            self.model = SGDClassifier(loss='log_loss')
-            self.model.fit(trainX, trainy_encoded)
+                model = SGDClassifier(loss='log_loss')
+                model.fit(trainX, trainy_encoded)
+
+                self.normalizer = normalizer
+                self.label_encoder = label_encoder
+                self.model = model
 
             logger.debug('Face recognition model loaded successfully')
             return True
@@ -265,26 +281,27 @@ class FaceService:
             confidence_threshold = current_app.config.get('FACE_CONFIDENCE_THRESHOLD', 0.85)
 
         try:
-            face = Image.fromarray(face_image)
-            face = face.resize((160, 160))
-            face = asarray(face)
+            with self._model_lock:
+                face = Image.fromarray(face_image)
+                face = face.resize((160, 160))
+                face = asarray(face)
 
-            face_embedding = self.get_embedding(face)
+                face_embedding = self.get_embedding(face)
 
-            face_embedding = self.normalizer.transform([face_embedding])
+                face_embedding = self.normalizer.transform([face_embedding])
 
-            samples = expand_dims(face_embedding, axis=0)
-            nsamples, nx, ny = samples.shape
-            samples = samples.reshape((nsamples, nx * ny))
+                samples = expand_dims(face_embedding, axis=0)
+                nsamples, nx, ny = samples.shape
+                samples = samples.reshape((nsamples, nx * ny))
 
-            yhat_class = self.model.predict(samples)
-            yhat_prob = self.model.predict_proba(samples)
+                yhat_class = self.model.predict(samples)
+                yhat_prob = self.model.predict_proba(samples)
 
-            class_index = yhat_class[0]
-            class_probability = yhat_prob[0, class_index]
+                class_index = yhat_class[0]
+                class_probability = yhat_prob[0, class_index]
 
-            predict_names = self.label_encoder.inverse_transform(yhat_class)
-            identity = predict_names[0]
+                predict_names = self.label_encoder.inverse_transform(yhat_class)
+                identity = predict_names[0]
 
             if class_probability > confidence_threshold:
                 return identity, float(class_probability)
