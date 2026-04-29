@@ -1,0 +1,25 @@
+ALTER TABLE public.admin ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.announcement ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roomlist ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.student ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.registeredfaces ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.staff ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.guest_user ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.feedback ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.report ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roombookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.eventbookings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.roomaccesslog ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY admin_deny_all ON public.admin FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY announcement_deny_all ON public.announcement FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY roomlist_deny_all ON public.roomlist FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY student_deny_all ON public.student FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY registeredfaces_deny_all ON public.registeredfaces FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY staff_deny_all ON public.staff FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY guest_user_deny_all ON public.guest_user FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY feedback_deny_all ON public.feedback FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY report_deny_all ON public.report FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY roombookings_deny_all ON public.roombookings FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY eventbookings_deny_all ON public.eventbookings FOR ALL USING (false) WITH CHECK (false);
+CREATE POLICY roomaccesslog_deny_all ON public.roomaccesslog FOR ALL USING (false) WITH CHECK (false);
