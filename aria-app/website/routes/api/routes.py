@@ -9,6 +9,7 @@ from ...models.base import db
 from ...services.mail_service import MailService
 from ...services.room_service import RoomService
 from ...services.face_service import FaceService
+from ...utils.security import admin_api_required, device_api_required, session_or_device_required
 import logging
 import base64
 import numpy as np
@@ -82,6 +83,7 @@ class StudentListAPI(Resource):
     
     @ns.marshal_list_with(student_model)
     @ns.doc(description="Get all students")
+    @admin_api_required
     def get(self):
         """Get all students."""
         try:
@@ -98,6 +100,7 @@ class StudentAPI(Resource):
     
     @ns.marshal_with(student_model)
     @ns.doc(description="Get student by ID")
+    @admin_api_required
     def get(self, StudID):
         """Get a specific student."""
         try:
@@ -116,6 +119,7 @@ class StaffListAPI(Resource):
     
     @ns.marshal_list_with(staff_model)
     @ns.doc(description="Get all staff")
+    @admin_api_required
     def get(self):
         """Get all staff."""
         try:
@@ -132,6 +136,7 @@ class StaffAPI(Resource):
     
     @ns.marshal_with(staff_model)
     @ns.doc(description="Get staff by ID")
+    @admin_api_required
     def get(self, StaffID):
         """Get a specific staff member."""
         try:
@@ -150,6 +155,7 @@ class RoomListAPI(Resource):
     
     @ns.marshal_list_with(room_model)
     @ns.doc(description="Get all rooms")
+    @device_api_required
     def get(self):
         """Get all rooms."""
         try:
@@ -166,6 +172,7 @@ class RBookListAPI(Resource):
     
     @ns.marshal_list_with(room_booking_model)
     @ns.doc(description="Get all room bookings")
+    @device_api_required
     def get(self):
         """Get all room bookings."""
         try:
@@ -182,6 +189,7 @@ class RBookAPI(Resource):
     
     @ns.marshal_with(room_booking_model)
     @ns.doc(description="Get room booking by ID")
+    @admin_api_required
     def get(self, RBookID):
         """Get a specific room booking."""
         try:
@@ -200,6 +208,7 @@ class AccessLogListAPI(Resource):
     
     @ns.marshal_list_with(access_log_model)
     @ns.doc(description="Get all access logs")
+    @admin_api_required
     def get(self):
         """Get all access logs."""
         try:
@@ -212,6 +221,7 @@ class AccessLogListAPI(Resource):
     @ns.expect(access_log_input_model)
     @ns.marshal_with(access_log_model)
     @ns.doc(description="Create a new access log entry")
+    @device_api_required
     def post(self):
         """Create a new access log entry."""
         try:
@@ -274,6 +284,7 @@ class GetFacesFileAPI(Resource):
     """Get face database file."""
     
     @ns.doc(description="Download face database file")
+    @device_api_required
     def get(self):
         """Download the face database file."""
         faces_db_path = current_app.config.get('FACES_DB_FILE')
@@ -296,6 +307,7 @@ class GetFacesEmbedsFileAPI(Resource):
     """Get face embeddings file."""
     
     @ns.doc(description="Download face embeddings file")
+    @device_api_required
     def get(self):
         """Download the face embeddings file."""
         faces_embeds_path = current_app.config.get('FACES_EMBEDDINGS_PATH')
@@ -317,6 +329,7 @@ class RecognizeFrameAPI(Resource):
     """Recognize face from video frame."""
     
     @ns.doc(description="Process a base64 encoded frame for face recognition")
+    @session_or_device_required
     def post(self):
         """Process a webcam frame."""
         data = request.json

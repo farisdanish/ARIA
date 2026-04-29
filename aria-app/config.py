@@ -7,6 +7,10 @@ from pathlib import Path
 from datetime import timedelta
 
 
+BOOKING_ACTIVE_STATUSES = ('Upcoming', 'Ongoing')
+BOOKING_CANCELLED_STATUS = 'Cancelled'
+
+
 def _normalize_database_url(url: str) -> str:
     if url.startswith('postgres://'):
         return url.replace('postgres://', 'postgresql://', 1)
@@ -34,6 +38,9 @@ class Config:
 
     # Redis — optional in development (rate limiter falls back to memory)
     REDIS_URL = os.environ.get('REDIS_URL')
+
+    # Device/API access
+    DEVICE_API_TOKEN = os.environ.get('DEVICE_API_TOKEN')
 
     # Rate limiting storage (Flask-Limiter reads RATELIMIT_STORAGE_URI)
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI')
@@ -81,6 +88,8 @@ class Config:
         Config.UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
         (Config.UPLOAD_FOLDER / 'roomImages').mkdir(parents=True, exist_ok=True)
         Config.FACES_DB_PATH.mkdir(parents=True, exist_ok=True)
+        (Config.FACES_DB_PATH / 'train').mkdir(parents=True, exist_ok=True)
+        (Config.FACES_DB_PATH / 'test').mkdir(parents=True, exist_ok=True)
 
 
 class DevelopmentConfig(Config):
@@ -119,6 +128,10 @@ class ProductionConfig(Config):
             raise RuntimeError(
                 'REDIS_URL must be set in production for rate limiting and background services.'
             )
+        if not app.config.get('DEVICE_API_TOKEN'):
+            raise RuntimeError(
+                'DEVICE_API_TOKEN must be set in production for device and API authentication.'
+            )
         app.config['RATELIMIT_STORAGE_URI'] = redis_url
 
 
@@ -154,4 +167,8 @@ def assert_production_ready():
     if not os.environ.get('DATABASE_URL'):
         raise RuntimeError(
             'DATABASE_URL must be set when FLASK_ENV=production.'
+        )
+    if not os.environ.get('DEVICE_API_TOKEN'):
+        raise RuntimeError(
+            'DEVICE_API_TOKEN must be set when FLASK_ENV=production.'
         )
