@@ -1,7 +1,7 @@
-"""Remove stale guest accounts, face DB rows, disk images, and refresh embeddings."""
+"""Remove stale guest accounts and any legacy guest-linked face assets."""
 from __future__ import annotations
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from flask import Flask
@@ -31,20 +31,17 @@ def _delete_paths_for_face_record(app: Flask, face_img_field: str) -> None:
 
 def cleanup_expired_guests(app: Flask) -> None:
     """
-    Delete guest users older than 12 hours (idempotent).
+    Delete expired guest sessions and their guest-only face data.
 
-    Removes RegisteredFace rows for those guests, image files on disk, guest rows,
-    then retrains the face model so embedding npz files drop stale identities.
+    Demo guest embeddings live in the database and never enter the shared SGD model,
+    so cleanup must not trigger train_model() for these rows.
     """
-    cutoff = datetime.utcnow() - timedelta(hours=12)
-    guests = GuestUser.query.filter(GuestUser.CreatedAt < cutoff).all()
+    now = datetime.utcnow()
+    guests = GuestUser.query.filter(
+        ((GuestUser.ExpiresAt == None) | (GuestUser.ExpiresAt < datetime.utcnow())) | (GuestUser.Status == 'expired')
+    ).all()
     if not guests:
         return
-
-    from .face_service import FaceService
-
-    face_service = FaceService()
-    retrain = False
 
     for guest in guests:
         gid = guest.GuestID
@@ -63,16 +60,6 @@ def cleanup_expired_guests(app: Flask) -> None:
             app.logger.info('Removed RegisteredFace %s for guest %s', rf.FaceID, gid)
 
         db.session.delete(guest)
-        app.logger.info('Deleted guest user %s (created %s)', gid, guest.CreatedAt)
-        retrain = True
+        app.logger.info('Deleted expired guest user %s (expires %s)', gid, guest.ExpiresAt)
 
     db.session.commit()
-
-    if retrain:
-        try:
-            if face_service.train_model():
-                app.logger.info('Face model retrained after guest cleanup.')
-            else:
-                app.logger.error('Face model retraining failed after guest cleanup.')
-        except Exception:
-            app.logger.exception('Error retraining face model after guest cleanup.')

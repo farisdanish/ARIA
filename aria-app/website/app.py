@@ -32,7 +32,7 @@ def ensure_runtime_schema(app: Flask):
         inspector = inspect(db.engine)
         table_columns = {
             table_name: {column['name'] for column in inspector.get_columns(table_name)}
-            for table_name in ('roombookings', 'eventbookings')
+            for table_name in ('roombookings', 'eventbookings', 'guest_user', 'registeredfaces')
             if inspector.has_table(table_name)
         }
         alter_statements = []
@@ -50,6 +50,37 @@ def ensure_runtime_schema(app: Flask):
                 alter_statements.append(
                     f'ALTER TABLE {table_name} ADD COLUMN qr_token_redeemed_at TIMESTAMP'
                 )
+        guest_columns = table_columns.get('guest_user', set())
+        if 'TokenHash' not in guest_columns:
+            alter_statements.append(
+                'ALTER TABLE guest_user ADD COLUMN "TokenHash" VARCHAR(64) NOT NULL DEFAULT \'\''
+            )
+        if 'ExpiresAt' not in guest_columns:
+            alter_statements.append(
+                'ALTER TABLE guest_user ADD COLUMN "ExpiresAt" TIMESTAMP NOT NULL DEFAULT NOW()'
+            )
+        if 'Status' not in guest_columns:
+            alter_statements.append(
+                "ALTER TABLE guest_user ADD COLUMN \"Status\" VARCHAR(20) NOT NULL DEFAULT 'expired'"
+            )
+        if 'LastRecognizedAt' not in guest_columns:
+            alter_statements.append(
+                'ALTER TABLE guest_user ADD COLUMN "LastRecognizedAt" TIMESTAMP'
+            )
+        if 'LastRecognitionResult' not in guest_columns:
+            alter_statements.append(
+                'ALTER TABLE guest_user ADD COLUMN "LastRecognitionResult" BOOLEAN'
+            )
+        if 'LastRecognitionConfidence' not in guest_columns:
+            alter_statements.append(
+                'ALTER TABLE guest_user ADD COLUMN "LastRecognitionConfidence" FLOAT'
+            )
+
+        face_columns = table_columns.get('registeredfaces', set())
+        if 'EmbeddingsJSON' not in face_columns:
+            alter_statements.append(
+                'ALTER TABLE registeredfaces ADD COLUMN "EmbeddingsJSON" TEXT'
+            )
 
         for statement in alter_statements:
             db.session.execute(text(statement))
@@ -104,9 +135,10 @@ def create_app(config_name: str = None) -> Flask:
     ensure_runtime_schema(app)
 
     # Register blueprints
-    from .routes import home, auth, facenet, announcements, rooms, bookings
+    from .routes import demo_bp, home, auth, facenet, announcements, rooms, bookings
     from .routes.api import apiroute
 
+    app.register_blueprint(demo_bp)
     app.register_blueprint(home)
     app.register_blueprint(auth)
     app.register_blueprint(facenet)

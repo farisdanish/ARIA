@@ -69,6 +69,15 @@ class Config:
     FACES_EMBEDDINGS_PATH = INSTANCE_DIR / 'registered-faces-db-embeddings.npz'
     FACES_DB_FILE = INSTANCE_DIR / 'registered-faces-db.npz'
     FACE_CONFIDENCE_THRESHOLD = float(os.environ.get('FACE_CONFIDENCE_THRESHOLD', '0.85'))
+    DEMO_MAX_CONCURRENT_SESSIONS = int(os.environ.get('DEMO_MAX_CONCURRENT_SESSIONS', '1'))
+    DEMO_MAX_GUEST_ROWS = int(os.environ.get('DEMO_MAX_GUEST_ROWS', '3'))
+    DEMO_SESSION_HOURS = int(os.environ.get('DEMO_SESSION_HOURS', '12'))
+    DEMO_SAMPLES_REQUIRED = int(os.environ.get('DEMO_SAMPLES_REQUIRED', '5'))
+    DEMO_FRAME_INTERVAL_MS = int(os.environ.get('DEMO_FRAME_INTERVAL_MS', '1500'))
+    DEMO_SIMILARITY_THRESHOLD = float(os.environ.get('DEMO_SIMILARITY_THRESHOLD', '0.70'))
+    DEMO_RECOGNITION_DEBOUNCE_SECONDS = int(
+        os.environ.get('DEMO_RECOGNITION_DEBOUNCE_SECONDS', '3')
+    )
 
     # Mail — no credentials in code
     MAIL_SERVER = os.environ.get('MAIL_SERVER', 'smtp.gmail.com')

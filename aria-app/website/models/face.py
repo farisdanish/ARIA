@@ -9,6 +9,7 @@ class RegisteredFace(db.Model):
 
     FaceID = Column(Integer, primary_key=True, autoincrement=True)
     FaceIMG = Column(Text, nullable=False)  # Paths to face images
+    EmbeddingsJSON = Column(Text, nullable=True)
     StudID = Column(String(50), ForeignKey('student.StudID'), nullable=True)
     StaffID = Column(String(50), ForeignKey('staff.StaffID'), nullable=True)
     GuestID = Column(String(50), ForeignKey('guest_user.GuestID'), nullable=True)

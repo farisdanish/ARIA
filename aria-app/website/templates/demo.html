@@ -1,187 +1,456 @@
 {% extends "base.html" %}
-{% block title %}ARIA Webcam Demo{% endblock %}
+{% block title %}ARIA Face Demo{% endblock %}
 
 {% block content %}
 <div class="aria-hero landing-hero text-center mb-5">
     <div class="container py-4">
-        <h1 class="display-5 fw-800 mb-3" style="color: var(--aria-primary);">Face ID Access Control</h1>
-        <p class="lead text-muted mb-0 mx-auto" style="max-width: 700px;">
-            Experience our intelligent security system. Stand in front of your camera to simulate a secure room entry.
+        <h1 class="display-5 fw-800 mb-3" style="color: var(--aria-primary);">ARIA Public Face Demo</h1>
+        <p class="lead text-muted mb-0 mx-auto" style="max-width: 760px;">
+            This demo creates a temporary guest face profile that expires automatically. It never enters the
+            production room-access model.
         </p>
     </div>
 </div>
 
-<div class="row justify-content-center mb-5">
+<div class="row g-4 align-items-start">
     <div class="col-lg-8">
         <div class="aria-section-card p-0 overflow-hidden shadow-lg border-primary-o20">
             <div class="position-relative">
-                <video id="webcam" autoplay playsinline class="w-100 bg-dark" style="min-height: 400px; object-fit: cover;"></video>
+                <video id="webcam" autoplay playsinline class="w-100 bg-dark" style="min-height: 420px; object-fit: cover;"></video>
                 <div id="result-overlay" class="position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill bg-dark-60 text-white fw-bold" style="backdrop-filter: blur(8px); z-index: 10;">
-                    Initializing...
+                    Waiting to start demo
                 </div>
-                
-                <!-- Door Status Indicator Overlay -->
                 <div class="position-absolute bottom-0 end-0 m-4 text-center" style="z-index: 10;">
-                    <div id="door-indicator" class="door-status-ring mx-auto mb-2 status-scanning">
-                        <i id="door-icon" class="fa fa-spinner fa-spin"></i>
+                    <div id="door-indicator" class="demo-ring ring-idle mx-auto mb-2">
+                        <i id="door-icon" class="fa fa-user"></i>
                     </div>
-                    <div id="status-text" class="badge rounded-pill bg-dark-60 px-3 py-2 text-white">Awaiting Face</div>
+                    <div id="status-badge" class="badge rounded-pill bg-dark-60 px-3 py-2 text-white">No session</div>
                 </div>
             </div>
-            
+
             <div class="p-4 bg-light border-top">
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap">
                     <div class="flex-grow-1">
-                        <h5 class="fw-bold mb-1">Live Recognition Feed</h5>
-                        <p class="text-muted small mb-0">Frames are processed in real-time via the ARIA FaceID API.</p>
+                        <h5 class="fw-bold mb-1">Guest Enrollment and Recognition</h5>
+                        <p id="subtext" class="text-muted small mb-0">
+                            Create a temporary session, capture five samples, then test recognition against your guest-only embeddings.
+                        </p>
                     </div>
-                    <div class="d-flex gap-2">
-                        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill">Model: Facenet-v2</span>
-                        <span class="badge bg-soft-accent text-accent px-3 py-2 rounded-pill">Status: Online</span>
+                    <div class="d-flex gap-2 flex-wrap">
+                        <span class="badge bg-soft-primary text-primary px-3 py-2 rounded-pill">FaceNet embeddings</span>
+                        <span class="badge bg-soft-accent text-accent px-3 py-2 rounded-pill">No production retraining</span>
                     </div>
                 </div>
+            </div>
+        </div>
+        <canvas id="capture-canvas" style="display:none;"></canvas>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="aria-section-card shadow-sm h-100">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                    <h5 class="fw-bold mb-1">Demo State</h5>
+                    <p class="text-muted small mb-0">The server is small, so the demo runs one guest-only embedding flow at a time.</p>
+                </div>
+                <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-3 py-2">{{ demo_state|replace('_', ' ')|title }}</span>
+            </div>
+
+            <div class="mb-3">
+                <div class="small text-uppercase text-muted mb-1">Sample Progress</div>
+                <div class="progress" style="height: 10px;">
+                    <div id="sample-progress" class="progress-bar bg-success" role="progressbar" style="width: {{ (demo_sample_count / demo_required_samples * 100) if demo_required_samples else 0 }}%;"></div>
+                </div>
+                <div id="sample-count" class="small mt-2 text-muted">{{ demo_sample_count }}/{{ demo_required_samples }} samples captured</div>
+            </div>
+
+            <div class="mb-3">
+                <div class="small text-uppercase text-muted mb-1">Session Expiry</div>
+                <div id="expiry-text" class="fw-semibold">
+                    {% if demo_guest and demo_guest.ExpiresAt %}
+                        {{ demo_guest.ExpiresAt.isoformat() }}
+                    {% else %}
+                        No active session
+                    {% endif %}
+                </div>
+                <div id="countdown-text" class="small text-muted mt-1">Session expires 12 hours after creation.</div>
+            </div>
+
+            <div id="action-panel" class="d-grid gap-2">
+                <button id="start-demo-btn" class="btn btn-primary btn-lg" {% if demo_state != 'no_session' and demo_state != 'expired' %}style="display:none;"{% endif %}>
+                    Start Demo
+                </button>
+                <button id="capture-btn" class="btn btn-outline-primary" {% if demo_state not in ('pending', 'enrolling') %}style="display:none;"{% endif %}>
+                    Capture Next Sample
+                </button>
+                <button id="complete-btn" class="btn btn-success" style="display:none;">
+                    Finish Enrollment
+                </button>
+                <button id="recognize-btn" class="btn btn-accent text-white" {% if demo_state != 'ready' %}style="display:none;"{% endif %}>
+                    Try Recognition
+                </button>
+                <button id="reset-btn" class="btn btn-outline-danger" {% if demo_state == 'no_session' %}style="display:none;"{% endif %}>
+                    Reset Demo
+                </button>
+            </div>
+
+            <div id="message-box" class="alert alert-secondary mt-3 mb-0">
+                Create a temporary session to begin.
             </div>
         </div>
     </div>
 </div>
 
-<canvas id="capture-canvas" style="display:none;"></canvas>
-
 <style>
-    .door-status-ring {
-        width: 80px;
-        height: 80px;
+    .demo-ring {
+        width: 84px;
+        height: 84px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2rem;
         color: white;
-        transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        transition: all 0.35s ease;
         border: 4px solid rgba(255, 255, 255, 0.3);
     }
-    .status-scanning {
+    .ring-idle {
         background: rgba(108, 117, 125, 0.8);
-        animation: ring-pulse 2s infinite;
     }
-    .status-granted {
+    .ring-enrolling {
+        background: rgba(13, 79, 140, 0.9);
+        box-shadow: 0 0 30px rgba(13, 79, 140, 0.25);
+    }
+    .ring-ready {
         background: rgba(31, 157, 139, 0.9);
-        box-shadow: 0 0 30px rgba(31, 157, 139, 0.4);
-        border-color: #ffffff;
+        box-shadow: 0 0 30px rgba(31, 157, 139, 0.25);
     }
-    .status-denied {
+    .ring-failed {
         background: rgba(180, 35, 24, 0.9);
-        box-shadow: 0 0 30px rgba(180, 35, 24, 0.4);
-        border-color: #ffffff;
+        box-shadow: 0 0 30px rgba(180, 35, 24, 0.25);
     }
     .bg-dark-60 { background: rgba(0, 0, 0, 0.6); }
     .bg-soft-primary { background: rgba(13, 79, 140, 0.1); }
     .bg-soft-accent { background: rgba(31, 157, 139, 0.1); }
     .border-primary-o20 { border-color: rgba(13, 79, 140, 0.2); }
-    
-    @keyframes ring-pulse {
-        0% { transform: scale(1); opacity: 0.8; }
-        50% { transform: scale(1.05); opacity: 1; }
-        100% { transform: scale(1); opacity: 0.8; }
-    }
+    .btn-accent { background: #1f9d8b; border-color: #1f9d8b; }
+    .btn-accent:hover { background: #198170; border-color: #198170; }
 </style>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
+    const state = {
+        demoState: {{ demo_state|tojson }},
+        sampleCount: {{ demo_sample_count|tojson }},
+        required: {{ demo_required_samples|tojson }},
+        frameIntervalMs: {{ demo_frame_interval_ms|tojson }},
+        expiresAt: {{ (demo_guest.ExpiresAt.isoformat() if demo_guest and demo_guest.ExpiresAt else None)|tojson }},
+        pollTimer: null,
+        lastCaptureAt: 0,
+        streamReady: false,
+    };
+
     const video = document.getElementById("webcam");
     const canvas = document.getElementById("capture-canvas");
     const overlay = document.getElementById("result-overlay");
+    const statusBadge = document.getElementById("status-badge");
     const doorIndicator = document.getElementById("door-indicator");
     const doorIcon = document.getElementById("door-icon");
-    const statusText = document.getElementById("status-text");
-    
-    let isScanning = true;
-    let hasGranted = false;
-    
-    // Request webcam access
-    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(stream => {
-                video.srcObject = stream;
-                video.play();
-                overlay.innerText = "Scanning Environment...";
-                setInterval(processFrame, 1000);
-            })
-            .catch(err => {
-                console.error("Webcam error: ", err);
-                overlay.innerText = "Camera Access Denied";
-                overlay.className += " bg-danger";
-            });
-    } else {
-        overlay.innerText = "Webcam API Not Supported";
+    const statePill = document.getElementById("state-pill");
+    const sampleCount = document.getElementById("sample-count");
+    const sampleProgress = document.getElementById("sample-progress");
+    const expiryText = document.getElementById("expiry-text");
+    const countdownText = document.getElementById("countdown-text");
+    const startBtn = document.getElementById("start-demo-btn");
+    const captureBtn = document.getElementById("capture-btn");
+    const completeBtn = document.getElementById("complete-btn");
+    const recognizeBtn = document.getElementById("recognize-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const messageBox = document.getElementById("message-box");
+    const subtext = document.getElementById("subtext");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+    function setMessage(text, type = "secondary") {
+        messageBox.className = `alert alert-${type} mt-3 mb-0`;
+        messageBox.textContent = text;
     }
 
-    function processFrame() {
-        if (!isScanning) return;
-        if (video.videoWidth === 0) return;
-        
+    function setBadge(label, ringClass, iconClass) {
+        statusBadge.textContent = label;
+        doorIndicator.className = `demo-ring ${ringClass} mx-auto mb-2`;
+        doorIcon.className = iconClass;
+    }
+
+    function updateSampleUI() {
+        sampleCount.textContent = `${state.sampleCount}/${state.required} samples captured`;
+        sampleProgress.style.width = `${Math.min(100, (state.sampleCount / state.required) * 100)}%`;
+    }
+
+    function updateExpiryUI() {
+        if (!state.expiresAt) {
+            expiryText.textContent = "No active session";
+            countdownText.textContent = "Session expires 12 hours after creation.";
+            return;
+        }
+        expiryText.textContent = new Date(state.expiresAt).toLocaleString();
+        const remainingMs = new Date(state.expiresAt).getTime() - Date.now();
+        if (remainingMs <= 0) {
+            countdownText.textContent = "Session expired";
+            return;
+        }
+        const hours = Math.floor(remainingMs / 3600000);
+        const minutes = Math.floor((remainingMs % 3600000) / 60000);
+        const seconds = Math.floor((remainingMs % 60000) / 1000);
+        countdownText.textContent = `Expires in ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    function renderState() {
+        statePill.textContent = state.demoState.replace('_', ' ');
+        startBtn.style.display = (state.demoState === "no_session" || state.demoState === "expired") ? "" : "none";
+        captureBtn.style.display = (state.demoState === "pending" || state.demoState === "enrolling") ? "" : "none";
+        completeBtn.style.display = (state.demoState === "enrolling" && state.sampleCount >= state.required) ? "" : "none";
+        recognizeBtn.style.display = (state.demoState === "ready") ? "" : "none";
+        resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
+
+        if (state.demoState === "no_session") {
+            overlay.textContent = "Waiting to start demo";
+            setBadge("No session", "ring-idle", "fa fa-user");
+            setMessage("Create a temporary session to begin.", "secondary");
+            subtext.textContent = "Create a temporary demo session, capture five samples, then test recognition against your guest-only embeddings.";
+        } else if (state.demoState === "pending") {
+            overlay.textContent = "Camera ready for capture";
+            setBadge("Session started", "ring-enrolling", "fa fa-camera");
+            setMessage("Capture your first sample. Frames are throttled to protect the demo server.", "info");
+            subtext.textContent = "Use the capture button to submit one sample every 1.5 seconds.";
+        } else if (state.demoState === "enrolling") {
+            overlay.textContent = `Sample ${state.sampleCount}/${state.required}`;
+            setBadge("Enrolling", "ring-enrolling", "fa fa-camera");
+            setMessage("Processing your samples. Keep the camera steady and capture the next frame when the button re-enables.", "primary");
+            subtext.textContent = "This public demo stores five guest-only embeddings and never retrains the production classifier.";
+        } else if (state.demoState === "ready") {
+            overlay.textContent = "Ready to test recognition";
+            setBadge("Ready", "ring-ready", "fa fa-check");
+            setMessage("Your temporary guest profile is ready. Try recognition against your own captured embeddings.", "success");
+            subtext.textContent = "Recognition compares your live face embedding against the five guest embeddings stored for this temporary session.";
+        } else if (state.demoState === "expired") {
+            overlay.textContent = "Session expired";
+            setBadge("Expired", "ring-failed", "fa fa-clock-o");
+            setMessage("Your demo session expired. Start a new one to continue.", "warning");
+            subtext.textContent = "Guest demo sessions auto-expire and are cleaned up without touching production recognition data.";
+        }
+
+        updateSampleUI();
+        updateExpiryUI();
+    }
+
+    async function ensureCamera() {
+        if (state.streamReady) {
+            return true;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            overlay.textContent = "Webcam API not supported";
+            setMessage("This browser does not support webcam capture for the public demo.", "danger");
+            return false;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            await video.play();
+            state.streamReady = true;
+            return true;
+        } catch (error) {
+            overlay.textContent = "Camera access denied";
+            setMessage("Camera access is required for the demo. Check browser permissions and try again.", "danger");
+            return false;
+        }
+    }
+
+    function captureFrameDataUrl() {
         const context = canvas.getContext("2d");
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
-        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
-        
-        fetch("/api/recognize_frame", {
+        return canvas.toDataURL("image/jpeg", 0.72);
+    }
+
+    async function postJson(url, payload = {}) {
+        const response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "X-CSRFToken": csrfToken
             },
-            body: JSON.stringify({ image: dataUrl })
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (hasGranted) return;
-
-            if (data.status === "success" && data.identity) {
-                overlay.innerText = `${data.identity} (${(data.confidence * 100).toFixed(0)}%)`;
-                
-                if (data.access === "granted") {
-                    doorIndicator.className = "door-status-ring mx-auto mb-2 status-granted";
-                    doorIcon.className = "fa fa-unlock";
-                    statusText.innerText = "Access Granted";
-                    statusText.className = "badge rounded-pill bg-success px-3 py-2";
-                    
-                    hasGranted = true;
-                    isScanning = false;
-                    
-                    setTimeout(() => {
-                        hasGranted = false;
-                        isScanning = true;
-                        doorIndicator.className = "door-status-ring mx-auto mb-2 status-scanning";
-                        doorIcon.className = "fa fa-spinner fa-spin";
-                        statusText.innerText = "Awaiting Face";
-                        statusText.className = "badge rounded-pill bg-dark-60 px-3 py-2 text-white";
-                        overlay.innerText = "Scanning...";
-                    }, 4000);
-                } else {
-                    doorIndicator.className = "door-status-ring mx-auto mb-2 status-denied";
-                    doorIcon.className = "fa fa-lock";
-                    statusText.innerText = "Identity Unknown";
-                    statusText.className = "badge rounded-pill bg-danger px-3 py-2";
-                    
-                    setTimeout(() => {
-                        if (!hasGranted) {
-                            doorIndicator.className = "door-status-ring mx-auto mb-2 status-scanning";
-                            doorIcon.className = "fa fa-spinner fa-spin";
-                            statusText.innerText = "Awaiting Face";
-                            statusText.className = "badge rounded-pill bg-dark-60 px-3 py-2 text-white";
-                        }
-                    }, 2000);
-                }
-            } else {
-                if (!hasGranted) overlay.innerText = data.message || "Searching...";
-            }
-        })
-        .catch(err => console.error("Recognition failure", err));
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        return { response, data };
     }
+
+    async function refreshStatus() {
+        const response = await fetch("/demo/status");
+        if (response.status === 401) {
+            state.demoState = "expired";
+            state.expiresAt = null;
+            renderState();
+            stopPolling();
+            return;
+        }
+        const data = await response.json();
+        state.demoState = data.status;
+        state.sampleCount = data.sample_count;
+        state.required = data.required;
+        state.expiresAt = data.expires_at;
+        renderState();
+        if (state.demoState !== "pending" && state.demoState !== "enrolling") {
+            stopPolling();
+        }
+    }
+
+    function startPolling() {
+        stopPolling();
+        state.pollTimer = window.setInterval(refreshStatus, 2000);
+    }
+
+    function stopPolling() {
+        if (state.pollTimer) {
+            window.clearInterval(state.pollTimer);
+            state.pollTimer = null;
+        }
+    }
+
+    async function startDemo() {
+        const { response, data } = await postJson("/demo/session");
+        if (response.status === 503) {
+            setMessage("The demo is busy right now. Try again in a moment.", "warning");
+            overlay.textContent = "Demo busy";
+            setBadge("Busy", "ring-failed", "fa fa-clock-o");
+            return;
+        }
+        if (!response.ok) {
+            setMessage("Could not start the demo session.", "danger");
+            return;
+        }
+        state.demoState = data.status;
+        state.sampleCount = 0;
+        state.required = {{ demo_required_samples|tojson }};
+        state.expiresAt = new Date(Date.now() + (data.expires_in_hours * 3600 * 1000)).toISOString();
+        renderState();
+        await ensureCamera();
+        startPolling();
+    }
+
+    async function captureSample() {
+        const now = Date.now();
+        if (now - state.lastCaptureAt < state.frameIntervalMs) {
+            const remaining = Math.ceil((state.frameIntervalMs - (now - state.lastCaptureAt)) / 1000);
+            setMessage(`Please wait ${remaining}s before capturing the next sample.`, "warning");
+            return;
+        }
+        if (!await ensureCamera()) {
+            return;
+        }
+        if (!video.videoWidth) {
+            setMessage("Camera is still warming up. Try again in a moment.", "warning");
+            return;
+        }
+        state.lastCaptureAt = now;
+        captureBtn.disabled = true;
+        overlay.textContent = "Processing sample...";
+        const { response, data } = await postJson("/demo/register-frame", {
+            image: captureFrameDataUrl()
+        });
+        window.setTimeout(() => { captureBtn.disabled = false; }, state.frameIntervalMs);
+        if (!response.ok) {
+            setMessage(data.error || "Capture failed.", response.status === 429 ? "warning" : "danger");
+            if (response.status === 429) {
+                state.sampleCount = state.required;
+                state.demoState = "enrolling";
+                renderState();
+            }
+            return;
+        }
+        state.sampleCount = data.sample_count;
+        state.required = data.required;
+        state.demoState = "enrolling";
+        renderState();
+        if (state.sampleCount >= state.required) {
+            await finishEnrollment();
+        }
+    }
+
+    async function finishEnrollment() {
+        completeBtn.disabled = true;
+        overlay.textContent = "Processing your samples...";
+        setMessage("Processing your samples. This may take a few seconds on the demo server.", "info");
+        const { response, data } = await postJson("/demo/register-complete");
+        completeBtn.disabled = false;
+        if (!response.ok) {
+            setMessage(data.error || "Could not complete enrollment.", "danger");
+            return;
+        }
+        state.demoState = data.status;
+        renderState();
+        stopPolling();
+    }
+
+    async function recognizeGuest() {
+        if (!await ensureCamera()) {
+            return;
+        }
+        if (!video.videoWidth) {
+            setMessage("Camera is still warming up. Try again in a moment.", "warning");
+            return;
+        }
+        recognizeBtn.disabled = true;
+        overlay.textContent = "Running recognition...";
+        const { response, data } = await postJson("/demo/recognize", {
+            image: captureFrameDataUrl()
+        });
+        window.setTimeout(() => { recognizeBtn.disabled = false; }, 1200);
+        if (!response.ok) {
+            setMessage(data.error || "Recognition failed.", "danger");
+            return;
+        }
+        const confidencePct = `${(Number(data.confidence || 0) * 100).toFixed(1)}%`;
+        if (data.matched) {
+            overlay.textContent = `Recognized (${confidencePct})`;
+            setBadge("Matched", "ring-ready", "fa fa-unlock");
+            setMessage(`Recognition matched your guest profile with ${confidencePct} confidence.`, "success");
+        } else {
+            overlay.textContent = `No match (${confidencePct})`;
+            setBadge("Not matched", "ring-failed", "fa fa-lock");
+            setMessage(`Recognition did not match your guest profile. Confidence was ${confidencePct}.`, "warning");
+        }
+        window.setTimeout(() => renderState(), 2500);
+    }
+
+    async function resetDemo() {
+        const { response } = await postJson("/demo/reset");
+        if (!response.ok) {
+            setMessage("Could not reset the demo session.", "danger");
+            return;
+        }
+        stopPolling();
+        state.demoState = "no_session";
+        state.sampleCount = 0;
+        state.expiresAt = null;
+        renderState();
+    }
+
+    startBtn.addEventListener("click", startDemo);
+    captureBtn.addEventListener("click", captureSample);
+    completeBtn.addEventListener("click", finishEnrollment);
+    recognizeBtn.addEventListener("click", recognizeGuest);
+    resetBtn.addEventListener("click", resetDemo);
+
+    if (state.demoState !== "no_session" && state.demoState !== "expired") {
+        ensureCamera();
+    }
+    if (state.demoState === "pending" || state.demoState === "enrolling") {
+        startPolling();
+    }
+    renderState();
+    window.setInterval(updateExpiryUI, 1000);
 });
 </script>
 {% endblock %}

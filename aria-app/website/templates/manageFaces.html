@@ -42,7 +42,7 @@
                         <td class="fw-bold text-primary">#{{r.FaceID}}</td>
                         <td>
                             <div class="d-flex gap-2">
-                                {% for line in r.FaceIMG.split('\n') %}
+                                {% for line in (r.FaceIMG or '').split('\n') if line.strip() %}
                                 <div class="face-thumb-container">
                                     <img src="{{ url_for('facenet.face_sample', sample_path=line) }}" class="rounded-circle border shadow-sm"
                                         height="45" width="45" alt="Face Sample">
