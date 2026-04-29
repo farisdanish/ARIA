@@ -46,14 +46,18 @@ aria-app/fyp_umsliblrbs
 aria-app/ngrok*
 qr_checkin_route_and_migration.py
 
-# Uploads (keep directory structure, ignore files)
+# Runtime application data
+aria-app/instance/*
+!aria-app/instance/.gitkeep
+
+# Legacy static uploads
 aria-app/website/static/uploads/*
 !aria-app/website/static/uploads/.gitkeep
 
-# Face database files
+# Legacy tracked static biometric artifacts
 aria-app/website/static/MalaysianFacesDB/*
 !aria-app/website/static/MalaysianFacesDB/.gitkeep
-!aria-app/website/static/registered-faces-db*.npz
+aria-app/website/static/registered-faces-db*.npz
 
 # Simulator Specific
 pi-simulator/test_images/*
