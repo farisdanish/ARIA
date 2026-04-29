@@ -53,6 +53,11 @@ class AuthService:
         user = AuthService.find_user(user_id)
         if not user:
             return None
+
+        account_status = getattr(user, 'AccountStatus', 'Approved')
+        if account_status != 'Approved':
+            logger.info('Rejected login for %s with account status %s', user_id, account_status)
+            return None
         
         # Check password based on user type
         if isinstance(user, Student):
@@ -102,4 +107,3 @@ class AuthService:
         db.session.commit()
         logger.info(f"Staff account created: {staff_id}")
         return staff
-
