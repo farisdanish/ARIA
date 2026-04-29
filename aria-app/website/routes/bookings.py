@@ -13,7 +13,8 @@ from ..models.user import Student, Staff
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
 from flask import current_app
-from sqlalchemy import and_
+from ..utils.security import booking_owned_by_current_user, has_valid_device_token
+from config import BOOKING_CANCELLED_STATUS
 import logging
 
 logger = logging.getLogger(__name__)
@@ -50,14 +51,20 @@ def cancel_booking(booking_type, booking_id):
     try:
         if booking_type == 'room':
             booking = db.session.query(RoomBooking).filter_by(RBookID=booking_id).first()
-            if booking:
-                booking.RBookStatus = 'Canceled'
-                db.session.commit()
+            if not booking:
+                return "Booking not found", 404
+            if not booking_owned_by_current_user(booking):
+                return "Forbidden", 403
+            booking.RBookStatus = BOOKING_CANCELLED_STATUS
+            db.session.commit()
         else:
             booking = db.session.query(EventBooking).filter_by(EBookID=booking_id).first()
-            if booking:
-                booking.EbookStatus = 'Canceled'
-                db.session.commit()
+            if not booking:
+                return "Booking not found", 404
+            if not booking_owned_by_current_user(booking):
+                return "Forbidden", 403
+            booking.EbookStatus = BOOKING_CANCELLED_STATUS
+            db.session.commit()
         
         # Determine if we should trigger other updates
         response_headers = {'HX-Trigger': 'bookingUpdated'}
@@ -244,11 +251,11 @@ def add_room_booking():
             
             if booking:
                 # Generate and attach QR token
-                QRService.attach_token_to_room_booking(booking)
+                qr_token = QRService.attach_token_to_room_booking(booking)
                 
                 # Generate QR image
                 qr_image = QRService.generate_qr_image_base64(
-                    token=booking.qr_token,
+                    token=qr_token,
                     booking_id=booking.RBookID,
                     booking_type="room"
                 )
@@ -323,11 +330,11 @@ def add_event_booking():
             
             if booking:
                 # Generate and attach QR token
-                QRService.attach_token_to_event_booking(booking)
+                qr_token = QRService.attach_token_to_event_booking(booking)
                 
                 # Generate QR image
                 qr_image = QRService.generate_qr_image_base64(
-                    token=booking.qr_token,
+                    token=qr_token,
                     booking_id=booking.EBookID,
                     booking_type="event"
                 )
@@ -370,6 +377,9 @@ def update_room_booking():
         if not booking:
             flash('Room booking not found.', category='error')
             return _redirect_after_booking_update()
+        if not booking_owned_by_current_user(booking):
+            flash('You are not allowed to edit this booking.', category='error')
+            return _redirect_after_booking_update()
 
         start = datetime.combine(
             datetime.strptime(request.form.get('rbookstart'), '%Y-%m-%d').date(),
@@ -388,28 +398,28 @@ def update_room_booking():
             flash(error_msg, category='error')
             return _redirect_after_booking_update()
 
-        conflicting = db.session.query(RoomBooking).filter(
-            and_(
-                RoomBooking.RoomID == room_id,
-                RoomBooking.Start <= end,
-                RoomBooking.End >= start,
-                RoomBooking.RBookID != booking.RBookID,
-            )
-        ).first()
-        if conflicting:
-            flash('Room already occupied for that time.', category='error')
-            return _redirect_after_booking_update()
-
         if not purpose:
             flash('Please provide booking purpose.', category='error')
             return _redirect_after_booking_update()
 
-        booking.Start = start
-        booking.End = end
-        booking.RoomID = room_id
-        booking.Purpose = purpose
-        booking.RBookStatus = status
-        db.session.commit()
+        has_conflict = False
+        with db.session.begin():
+            BookingService.lock_room_for_update(room_id)
+            has_conflict = BookingService.has_booking_conflict(
+                room_id,
+                start,
+                end,
+                exclude_room_booking_id=booking.RBookID,
+            )
+            if not has_conflict:
+                booking.Start = start
+                booking.End = end
+                booking.RoomID = room_id
+                booking.Purpose = purpose
+                booking.RBookStatus = status
+        if has_conflict:
+            flash('Room already occupied for that time.', category='error')
+            return _redirect_after_booking_update()
         flash('Room booking updated successfully.', category='success')
     except Exception as e:
         db.session.rollback()
@@ -428,6 +438,9 @@ def update_event_booking():
         if not booking:
             flash('Event booking not found.', category='error')
             return _redirect_after_booking_update()
+        if not booking_owned_by_current_user(booking):
+            flash('You are not allowed to edit this booking.', category='error')
+            return _redirect_after_booking_update()
 
         start = datetime.combine(
             datetime.strptime(request.form.get('ebookstart'), '%Y-%m-%d').date(),
@@ -442,19 +455,7 @@ def update_event_booking():
         add_detail = request.form.get('EBookAddDetail')
         status = request.form.get('eBookStatusType') or booking.EbookStatus
 
-        conflicting = db.session.query(EventBooking).filter(
-            and_(
-                EventBooking.RoomID == room_id,
-                EventBooking.Start <= end,
-                EventBooking.End >= start,
-                EventBooking.EBookID != booking.EBookID,
-            )
-        ).first()
-        if conflicting:
-            flash('Room already occupied for that time.', category='error')
-            return _redirect_after_booking_update()
-
-        if end < start:
+        if end <= start:
             flash('Booking end time must be after start time.', category='error')
             return _redirect_after_booking_update()
 
@@ -462,13 +463,25 @@ def update_event_booking():
             flash('Please provide booking purpose.', category='error')
             return _redirect_after_booking_update()
 
-        booking.Start = start
-        booking.End = end
-        booking.RoomID = room_id
-        booking.Purpose = purpose
-        booking.AddDetail = add_detail
-        booking.EbookStatus = status
-        db.session.commit()
+        has_conflict = False
+        with db.session.begin():
+            BookingService.lock_room_for_update(room_id)
+            has_conflict = BookingService.has_booking_conflict(
+                room_id,
+                start,
+                end,
+                exclude_event_booking_id=booking.EBookID,
+            )
+            if not has_conflict:
+                booking.Start = start
+                booking.End = end
+                booking.RoomID = room_id
+                booking.Purpose = purpose
+                booking.AddDetail = add_detail
+                booking.EbookStatus = status
+        if has_conflict:
+            flash('Room already occupied for that time.', category='error')
+            return _redirect_after_booking_update()
         flash('Event booking updated successfully.', category='success')
     except Exception as e:
         db.session.rollback()
@@ -478,7 +491,7 @@ def update_event_booking():
     return _redirect_after_booking_update()
 
 
-@bookings.route('/deleteRBook/<int:booking_id>/', methods=['GET', 'POST'])
+@bookings.route('/deleteRBook/<int:booking_id>/', methods=['POST'])
 @login_required
 def delete_room_booking(booking_id):
     """Delete a room booking (admin only)."""
@@ -495,7 +508,7 @@ def delete_room_booking(booking_id):
     return redirect(url_for('bookings.manage_room_bookings'))
 
 
-@bookings.route('/deleteEBook/<int:booking_id>/', methods=['GET', 'POST'])
+@bookings.route('/deleteEBook/<int:booking_id>/', methods=['POST'])
 @login_required
 def delete_event_booking(booking_id):
     """Delete an event booking (admin only)."""
@@ -570,7 +583,6 @@ def manage_event_bookings():
     )
 
 @bookings.route("/checkin/qr", methods=["GET", "POST"])
-@login_required
 def qr_checkin():
     """
     Handle QR code check-in for both room and event bookings.
@@ -578,9 +590,14 @@ def qr_checkin():
     GET  — rendered when user scans QR on their phone
     POST — called by the Pi simulator scanner service
     """
+    device_request = request.method == "POST" and has_valid_device_token()
     token = request.args.get("token") or request.form.get("token")
     booking_id = request.args.get("booking_id") or request.form.get("booking_id")
     booking_type = request.args.get("type", "room")
+
+    if not device_request and not current_user.is_authenticated:
+        flash('Please sign in to complete QR check-in.', category='warning')
+        return redirect(url_for('auth.login'))
 
     if not token or not booking_id:
         if request.is_json:
@@ -592,12 +609,26 @@ def qr_checkin():
     except ValueError:
         return jsonify({"success": False, "message": "Invalid booking ID."}), 400
 
-    if booking_type == "event":
-        success, message, booking = QRService.validate_event_checkin(token, booking_id)
-    else:
-        success, message, booking = QRService.validate_room_checkin(token, booking_id)
+    expected_user_id = None if device_request else (
+        current_user.StudID if current_user.is_Student() else
+        current_user.StaffID if current_user.is_Staff() else
+        None
+    )
 
-    if request.is_json or request.method == "POST":
+    if booking_type == "event":
+        success, message, booking = QRService.validate_event_checkin(
+            token,
+            booking_id,
+            expected_user_id=expected_user_id,
+        )
+    else:
+        success, message, booking = QRService.validate_room_checkin(
+            token,
+            booking_id,
+            expected_user_id=expected_user_id,
+        )
+
+    if request.is_json or device_request:
         # Pi simulator / API consumer path
         if success and booking:
             # Publish event to Redis for Pi simulator to unlock door
@@ -615,6 +646,9 @@ def qr_checkin():
             "booking_type": booking_type,
             "unlock_door": success,   # Still return true for legacy support
         }), 200 if success else 400
+
+    if not device_request and not current_user.is_Admin() and not success and message == "This QR code does not belong to your account.":
+        return render_template("checkin_qr.html", success=False, message=message), 403
 
     # Browser / phone scan path
     if success and booking:

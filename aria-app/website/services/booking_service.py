@@ -1,65 +1,92 @@
 """Booking service."""
 from datetime import datetime, timedelta
 from typing import List, Optional
-from sqlalchemy import and_, desc
+from sqlalchemy import and_, desc, text
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
 import logging
+from config import BOOKING_ACTIVE_STATUSES
 
 logger = logging.getLogger(__name__)
 
 
 class BookingService:
     """Service for booking operations."""
-    
+
     @staticmethod
-    def check_room_availability(room_id: int, start: datetime, end: datetime, 
-                               exclude_booking_id: int = None) -> bool:
-        """
-        Check if a room is available for the given time slot.
-        
-        Args:
-            room_id: Room ID
-            start: Start datetime
-            end: End datetime
-            exclude_booking_id: Booking ID to exclude from check (for updates)
-            
-        Returns:
-            True if available, False if conflicting bookings exist
-        """
+    def lock_room_for_update(room_id: int):
+        """Acquire a transaction-scoped room lock in PostgreSQL deployments."""
+        bind = db.session.get_bind()
+        if bind and bind.dialect.name == 'postgresql':
+            db.session.execute(
+                text('SELECT pg_advisory_xact_lock(:room_key)'),
+                {'room_key': int(room_id)},
+            )
+
+    @staticmethod
+    def _room_booking_conflict_query(
+        room_id: int,
+        start: datetime,
+        end: datetime,
+        exclude_booking_id: int = None,
+    ):
         query = db.session.query(RoomBooking).filter(
             and_(
                 RoomBooking.RoomID == room_id,
                 RoomBooking.Start <= end,
                 RoomBooking.End >= start,
-                RoomBooking.RBookStatus.in_(['Upcoming', 'Ongoing'])
+                RoomBooking.RBookStatus.in_(BOOKING_ACTIVE_STATUSES)
             )
         )
-        
         if exclude_booking_id:
             query = query.filter(RoomBooking.RBookID != exclude_booking_id)
-        
-        conflicting = query.first()
-        return conflicting is None
+        return query
     
     @staticmethod
-    def check_event_availability(room_id: int, start: datetime, end: datetime,
-                                exclude_booking_id: int = None) -> bool:
-        """Check if a room is available for event booking."""
+    def _event_booking_conflict_query(
+        room_id: int,
+        start: datetime,
+        end: datetime,
+        exclude_booking_id: int = None,
+    ):
         query = db.session.query(EventBooking).filter(
             and_(
                 EventBooking.RoomID == room_id,
                 EventBooking.Start <= end,
                 EventBooking.End >= start,
-                EventBooking.EbookStatus.in_(['Upcoming', 'Ongoing'])
+                EventBooking.EbookStatus.in_(BOOKING_ACTIVE_STATUSES)
             )
         )
-        
         if exclude_booking_id:
             query = query.filter(EventBooking.EBookID != exclude_booking_id)
-        
-        conflicting = query.first()
-        return conflicting is None
+        return query
+
+    @staticmethod
+    def has_booking_conflict(
+        room_id: int,
+        start: datetime,
+        end: datetime,
+        *,
+        exclude_room_booking_id: int = None,
+        exclude_event_booking_id: int = None,
+    ) -> bool:
+        """Return whether any room or event booking overlaps the given slot."""
+        room_conflict = BookingService._room_booking_conflict_query(
+            room_id,
+            start,
+            end,
+            exclude_booking_id=exclude_room_booking_id,
+        ).first()
+        if room_conflict:
+            return True
+
+        event_conflict = BookingService._event_booking_conflict_query(
+            room_id,
+            start,
+            end,
+            exclude_booking_id=exclude_event_booking_id,
+        ).first()
+        return event_conflict is not None
     
     @staticmethod
     def validate_booking_duration(start: datetime, end: datetime, max_hours: int = 2) -> tuple[bool, str]:
@@ -69,7 +96,7 @@ class BookingService:
         Returns:
             (is_valid, error_message)
         """
-        if end < start:
+        if end <= start:
             return False, "Booking time invalid"
         
         delta = end - start
@@ -91,25 +118,31 @@ class BookingService:
             logger.warning(f"Invalid booking duration: {error_msg}")
             return None
         
-        # Check availability
-        if not BookingService.check_room_availability(room_id, start, end):
-            logger.warning(f"Room {room_id} not available for {start} - {end}")
+        try:
+            with db.session.begin():
+                BookingService.lock_room_for_update(room_id)
+                if BookingService.has_booking_conflict(room_id, start, end):
+                    logger.warning(f"Room {room_id} not available for {start} - {end}")
+                    return None
+
+                booking = RoomBooking(
+                    RoomID=room_id,
+                    StudID=stud_id,
+                    StaffID=staff_id,
+                    Start=start,
+                    End=end,
+                    Purpose=purpose,
+                    RBookStatus='Upcoming',
+                    CheckInMethod=checkin_method
+                )
+                db.session.add(booking)
+                db.session.flush()
+            logger.info(f"Room booking created: {booking.RBookID}")
+            return booking
+        except Exception as exc:
+            db.session.rollback()
+            logger.error('Failed to create room booking: %s', exc)
             return None
-        
-        booking = RoomBooking(
-            RoomID=room_id,
-            StudID=stud_id,
-            StaffID=staff_id,
-            Start=start,
-            End=end,
-            Purpose=purpose,
-            RBookStatus='Upcoming',
-            CheckInMethod=checkin_method
-        )
-        db.session.add(booking)
-        db.session.commit()
-        logger.info(f"Room booking created: {booking.RBookID}")
-        return booking
     
     @staticmethod
     def create_event_booking(room_id: int, stud_id: str = None, staff_id: str = None,
@@ -117,30 +150,36 @@ class BookingService:
                             purpose: str = None, add_detail: str = None,
                             checkin_method: str = 'QR') -> Optional[EventBooking]:
         """Create an event booking."""
-        if end < start:
+        if end <= start:
             logger.warning("Invalid booking time")
             return None
-        
-        # Check availability
-        if not BookingService.check_event_availability(room_id, start, end):
-            logger.warning(f"Room {room_id} not available for event {start} - {end}")
+
+        try:
+            with db.session.begin():
+                BookingService.lock_room_for_update(room_id)
+                if BookingService.has_booking_conflict(room_id, start, end):
+                    logger.warning(f"Room {room_id} not available for event {start} - {end}")
+                    return None
+
+                booking = EventBooking(
+                    RoomID=room_id,
+                    StudID=stud_id,
+                    StaffID=staff_id,
+                    Start=start,
+                    End=end,
+                    Purpose=purpose,
+                    AddDetail=add_detail,
+                    EbookStatus='Upcoming',
+                    CheckInMethod=checkin_method
+                )
+                db.session.add(booking)
+                db.session.flush()
+            logger.info(f"Event booking created: {booking.EBookID}")
+            return booking
+        except Exception as exc:
+            db.session.rollback()
+            logger.error('Failed to create event booking: %s', exc)
             return None
-        
-        booking = EventBooking(
-            RoomID=room_id,
-            StudID=stud_id,
-            StaffID=staff_id,
-            Start=start,
-            End=end,
-            Purpose=purpose,
-            AddDetail=add_detail,
-            EbookStatus='Upcoming',
-            CheckInMethod=checkin_method
-        )
-        db.session.add(booking)
-        db.session.commit()
-        logger.info(f"Event booking created: {booking.EBookID}")
-        return booking
     
     @staticmethod
     def get_user_room_bookings(user_id: str, is_student: bool = True) -> List[RoomBooking]:
@@ -191,4 +230,3 @@ class BookingService:
         db.session.commit()
         logger.info(f"Event booking deleted: {booking_id}")
         return True
-

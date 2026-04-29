@@ -38,6 +38,9 @@ class RoomBooking(db.Model):
     RBookStatus = Column(Enum('Upcoming', 'Ongoing', 'Completed', 'Cancelled', name='booking_status'),
                         default='Upcoming', nullable=False)
     CheckInMethod = Column(String(50), default='QR', nullable=False)
+    qr_token_hash = Column(String(128), nullable=True)
+    qr_token_issued_at = Column(DateTime, nullable=True)
+    qr_token_redeemed_at = Column(DateTime, nullable=True)
     
     def __repr__(self):
         return f'<RoomBooking {self.RBookID}: Room {self.RoomID}>'
@@ -58,7 +61,9 @@ class EventBooking(db.Model):
     EbookStatus = Column(Enum('Upcoming', 'Ongoing', 'Completed', 'Cancelled', name='booking_status'),
                         default='Upcoming', nullable=False)
     CheckInMethod = Column(String(50), default='QR', nullable=False)
+    qr_token_hash = Column(String(128), nullable=True)
+    qr_token_issued_at = Column(DateTime, nullable=True)
+    qr_token_redeemed_at = Column(DateTime, nullable=True)
     
     def __repr__(self):
         return f'<EventBooking {self.EBookID}: Room {self.RoomID}>'
-

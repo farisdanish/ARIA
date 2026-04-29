@@ -1,4 +1,5 @@
 """QR code check-in service."""
+import hashlib
 import secrets
 import qrcode
 import io
@@ -8,6 +9,7 @@ from typing import Optional, Tuple
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
 import logging
+from config import BOOKING_CANCELLED_STATUS
 
 logger = logging.getLogger(__name__)
 
@@ -17,6 +19,17 @@ QR_EARLY_CHECKIN_MINUTES = 10
 
 class QRService:
     """Service for QR code check-in operations."""
+
+    @staticmethod
+    def _hash_token(token: str) -> str:
+        return hashlib.sha256(token.encode('utf-8')).hexdigest()
+
+    @staticmethod
+    def _token_matches(booking, token: str) -> bool:
+        token_hash = getattr(booking, 'qr_token_hash', None)
+        if not token_hash:
+            return False
+        return secrets.compare_digest(token_hash, QRService._hash_token(token))
 
     # -------------------------------------------------------------------------
     # Token generation — called when a booking is created
@@ -28,7 +41,7 @@ class QRService:
         return secrets.token_urlsafe(32)
 
     @staticmethod
-    def attach_token_to_room_booking(booking: RoomBooking) -> RoomBooking:
+    def attach_token_to_room_booking(booking: RoomBooking) -> str:
         """
         Generate and attach a QR token to a room booking.
         Call this right after create_room_booking() in BookingService.
@@ -39,13 +52,16 @@ class QRService:
         Returns:
             Updated booking with qr_token set
         """
-        booking.qr_token = QRService.generate_token()
+        token = QRService.generate_token()
+        booking.qr_token_hash = QRService._hash_token(token)
+        booking.qr_token_issued_at = datetime.utcnow()
+        booking.qr_token_redeemed_at = None
         db.session.commit()
         logger.info(f"QR token attached to room booking {booking.RBookID}")
-        return booking
+        return token
 
     @staticmethod
-    def attach_token_to_event_booking(booking: EventBooking) -> EventBooking:
+    def attach_token_to_event_booking(booking: EventBooking) -> str:
         """
         Generate and attach a QR token to an event booking.
         Call this right after create_event_booking() in BookingService.
@@ -56,10 +72,13 @@ class QRService:
         Returns:
             Updated booking with qr_token set
         """
-        booking.qr_token = QRService.generate_token()
+        token = QRService.generate_token()
+        booking.qr_token_hash = QRService._hash_token(token)
+        booking.qr_token_issued_at = datetime.utcnow()
+        booking.qr_token_redeemed_at = None
         db.session.commit()
         logger.info(f"QR token attached to event booking {booking.EBookID}")
-        return booking
+        return token
 
     # -------------------------------------------------------------------------
     # QR image generation — for emailing or displaying to the user
@@ -103,7 +122,12 @@ class QRService:
     # -------------------------------------------------------------------------
 
     @staticmethod
-    def validate_room_checkin(token: str, booking_id: int) -> Tuple[bool, str, Optional[RoomBooking]]:
+    def validate_room_checkin(
+        token: str,
+        booking_id: int,
+        *,
+        expected_user_id: str | None = None,
+    ) -> Tuple[bool, str, Optional[RoomBooking]]:
         """
         Validate a QR check-in attempt for a room booking.
 
@@ -119,15 +143,19 @@ class QRService:
         if not booking:
             return False, "Booking not found.", None
 
-        if booking.qr_token != token:
+        if not QRService._token_matches(booking, token):
             logger.warning(f"Invalid QR token attempt for room booking {booking_id}")
             return False, "Invalid QR code.", None
 
-        if booking.RBookStatus == "Completed":
-            return False, "This booking has already been checked in.", None
+        if booking.qr_token_redeemed_at is not None or booking.RBookStatus == "Completed":
+            return False, "This booking QR code has already been used.", None
 
-        if booking.RBookStatus == "Cancelled":
+        if booking.RBookStatus == BOOKING_CANCELLED_STATUS:
             return False, "This booking has been cancelled.", None
+
+        owner_id = booking.StudID or booking.StaffID
+        if expected_user_id is not None and owner_id != expected_user_id:
+            return False, "This QR code does not belong to your account.", None
 
         now = datetime.now()
         window_open = booking.Start - \
@@ -141,12 +169,18 @@ class QRService:
 
         # All checks passed — mark as checked in
         booking.RBookStatus = "Ongoing"
+        booking.qr_token_redeemed_at = datetime.utcnow()
         db.session.commit()
         logger.info(f"QR check-in successful for room booking {booking_id}")
         return True, "Check-in successful.", booking
 
     @staticmethod
-    def validate_event_checkin(token: str, booking_id: int) -> Tuple[bool, str, Optional[EventBooking]]:
+    def validate_event_checkin(
+        token: str,
+        booking_id: int,
+        *,
+        expected_user_id: str | None = None,
+    ) -> Tuple[bool, str, Optional[EventBooking]]:
         """
         Validate a QR check-in attempt for an event booking.
 
@@ -162,15 +196,19 @@ class QRService:
         if not booking:
             return False, "Booking not found.", None
 
-        if booking.qr_token != token:
+        if not QRService._token_matches(booking, token):
             logger.warning(f"Invalid QR token attempt for event booking {booking_id}")
             return False, "Invalid QR code.", None
 
-        if booking.EbookStatus == "Completed":
-            return False, "This booking has already been checked in.", None
+        if booking.qr_token_redeemed_at is not None or booking.EbookStatus == "Completed":
+            return False, "This booking QR code has already been used.", None
 
-        if booking.EbookStatus == "Cancelled":
+        if booking.EbookStatus == BOOKING_CANCELLED_STATUS:
             return False, "This booking has been cancelled.", None
+
+        owner_id = booking.StudID or booking.StaffID
+        if expected_user_id is not None and owner_id != expected_user_id:
+            return False, "This QR code does not belong to your account.", None
 
         now = datetime.now()
         window_open = booking.Start - \
@@ -183,6 +221,7 @@ class QRService:
             return False, "Booking window has expired.", None
 
         booking.EbookStatus = "Ongoing"
+        booking.qr_token_redeemed_at = datetime.utcnow()
         db.session.commit()
         logger.info(f"QR check-in successful for event booking {booking_id}")
         return True, "Check-in successful.", booking
