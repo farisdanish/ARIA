@@ -1,7 +1,7 @@
 [Unit]
 Description=ARIA Flask application (Gunicorn)
-After=network.target redis-server.service
-Wants=redis-server.service
+After=network.target valkey-server.service
+Wants=valkey-server.service
 
 [Service]
 Type=simple
