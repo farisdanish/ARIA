@@ -1,4 +1,4 @@
-name: Deploy to GCP
+name: Deploy to Cloud
 
 on:
   push:
@@ -19,4 +19,6 @@ jobs:
             git pull origin master
             source aria-app/venv/bin/activate
             pip install -r aria-app/requirements.txt --quiet
+            sudo cp aria-app/aria.service /etc/systemd/system/aria.service
+            sudo systemctl daemon-reload
             sudo systemctl restart aria
