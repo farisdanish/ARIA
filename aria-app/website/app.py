@@ -7,7 +7,7 @@ from flask import Flask
 from flask_mail import Mail
 from flask_executor import Executor
 from flask_wtf.csrf import CSRFProtect
-from sqlalchemy import inspect, text
+from flask_migrate import Migrate
 from config import assert_production_ready, config
 from .models.base import db
 from .models import Student, Staff, Admin
@@ -17,6 +17,7 @@ from .extensions import limiter
 mail = Mail()
 executor = Executor()
 csrf = CSRFProtect()
+migrate = Migrate()
 
 # Configure logging
 logging.basicConfig(
@@ -24,70 +25,6 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
-
-
-def ensure_runtime_schema(app: Flask):
-    """Apply lightweight schema compatibility updates for deployments without migrations."""
-    with app.app_context():
-        inspector = inspect(db.engine)
-        table_columns = {
-            table_name: {column['name'] for column in inspector.get_columns(table_name)}
-            for table_name in ('roombookings', 'eventbookings', 'guest_user', 'registeredfaces')
-            if inspector.has_table(table_name)
-        }
-        alter_statements = []
-        for table_name in ('roombookings', 'eventbookings'):
-            columns = table_columns.get(table_name, set())
-            if 'qr_token_hash' not in columns:
-                alter_statements.append(
-                    f'ALTER TABLE {table_name} ADD COLUMN qr_token_hash VARCHAR(128)'
-                )
-            if 'qr_token_issued_at' not in columns:
-                alter_statements.append(
-                    f'ALTER TABLE {table_name} ADD COLUMN qr_token_issued_at TIMESTAMP'
-                )
-            if 'qr_token_redeemed_at' not in columns:
-                alter_statements.append(
-                    f'ALTER TABLE {table_name} ADD COLUMN qr_token_redeemed_at TIMESTAMP'
-                )
-        guest_columns = table_columns.get('guest_user', set())
-        if 'TokenHash' not in guest_columns:
-            alter_statements.append(
-                'ALTER TABLE guest_user ADD COLUMN "TokenHash" VARCHAR(64) NOT NULL DEFAULT \'\''
-            )
-        if 'ExpiresAt' not in guest_columns:
-            alter_statements.append(
-                'ALTER TABLE guest_user ADD COLUMN "ExpiresAt" TIMESTAMP NOT NULL DEFAULT NOW()'
-            )
-        if 'Status' not in guest_columns:
-            alter_statements.append(
-                "ALTER TABLE guest_user ADD COLUMN \"Status\" VARCHAR(20) NOT NULL DEFAULT 'expired'"
-            )
-        if 'LastRecognizedAt' not in guest_columns:
-            alter_statements.append(
-                'ALTER TABLE guest_user ADD COLUMN "LastRecognizedAt" TIMESTAMP'
-            )
-        if 'LastRecognitionResult' not in guest_columns:
-            alter_statements.append(
-                'ALTER TABLE guest_user ADD COLUMN "LastRecognitionResult" BOOLEAN'
-            )
-        if 'LastRecognitionConfidence' not in guest_columns:
-            alter_statements.append(
-                'ALTER TABLE guest_user ADD COLUMN "LastRecognitionConfidence" FLOAT'
-            )
-
-        face_columns = table_columns.get('registeredfaces', set())
-        if 'EmbeddingsJSON' not in face_columns:
-            alter_statements.append(
-                'ALTER TABLE registeredfaces ADD COLUMN "EmbeddingsJSON" TEXT'
-            )
-
-        for statement in alter_statements:
-            db.session.execute(text(statement))
-
-        if alter_statements:
-            db.session.commit()
-            logger.info('Applied runtime schema compatibility updates.')
 
 
 def create_app(config_name: str = None) -> Flask:
@@ -117,6 +54,7 @@ def create_app(config_name: str = None) -> Flask:
 
     # Initialize extensions
     db.init_app(app)
+    migrate.init_app(app, db)
     mail.init_app(app)
     executor.init_app(app)
     csrf.init_app(app)
@@ -132,7 +70,6 @@ def create_app(config_name: str = None) -> Flask:
         with app.app_context():
             db.create_all()
         logger.info('Database tables ensured via db.create_all()')
-    ensure_runtime_schema(app)
 
     # Register blueprints
     from .routes import demo_bp, home, auth, facenet, announcements, rooms, bookings
