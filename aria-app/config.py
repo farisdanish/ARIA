@@ -7,9 +7,12 @@ from pathlib import Path
 from datetime import timedelta
 from dotenv import load_dotenv
 
-# Load production env if present, then fallback to local .env
-if os.path.exists('/etc/aria/.env'):
-    load_dotenv('/etc/aria/.env')
+# Load production env if readable, then fallback to local .env
+if os.path.exists('/etc/aria/.env') and os.access('/etc/aria/.env', os.R_OK):
+    try:
+        load_dotenv('/etc/aria/.env')
+    except (PermissionError, OSError):
+        pass
 else:
     load_dotenv()
 
