@@ -5,6 +5,13 @@ Secrets and database URLs must come from the environment — no production-safe 
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
+
+# Load production env if present, then fallback to local .env
+if os.path.exists('/etc/aria/.env'):
+    load_dotenv('/etc/aria/.env')
+else:
+    load_dotenv()
 
 
 BOOKING_ACTIVE_STATUSES = ('Upcoming', 'Ongoing')

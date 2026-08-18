@@ -20,6 +20,15 @@ jobs:
             source aria-app/venv/bin/activate
             pip install -r aria-app/requirements.txt --quiet
             
+            # Load production environment variables for CLI commands
+            set -a
+            if [ -r /etc/aria/.env ]; then
+              . /etc/aria/.env
+            elif sudo test -r /etc/aria/.env; then
+              eval "$(sudo grep -v '^#' /etc/aria/.env | sed -E 's/^([^=]+)=(.*)$/export \1="\2"/')"
+            fi
+            set +a
+            
             # Auto-stamp baseline migration if unversioned tables exist
             cd /home/aria/ARIA/aria-app
             FLASK_SKIP_BACKGROUND_THREADS=1 python3 -c "
