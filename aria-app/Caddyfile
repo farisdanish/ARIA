@@ -9,7 +9,7 @@ aria.placeholder.com {
 
 	# Serve Flask static assets from disk (same layout as website/static/).
 	handle /static/* {
-		root * /opt/aria/aria-app/website
+		root * /home/aria/ARIA/aria-app/website
 		file_server
 	}
 	handle {
