@@ -143,6 +143,12 @@ def register_frame():
         return jsonify({'error': 'enrollment_complete'}), 429
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
+    except RuntimeError as exc:
+        current_app.logger.error('Demo register-frame runtime error: %s', exc)
+        return jsonify({'error': str(exc)}), 503
+    except Exception:
+        current_app.logger.exception('Unexpected error in demo register-frame')
+        return jsonify({'error': 'Internal error processing frame.'}), 500
 
 
 @demo_bp.route('/demo/register-complete', methods=['POST'])
@@ -174,6 +180,12 @@ def recognize():
         return jsonify(result)
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
+    except RuntimeError as exc:
+        current_app.logger.error('Demo recognize runtime error: %s', exc)
+        return jsonify({'error': str(exc)}), 503
+    except Exception:
+        current_app.logger.exception('Unexpected error in demo recognize')
+        return jsonify({'error': 'Internal error during recognition.'}), 500
 
 
 @demo_bp.route('/demo/reset', methods=['POST'])
