@@ -1,0 +1,134 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Schedule Room Booking — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-blue-50/40">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
+        <i class="fa fa-calendar-plus-o"></i>
+        <span>Administrative Scheduler</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Add Room Booking</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Click any date cell on the calendar to open the booking reservation modal.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/ManageRBookings" class="aria-btn-secondary flex items-center gap-2 text-xs">
+        <i class="fa fa-arrow-left"></i>
+        <span>Back to Manager</span>
+      </a>
+      <button @click="$dispatch('open-rbook-modal')"
+              type="button"
+              class="aria-btn-primary flex items-center gap-2 text-xs">
+        <i class="fa fa-plus"></i>
+        <span>New Booking</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Calendar Card -->
+  <div class="aria-card p-6 space-y-4">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 border-b border-slate-100 pb-3">
+      <h2 class="text-base font-bold text-slate-900">Facility Schedule Calendar</h2>
+      <div class="flex items-center gap-2">
+        <label for="selector" class="text-xs font-bold text-slate-500 uppercase tracking-wider text-[10px]">Filter Room:</label>
+        <select id="selector" class="aria-input py-1.5 px-3 text-xs w-auto rounded-lg bg-slate-50 font-semibold">
+          <option value="all">All Normal Rooms</option>
+          {% for r in roomlist %}
+          {% if r.RoomStatus != "Closed" and r.RoomType == "Normal Room" %}
+          <option value="{{ r.RoomID }}">{{ r.RoomName }}</option>
+          {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <!-- Calendar Container -->
+    <div id="calendar" class="fc-theme-modern rounded-xl overflow-hidden min-h-[640px]"></div>
+  </div>
+</div>
+
+<!-- Booking Modal Partial -->
+{% include 'partials/_booking_modals.aria.html' %}
+
+<script>
+  function getDateWithoutTime(dt) {
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    (function initCalendar() {
+      if (typeof FullCalendar === 'undefined') {
+        setTimeout(initCalendar, 100);
+        return;
+      }
+      const selector1 = document.querySelector("#selector");
+      const calendarEl = document.getElementById('calendar');
+      if (!calendarEl) return;
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        eventDisplay: 'block',
+        selectable: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventDidMount: function(arg) {
+          const val = selector1 ? selector1.value : 'all';
+          if (!(val === arg.event.extendedProps.location || val === "all")) {
+            arg.el.style.display = "none";
+          }
+        },
+        events: function(fetchInfo, successCallback, failureCallback) {
+          successCallback([
+            {% for row in roombookings %}
+              {
+                id: '{{ row.RBookID }}',
+                title: '{{ row.StudID if row.StudID else row.StaffID }}',
+                start: '{{ row.Start }}',
+                end: '{{ row.End }}',
+                description: '{{ row.Purpose }}',
+                extendedProps: {
+                  location: '{{ row.RoomID }}',
+                  status: '{{ row.RBookStatus }}'
+                }
+              },
+            {% endfor %}
+          ]);
+        },
+        dateClick: function(info) {
+          const clickedDate = getDateWithoutTime(new Date(info.date));
+          const nowDate = getDateWithoutTime(new Date());
+
+          if (clickedDate >= nowDate) {
+            window.dispatchEvent(new CustomEvent('open-rbook-modal'));
+            const s = document.getElementById('rbookstart');
+            const e = document.getElementById('rbookend');
+            if (s) s.value = info.dateStr;
+            if (e) e.value = info.dateStr;
+          } else {
+            if (window.showToast) {
+              window.showToast('warning', 'Cannot select past date.');
+            } else {
+              alert('Cannot select past date.');
+            }
+          }
+        }
+      });
+
+      calendar.render();
+
+      if (selector1) {
+        selector1.addEventListener('change', () => calendar.refetchEvents());
+      }
+    })();
+  });
+</script>
+{% endblock %}

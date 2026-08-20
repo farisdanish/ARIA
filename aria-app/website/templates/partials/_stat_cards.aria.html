@@ -1,0 +1,48 @@
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <!-- Active Bookings -->
+  <div class="aria-card p-5 hover:border-slate-300 transition group">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition">
+        <i class="fa fa-calendar-check-o"></i>
+      </div>
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Upcoming Bookings</span>
+    </div>
+    <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
+      {{ roombookings|selectattr("RBookStatus", "equalto", "Upcoming")|list|length + eventbookings|selectattr("EbookStatus", "equalto", "Upcoming")|list|length }}
+    </div>
+  </div>
+
+  <!-- Announcements -->
+  <div class="aria-card p-5 hover:border-slate-300 transition group">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition">
+        <i class="fa fa-bullhorn"></i>
+      </div>
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Announcements</span>
+    </div>
+    <div class="text-2xl font-extrabold text-slate-900 tracking-tight">
+      {{ announcements|length }}
+    </div>
+  </div>
+
+  <!-- Face Status -->
+  <div class="aria-card p-5 hover:border-slate-300 transition group">
+    <div class="flex items-center gap-3 mb-2">
+      <div class="w-9 h-9 rounded-xl {{ 'bg-teal-50 text-teal-600' if regFaceExist else 'bg-amber-50 text-amber-600' }} flex items-center justify-center text-sm font-semibold group-hover:scale-105 transition">
+        <i class="fa {{ 'fa-smile-o' if regFaceExist else 'fa-user-circle-o' }}"></i>
+      </div>
+      <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Face Recognition</span>
+    </div>
+    <div class="flex items-center gap-2">
+      {% if regFaceExist %}
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200">
+        <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Verified
+      </span>
+      {% else %}
+      <a href="/face-register" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
+        <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action Needed
+      </a>
+      {% endif %}
+    </div>
+  </div>
+</div>

@@ -44,4 +44,141 @@ def test_home_falls_back_to_legacy_when_disabled(app):
     text = response.get_data(as_text=True)
 
     assert response.status_code == 200
-    assert "UMS Library Room Booking System" in text
+    assert "Smart Access for the Modern Campus" in text
+    assert 'data-bs-toggle="offcanvas"' in text
+
+
+def test_student_dashboard_uses_aria_template_when_enabled(app, client, make_student, login_as):
+    app.config["ARIA_UI_ENABLED"] = True
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    student = make_student(stud_id="rollout_stud")
+    login_as(student)
+
+    response = client.get("/homeStud")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Simplify Your Campus Life" in text
+    assert "@click=\"$dispatch('open-rbook-modal')\"" in text
+
+
+def test_student_dashboard_falls_back_to_legacy_when_disabled(app, client, make_student, login_as):
+    app.config["ARIA_UI_ENABLED"] = False
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    student = make_student(stud_id="rollout_stud_leg")
+    login_as(student)
+
+    response = client.get("/homeStud")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "data-bs-target=\"#modaladdRBook\"" in text
+
+
+def test_staff_dashboard_uses_aria_template_when_enabled(app, client, make_staff, login_as):
+    app.config["ARIA_UI_ENABLED"] = True
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    staff_user = make_staff(staff_id="rollout_staff")
+    login_as(staff_user)
+
+    response = client.get("/homeStaff")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Manage Campus Resources" in text
+    assert "@click=\"$dispatch('open-rbook-modal')\"" in text
+
+
+def test_staff_dashboard_falls_back_to_legacy_when_disabled(app, client, make_staff, login_as):
+    app.config["ARIA_UI_ENABLED"] = False
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    staff_user = make_staff(staff_id="rollout_staff_leg")
+    login_as(staff_user)
+
+    response = client.get("/homeStaff")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "data-bs-target=\"#modaladdRBook\"" in text
+
+
+def test_bookings_page_uses_aria_template_when_enabled(app, client, make_student, login_as):
+    app.config["ARIA_UI_ENABLED"] = True
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    student = make_student(stud_id="rollout_book_stud")
+    login_as(student)
+
+    response = client.get("/MyBookings")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Booking History" in text
+    assert "rbookTablePart" in text
+
+
+def test_bookings_page_falls_back_to_legacy_when_disabled(app, client, make_student, login_as):
+    app.config["ARIA_UI_ENABLED"] = False
+    app.config["ARIA_UI_PHASE"] = "dashboards"
+    student = make_student(stud_id="rollout_book_leg")
+    login_as(student)
+
+    response = client.get("/MyBookings")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "data-bs-target=\"#modaladdRBook\"" in text
+
+
+def test_admin_home_uses_aria_template_when_enabled(app, client, make_admin, login_as):
+    app.config["ARIA_UI_ENABLED"] = True
+    app.config["ARIA_UI_PHASE"] = "admin"
+    admin_user = make_admin(admin_id="rollout_admin")
+    login_as(admin_user)
+
+    response = client.get("/homeAdmin")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Campus Operations Control" in text
+    assert "Live Operational Schedule" in text
+
+
+def test_admin_home_falls_back_to_legacy_when_disabled(app, client, make_admin, login_as):
+    app.config["ARIA_UI_ENABLED"] = False
+    app.config["ARIA_UI_PHASE"] = "admin"
+    admin_user = make_admin(admin_id="rollout_admin_leg")
+    login_as(admin_user)
+
+    response = client.get("/homeAdmin")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Command Center" in text
+    assert "aria-hero" in text
+
+
+def test_admin_rooms_uses_aria_template_when_enabled(app, client, make_admin, login_as):
+    app.config["ARIA_UI_ENABLED"] = True
+    app.config["ARIA_UI_PHASE"] = "admin"
+    admin_user = make_admin(admin_id="rollout_admin_rm")
+    login_as(admin_user)
+
+    response = client.get("/ManageRooms")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "Room Inventory" in text
+    assert "openAddModal" in text
+
+
+def test_admin_rooms_falls_back_to_legacy_when_disabled(app, client, make_admin, login_as):
+    app.config["ARIA_UI_ENABLED"] = False
+    app.config["ARIA_UI_PHASE"] = "admin"
+    admin_user = make_admin(admin_id="rollout_admin_rm_leg")
+    login_as(admin_user)
+
+    response = client.get("/ManageRooms")
+    text = response.get_data(as_text=True)
+
+    assert response.status_code == 200
+    assert "data-bs-target=\"#insert_room_modal\"" in text

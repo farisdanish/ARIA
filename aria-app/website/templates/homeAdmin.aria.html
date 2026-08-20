@@ -1,0 +1,257 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Admin Command Center — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+
+  <!-- Hero & Admin Stats -->
+  <div class="aria-card p-6 md:p-8 bg-gradient-to-br from-white via-slate-50 to-indigo-50/40">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+      <!-- Overview & Quick Actions -->
+      <div class="lg:col-span-6 space-y-4">
+        <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+          <i class="fa fa-shield"></i>
+          <span>System Administration Command Center</span>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight">Campus Operations Control</h1>
+        <p class="text-sm text-slate-500 max-w-lg leading-relaxed">Oversee facility inventory, orchestrate room & event reservations, broadcast updates, and audit biometric logs.</p>
+
+        <div class="flex flex-wrap gap-2.5 pt-2">
+          <a href="/ManageRooms" class="aria-btn-primary flex items-center gap-2 text-xs">
+            <i class="fa fa-building"></i>
+            <span>Manage Inventory</span>
+          </a>
+          <a href="/ManageAnnouncements" class="aria-btn-secondary flex items-center gap-2 text-xs">
+            <i class="fa fa-bullhorn text-teal-600"></i>
+            <span>Broadcast Notice</span>
+          </a>
+          <a href="/ManageReport" class="aria-btn-secondary flex items-center gap-2 text-xs">
+            <i class="fa fa-line-chart text-indigo-600"></i>
+            <span>Analytics</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="lg:col-span-6">
+        {% include 'partials/_admin_stat_cards.aria.html' %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Admin Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+    <!-- Left Column: Admin Navigation Modules -->
+    <div class="lg:col-span-3 space-y-6">
+      <div class="aria-card p-4 space-y-2">
+        <h2 class="text-xs font-bold text-slate-500 uppercase tracking-wider px-3 mb-3">Management Modules</h2>
+        <nav class="space-y-1">
+          <a href="/ManageRooms" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-building w-4 text-blue-600 group-hover:scale-110 transition"></i>
+            <span>Room Inventory</span>
+          </a>
+          <a href="/ManageRBookings" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-calendar-check-o w-4 text-teal-600 group-hover:scale-110 transition"></i>
+            <span>Room Bookings</span>
+          </a>
+          <a href="/ManageEBookings" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-university w-4 text-indigo-600 group-hover:scale-110 transition"></i>
+            <span>Event Bookings</span>
+          </a>
+          <a href="/ManageAnnouncements" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-bullhorn w-4 text-teal-600 group-hover:scale-110 transition"></i>
+            <span>Announcements</span>
+          </a>
+          <a href="/ManageFaces" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-user-circle w-4 text-amber-600 group-hover:scale-110 transition"></i>
+            <span>Biometrics Database</span>
+          </a>
+          <a href="/ViewRoomAccessLog" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-key w-4 text-amber-600 group-hover:scale-110 transition"></i>
+            <span>Access Logs</span>
+          </a>
+          <a href="/ManageReport" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-100 hover:text-blue-700 transition group">
+            <i class="fa fa-pie-chart w-4 text-rose-600 group-hover:scale-110 transition"></i>
+            <span>Usage Reports</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- System Notice Feed -->
+      <div class="aria-card overflow-hidden flex flex-col max-h-[380px]">
+        <div class="p-4 border-b border-slate-100 bg-white sticky top-0 z-10 space-y-2">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">System Feed</h3>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-slate-100 text-slate-600" id="announcement-count">
+              {{ announcements|length if announcements is defined else 0 }}
+            </span>
+          </div>
+          <div class="relative">
+            <i class="fa fa-search absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+            <input type="text"
+                   name="search"
+                   class="aria-input pl-8 py-1.5 text-xs rounded-full bg-slate-50 focus:bg-white"
+                   placeholder="Filter notices..."
+                   hx-get="/announcements/feed"
+                   hx-trigger="keyup changed delay:400ms"
+                   hx-target="#announcement-feed-list"
+                   hx-indicator="#search-indicator">
+            <div id="search-indicator" class="htmx-indicator absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </div>
+        <div class="overflow-y-auto flex-1 divide-y divide-slate-100" id="announcement-feed-list">
+          {% include 'partials/_announcement_list.aria.html' %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Interactive Master Schedule -->
+    <div class="lg:col-span-9 space-y-6">
+      <div class="aria-card p-5 md:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm font-semibold">
+              <i class="fa fa-calendar"></i>
+            </div>
+            <div>
+              <h2 class="text-base font-bold text-slate-900 leading-tight">Live Operational Schedule</h2>
+              <p class="text-xs text-slate-500">Master calendar for campus facilities & events</p>
+            </div>
+          </div>
+
+          <!-- Type Selector -->
+          <div class="flex items-center gap-2 bg-slate-100 p-1 rounded-xl text-xs">
+            <label for="BookTypeSelector" class="font-bold text-slate-500 px-2 uppercase text-[10px]">Filter:</label>
+            <select id="BookTypeSelector"
+                    class="bg-white border-0 text-slate-800 font-semibold rounded-lg shadow-xs py-1 px-2.5 text-xs focus:ring-2 focus:ring-blue-500"
+                    onchange="bookOnChange()">
+              <option value="r" selected>Normal Rooms</option>
+              <option value="e">Event Halls</option>
+            </select>
+          </div>
+
+          <!-- Hidden selectors for FullCalendar compatibility -->
+          <div class="hidden" id="nroomSelectorDiv">
+            <select id="nroomSelector">
+              <option value="all">All</option>
+              {% for r in roomlist %}{% if r.RoomType == "Normal Room" %}<option value="{{ r.RoomID }}">{{ r.RoomName }}</option>{% endif %}{% endfor %}
+            </select>
+          </div>
+          <div class="hidden" id="eroomSelectorDiv">
+            <select id="eroomSelector" disabled>
+              <option value="all">All</option>
+              {% for r in roomlist %}{% if r.RoomType == "Event Room" %}<option value="{{ r.RoomID }}">{{ r.RoomName }}</option>{% endif %}{% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- FullCalendar Container -->
+        <div id="calendar" class="fc-theme-modern rounded-xl overflow-hidden min-h-[620px]"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function bookOnChange() {
+    const val = document.getElementById('BookTypeSelector').value;
+    const nroomSel = document.getElementById('nroomSelector');
+    const eroomSel = document.getElementById('eroomSelector');
+
+    if (val === "r") {
+      eroomSel.disabled = true;
+      nroomSel.disabled = false;
+      nroomSel.value = "all";
+    } else {
+      nroomSel.disabled = true;
+      eroomSel.disabled = false;
+      eroomSel.value = "all";
+    }
+
+    const activeSelector = (val === 'r') ? nroomSel : eroomSel;
+    activeSelector.dispatchEvent(new Event('change'));
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    (function initCalendar() {
+      if (typeof FullCalendar === 'undefined') {
+        setTimeout(initCalendar, 100);
+        return;
+      }
+      const selector1 = document.querySelector("#nroomSelector");
+      const selector2 = document.querySelector("#eroomSelector");
+      const selector3 = document.querySelector("#BookTypeSelector");
+      const calendarEl = document.getElementById('calendar');
+      if (!calendarEl) return;
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        eventDisplay: 'block',
+        selectable: true,
+        headerToolbar: {
+          left: 'prev,next today',
+          center: 'title',
+          right: window.innerWidth < 768 ? 'dayGridMonth,timeGridDay' : 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        eventDidMount: function(arg) {
+          const val = selector1 ? selector1.value : 'all';
+          const val2 = selector2 ? selector2.value : 'all';
+          const val3 = selector3 ? selector3.value : 'r';
+
+          if (val3 === "r") {
+            if (!(val === arg.event.extendedProps.location || val === "all")) {
+              arg.el.style.display = "none";
+            }
+          } else if (val3 === "e") {
+            if (!(val2 === arg.event.extendedProps.location || val2 === "all")) {
+              arg.el.style.display = "none";
+            }
+          }
+        },
+        events: function(fetchInfo, successCallback, failureCallback) {
+          const valBookType = selector3 ? selector3.value : 'r';
+          if (valBookType === "r") {
+            successCallback([
+              {% for row in roombookings %}
+                {
+                  id: '{{ row.RBookID }}',
+                  title: '{{ row.StudID if row.StudID else row.StaffID }}',
+                  start: '{{ row.Start }}',
+                  end: '{{ row.End }}',
+                  extendedProps: {
+                    location: '{{ row.RoomID }}',
+                    status: '{{ row.RBookStatus }}'
+                  }
+                },
+              {% endfor %}
+            ]);
+          } else {
+            successCallback([
+              {% for row in eventbookings %}
+                {
+                  id: '{{ row.EBookID }}',
+                  title: '{{ row.StudID if row.StudID else row.StaffID }}',
+                  start: '{{ row.Start }}',
+                  end: '{{ row.End }}',
+                  extendedProps: {
+                    location: '{{ row.RoomID }}',
+                    status: '{{ row.EBookStatus }}'
+                  }
+                },
+              {% endfor %}
+            ]);
+          }
+        }
+      });
+
+      calendar.render();
+
+      if (selector1) selector1.addEventListener('change', () => calendar.refetchEvents());
+      if (selector2) selector2.addEventListener('change', () => calendar.refetchEvents());
+      if (selector3) selector3.addEventListener('change', () => calendar.refetchEvents());
+    })();
+  });
+</script>
+{% endblock %}

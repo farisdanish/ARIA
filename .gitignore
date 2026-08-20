@@ -15,6 +15,9 @@ aria-app/dist/
 aria-app/lib/
 aria-app/lib64/
 aria-app/*.egg-info/
+aria-app/bin/
+bin/
+tailwindcss
 
 # Environments
 .env
@@ -72,3 +75,6 @@ aria-app/client/*.log
 *.h5
 *.pkl
 aria-app/client/*.npz
+
+# Local agent tools & notes
+.agents/

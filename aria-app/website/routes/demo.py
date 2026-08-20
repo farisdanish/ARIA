@@ -8,10 +8,10 @@ from flask import (
     current_app,
     jsonify,
     make_response,
-    render_template,
     request,
 )
 from flask_login import current_user
+from ..utils.ui import render_ui_template
 
 from ..extensions import limiter
 from ..models.room import RoomList
@@ -68,8 +68,9 @@ def demo():
     demo_state = guest.Status if guest else 'no_session'
     if guest and guest.ExpiresAt < datetime.utcnow():
         demo_state = 'expired'
-    return render_template(
+    return render_ui_template(
         'demo.html',
+        ui_group='public',
         user=current_user,
         roomlist=roomlist,
         roombookings=[],

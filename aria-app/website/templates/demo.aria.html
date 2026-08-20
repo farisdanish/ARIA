@@ -1,0 +1,470 @@
+{% extends "base.aria.html" %}
+{% block title %}ARIA Face Demo{% endblock %}
+
+{% block content %}
+<!-- Demo Hero Banner -->
+<div class="rounded-2xl bg-gradient-to-b from-blue-50/70 to-slate-50 border border-slate-200/80 p-6 sm:p-8 mb-8 text-center shadow-sm">
+  <div class="max-w-2xl mx-auto">
+    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-100/80 text-blue-800 text-xs font-semibold uppercase tracking-wider mb-3">
+      <i class="fa fa-camera"></i> Live Biometric Prototype
+    </span>
+    <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">ARIA Public Face Demo</h1>
+    <p class="text-sm text-slate-600 mt-2 leading-relaxed">
+      This demo creates a temporary guest face profile that expires automatically. It never enters the production room-access dataset.
+    </p>
+  </div>
+</div>
+
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+  <!-- Webcam Video Box (Left Column) -->
+  <div class="lg:col-span-8">
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+      <div class="relative bg-slate-950 aspect-video flex items-center justify-center">
+        <video id="webcam" autoplay playsinline class="w-full h-full object-cover"></video>
+        
+        <!-- Top Status Pill -->
+        <div id="result-overlay" class="absolute top-4 left-4 px-3.5 py-1.5 rounded-full bg-slate-900/75 backdrop-blur-md text-white text-xs font-semibold shadow-md tracking-wide">
+          Waiting to start demo
+        </div>
+
+        <!-- Bottom Ring Indicator -->
+        <div class="absolute bottom-4 right-4 text-center z-10 flex flex-col items-center">
+          <div id="door-indicator" class="w-14 h-14 rounded-full flex items-center justify-center text-xl text-white bg-slate-600/80 border-2 border-white/40 shadow-lg transition-all duration-300 mb-1.5">
+            <i id="door-icon" class="fa fa-user"></i>
+          </div>
+          <div id="status-badge" class="px-2.5 py-0.5 rounded-full bg-slate-900/70 backdrop-blur-sm text-[11px] font-medium text-white/90">
+            No session
+          </div>
+        </div>
+      </div>
+
+      <!-- Card Subtitle Details -->
+      <div class="p-5 bg-slate-50/80 border-t border-slate-100">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+          <div class="max-w-md">
+            <h2 class="text-sm font-bold text-slate-900">Guest Enrollment & Recognition</h2>
+            <p id="subtext" class="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Create a temporary session, capture 5 samples, then test recognition against your guest-only embeddings.
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-100">
+              FaceNet embeddings
+            </span>
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-100">
+              No production training
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <canvas id="capture-canvas" class="hidden"></canvas>
+  </div>
+
+  <!-- Demo Control Panel (Right Column) -->
+  <div class="lg:col-span-4 space-y-4">
+    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h2 class="text-base font-bold text-slate-900">Demo State</h2>
+          <p class="text-xs text-slate-400">Single guest session runner</p>
+        </div>
+        <span id="state-pill" class="px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider">
+          {{ demo_state|replace('_', ' ')|title }}
+        </span>
+      </div>
+
+      <!-- Sample Progress Bar -->
+      <div>
+        <div class="flex items-center justify-between text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+          <span>Sample Progress</span>
+          <span id="sample-count" class="text-xs text-slate-500 font-mono font-normal">
+            {{ demo_sample_count }}/{{ demo_required_samples }} captured
+          </span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+          <div id="sample-progress" class="bg-blue-600 h-2.5 rounded-full transition-all duration-300"
+               style="width: {{ (demo_sample_count / demo_required_samples * 100) if demo_required_samples else 0 }}%;"></div>
+        </div>
+      </div>
+
+      <!-- Expiry Countdown -->
+      <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+        <div class="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-0.5">Session Expiry</div>
+        <div id="expiry-text" class="text-xs font-mono font-medium text-slate-800">
+          {% if demo_guest and demo_guest.ExpiresAt %}
+            {{ demo_guest.ExpiresAt.isoformat() }}
+          {% else %}
+            No active session
+          {% endif %}
+        </div>
+        <div id="countdown-text" class="text-[11px] text-slate-400 mt-1">Session expires 12 hours after creation.</div>
+      </div>
+
+      <!-- Action Buttons Stack -->
+      <div id="action-panel" class="space-y-2 pt-2">
+        <button id="start-demo-btn"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl shadow-sm transition-all"
+                {% if demo_state != 'no_session' and demo_state != 'expired' %}style="display:none;"{% endif %}>
+          <i class="fa fa-play text-xs"></i>
+          <span>Start Demo Session</span>
+        </button>
+
+        <button id="capture-btn"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl transition-all"
+                {% if demo_state not in ('pending', 'enrolling') %}style="display:none;"{% endif %}>
+          <i class="fa fa-camera text-xs"></i>
+          <span>Capture Next Sample</span>
+        </button>
+
+        <button id="complete-btn"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 rounded-xl shadow-sm transition-all"
+                style="display:none;">
+          <i class="fa fa-check text-xs"></i>
+          <span>Finish Enrollment</span>
+        </button>
+
+        <button id="recognize-btn"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-xl shadow-sm transition-all"
+                {% if demo_state != 'ready' %}style="display:none;"{% endif %}>
+          <i class="fa fa-user-check text-xs"></i>
+          <span>Test Face Recognition</span>
+        </button>
+
+        <button id="reset-btn"
+                class="w-full inline-flex items-center justify-center gap-2 py-2 px-4 text-xs font-semibold text-red-600 hover:bg-red-50 border border-red-200 rounded-xl transition-all"
+                {% if demo_state == 'no_session' %}style="display:none;"{% endif %}>
+          <i class="fa fa-refresh text-xs"></i>
+          <span>Reset Session</span>
+        </button>
+      </div>
+
+      <!-- Message Alert Box -->
+      <div id="message-box" class="p-3 rounded-xl bg-slate-100 text-xs font-medium text-slate-700 leading-relaxed">
+        Create a temporary session to begin.
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block custom_scripts %}
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    const state = {
+        demoState: {{ demo_state|tojson }},
+        sampleCount: {{ demo_sample_count|tojson }},
+        required: {{ demo_required_samples|tojson }},
+        frameIntervalMs: {{ demo_frame_interval_ms|tojson }},
+        expiresAt: {{ (demo_guest.ExpiresAt.isoformat() if demo_guest and demo_guest.ExpiresAt else None)|tojson }},
+        pollTimer: null,
+        lastCaptureAt: 0,
+        streamReady: false,
+    };
+
+    const video = document.getElementById("webcam");
+    const canvas = document.getElementById("capture-canvas");
+    const overlay = document.getElementById("result-overlay");
+    const statusBadge = document.getElementById("status-badge");
+    const doorIndicator = document.getElementById("door-indicator");
+    const doorIcon = document.getElementById("door-icon");
+    const statePill = document.getElementById("state-pill");
+    const sampleCount = document.getElementById("sample-count");
+    const sampleProgress = document.getElementById("sample-progress");
+    const expiryText = document.getElementById("expiry-text");
+    const countdownText = document.getElementById("countdown-text");
+    const startBtn = document.getElementById("start-demo-btn");
+    const captureBtn = document.getElementById("capture-btn");
+    const completeBtn = document.getElementById("complete-btn");
+    const recognizeBtn = document.getElementById("recognize-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const messageBox = document.getElementById("message-box");
+    const subtext = document.getElementById("subtext");
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content");
+
+    function setMessage(text, type = "secondary") {
+        const typeClasses = {
+            success: "bg-green-50 border border-green-200 text-green-800",
+            danger: "bg-red-50 border border-red-200 text-red-800",
+            warning: "bg-amber-50 border border-amber-200 text-amber-800",
+            info: "bg-blue-50 border border-blue-200 text-blue-800",
+            primary: "bg-blue-50 border border-blue-200 text-blue-800",
+            secondary: "bg-slate-100 border border-slate-200 text-slate-700"
+        };
+        messageBox.className = `p-3 rounded-xl text-xs font-medium leading-relaxed ${typeClasses[type] || typeClasses.secondary}`;
+        messageBox.textContent = text;
+    }
+
+    function setBadge(label, ringBgClass, iconClass) {
+        statusBadge.textContent = label;
+        doorIndicator.className = `w-14 h-14 rounded-full flex items-center justify-center text-xl text-white border-2 border-white/40 shadow-lg transition-all duration-300 mb-1.5 ${ringBgClass}`;
+        doorIcon.className = iconClass;
+    }
+
+    function updateSampleUI() {
+        sampleCount.textContent = `${state.sampleCount}/${state.required} samples captured`;
+        sampleProgress.style.width = `${Math.min(100, (state.sampleCount / state.required) * 100)}%`;
+    }
+
+    function updateExpiryUI() {
+        if (!state.expiresAt) {
+            expiryText.textContent = "No active session";
+            countdownText.textContent = "Session expires 12 hours after creation.";
+            return;
+        }
+        expiryText.textContent = new Date(state.expiresAt).toLocaleString();
+        const remainingMs = new Date(state.expiresAt).getTime() - Date.now();
+        if (remainingMs <= 0) {
+            countdownText.textContent = "Session expired";
+            return;
+        }
+        const hours = Math.floor(remainingMs / 3600000);
+        const minutes = Math.floor((remainingMs % 3600000) / 60000);
+        const seconds = Math.floor((remainingMs % 60000) / 1000);
+        countdownText.textContent = `Expires in ${hours}h ${minutes}m ${seconds}s`;
+    }
+
+    function renderState() {
+        statePill.textContent = state.demoState.replace('_', ' ');
+        startBtn.style.display = (state.demoState === "no_session" || state.demoState === "expired") ? "" : "none";
+        captureBtn.style.display = (state.demoState === "pending" || state.demoState === "enrolling") ? "" : "none";
+        completeBtn.style.display = (state.demoState === "enrolling" && state.sampleCount >= state.required) ? "" : "none";
+        recognizeBtn.style.display = (state.demoState === "ready") ? "" : "none";
+        resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
+
+        if (state.demoState === "no_session") {
+            overlay.textContent = "Waiting to start demo";
+            setBadge("No session", "bg-slate-600/80", "fa fa-user");
+            setMessage("Create a temporary session to begin.", "secondary");
+            subtext.textContent = "Create a temporary demo session, capture five samples, then test recognition against your guest-only embeddings.";
+        } else if (state.demoState === "pending") {
+            overlay.textContent = "Camera ready for capture";
+            setBadge("Session started", "bg-blue-600/90 shadow-blue-500/50", "fa fa-camera");
+            setMessage("Capture your first sample. Frames are throttled to protect the demo server.", "info");
+            subtext.textContent = "Use the capture button to submit one sample every 1.5 seconds.";
+        } else if (state.demoState === "enrolling") {
+            overlay.textContent = `Sample ${state.sampleCount}/${state.required}`;
+            setBadge("Enrolling", "bg-blue-600/90 shadow-blue-500/50", "fa fa-camera");
+            setMessage("Processing your samples. Keep camera steady and capture the next frame when re-enabled.", "primary");
+            subtext.textContent = "This public demo stores five guest-only embeddings and never retrains the production classifier.";
+        } else if (state.demoState === "ready") {
+            overlay.textContent = "Ready to test recognition";
+            setBadge("Ready", "bg-teal-600/90 shadow-teal-500/50", "fa fa-check");
+            setMessage("Your temporary guest profile is ready. Try recognition against your own captured embeddings.", "success");
+            subtext.textContent = "Recognition compares your live face embedding against the five guest embeddings stored for this temporary session.";
+        } else if (state.demoState === "expired") {
+            overlay.textContent = "Session expired";
+            setBadge("Expired", "bg-red-600/90 shadow-red-500/50", "fa fa-clock-o");
+            setMessage("Your demo session expired. Start a new one to continue.", "warning");
+            subtext.textContent = "Guest demo sessions auto-expire and are cleaned up without touching production recognition data.";
+        }
+
+        updateSampleUI();
+        updateExpiryUI();
+    }
+
+    async function ensureCamera() {
+        if (state.streamReady) return true;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            overlay.textContent = "Webcam API not supported";
+            setMessage("This browser does not support webcam capture for the public demo.", "danger");
+            return false;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            video.srcObject = stream;
+            await video.play();
+            state.streamReady = true;
+            return true;
+        } catch (error) {
+            overlay.textContent = "Camera access denied";
+            setMessage("Camera access is required for the demo. Check browser permissions and try again.", "danger");
+            return false;
+        }
+    }
+
+    function captureFrameDataUrl() {
+        const context = canvas.getContext("2d");
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        return canvas.toDataURL("image/jpeg", 0.72);
+    }
+
+    async function postJson(url, payload = {}) {
+        const response = await fetch(url, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        return { response, data };
+    }
+
+    async function refreshStatus() {
+        const response = await fetch("/demo/status");
+        if (response.status === 401) {
+            state.demoState = "expired";
+            state.expiresAt = null;
+            renderState();
+            stopPolling();
+            return;
+        }
+        const data = await response.json();
+        state.demoState = data.status;
+        state.sampleCount = data.sample_count;
+        state.required = data.required;
+        state.expiresAt = data.expires_at;
+        renderState();
+        if (state.demoState !== "pending" && state.demoState !== "enrolling") {
+            stopPolling();
+        }
+    }
+
+    function startPolling() {
+        stopPolling();
+        state.pollTimer = window.setInterval(refreshStatus, 2000);
+    }
+
+    function stopPolling() {
+        if (state.pollTimer) {
+            window.clearInterval(state.pollTimer);
+            state.pollTimer = null;
+        }
+    }
+
+    async function startDemo() {
+        const { response, data } = await postJson("/demo/session");
+        if (response.status === 503) {
+            setMessage("The demo is busy right now. Try again in a moment.", "warning");
+            overlay.textContent = "Demo busy";
+            setBadge("Busy", "bg-amber-600/90", "fa fa-clock-o");
+            return;
+        }
+        if (!response.ok) {
+            setMessage("Could not start the demo session.", "danger");
+            return;
+        }
+        state.demoState = data.status;
+        state.sampleCount = 0;
+        state.required = {{ demo_required_samples|tojson }};
+        state.expiresAt = new Date(Date.now() + (data.expires_in_hours * 3600 * 1000)).toISOString();
+        renderState();
+        await ensureCamera();
+        startPolling();
+    }
+
+    async function captureSample() {
+        const now = Date.now();
+        if (now - state.lastCaptureAt < state.frameIntervalMs) {
+            const remaining = Math.ceil((state.frameIntervalMs - (now - state.lastCaptureAt)) / 1000);
+            setMessage(`Please wait ${remaining}s before capturing next sample.`, "warning");
+            return;
+        }
+        if (!await ensureCamera()) return;
+        if (!video.videoWidth) {
+            setMessage("Camera is still warming up. Try again in a moment.", "warning");
+            return;
+        }
+        state.lastCaptureAt = now;
+        captureBtn.disabled = true;
+        overlay.textContent = "Processing sample...";
+        const { response, data } = await postJson("/demo/register-frame", {
+            image: captureFrameDataUrl()
+        });
+        window.setTimeout(() => { captureBtn.disabled = false; }, state.frameIntervalMs);
+        if (!response.ok) {
+            setMessage(data.error || "Capture failed.", response.status === 429 ? "warning" : "danger");
+            if (response.status === 429) {
+                state.sampleCount = state.required;
+                state.demoState = "enrolling";
+                renderState();
+            }
+            return;
+        }
+        state.sampleCount = data.sample_count;
+        state.required = data.required;
+        state.demoState = "enrolling";
+        renderState();
+        if (state.sampleCount >= state.required) {
+            await finishEnrollment();
+        }
+    }
+
+    async function finishEnrollment() {
+        completeBtn.disabled = true;
+        overlay.textContent = "Processing your samples...";
+        setMessage("Processing your samples. This may take a few seconds on the demo server.", "info");
+        const { response, data } = await postJson("/demo/register-complete");
+        completeBtn.disabled = false;
+        if (!response.ok) {
+            setMessage(data.error || "Could not complete enrollment.", "danger");
+            return;
+        }
+        state.demoState = data.status;
+        renderState();
+        stopPolling();
+    }
+
+    async function recognizeGuest() {
+        if (!await ensureCamera()) return;
+        if (!video.videoWidth) {
+            setMessage("Camera is still warming up. Try again in a moment.", "warning");
+            return;
+        }
+        recognizeBtn.disabled = true;
+        overlay.textContent = "Running recognition...";
+        const { response, data } = await postJson("/demo/recognize", {
+            image: captureFrameDataUrl()
+        });
+        window.setTimeout(() => { recognizeBtn.disabled = false; }, 1200);
+        if (!response.ok) {
+            setMessage(data.error || "Recognition failed.", "danger");
+            return;
+        }
+        const confidencePct = `${(Number(data.confidence || 0) * 100).toFixed(1)}%`;
+        if (data.matched) {
+            overlay.textContent = `Recognized (${confidencePct})`;
+            setBadge("Matched", "bg-teal-600/90 shadow-teal-500/50", "fa fa-unlock");
+            setMessage(`Recognition matched your guest profile with ${confidencePct} confidence.`, "success");
+        } else {
+            overlay.textContent = `No match (${confidencePct})`;
+            setBadge("Not matched", "bg-amber-600/90 shadow-amber-500/50", "fa fa-lock");
+            setMessage(`Recognition did not match your guest profile. Confidence was ${confidencePct}.`, "warning");
+        }
+        window.setTimeout(() => renderState(), 2500);
+    }
+
+    async function resetDemo() {
+        const { response } = await postJson("/demo/reset");
+        if (!response.ok) {
+            setMessage("Could not reset the demo session.", "danger");
+            return;
+        }
+        stopPolling();
+        state.demoState = "no_session";
+        state.sampleCount = 0;
+        state.expiresAt = null;
+        renderState();
+    }
+
+    startBtn.addEventListener("click", startDemo);
+    captureBtn.addEventListener("click", captureSample);
+    completeBtn.addEventListener("click", finishEnrollment);
+    recognizeBtn.addEventListener("click", recognizeGuest);
+    resetBtn.addEventListener("click", resetDemo);
+
+    if (state.demoState !== "no_session" && state.demoState !== "expired") {
+        ensureCamera();
+    }
+    if (state.demoState === "pending" || state.demoState === "enrolling") {
+        startPolling();
+    }
+    renderState();
+    window.setInterval(updateExpiryUI, 1000);
+});
+</script>
+{% endblock %}

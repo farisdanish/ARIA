@@ -1,0 +1,125 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Booking Feedback — ARIA{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto py-6 space-y-6">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex items-center justify-between gap-4 bg-gradient-to-r from-white to-blue-50/30">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
+        <i class="fa fa-commenting-o"></i>
+        <span>Quality Assurance</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Booking Feedback</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Share your experience to help us improve campus facilities.</p>
+    </div>
+
+    <a href="{{ '/homeStud' if user and user.is_Student() else '/homeStaff' if user and user.is_Staff() else '/' }}"
+       class="aria-btn-secondary flex items-center gap-2 text-xs">
+      <i class="fa fa-arrow-left"></i>
+      <span>Back</span>
+    </a>
+  </div>
+
+  <!-- Feedback Form Card -->
+  <div class="aria-card p-6 sm:p-8" x-data="{ bookingType: '' }">
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl shadow-xs">
+        <i class="fa fa-comments"></i>
+      </div>
+      <h2 class="text-lg font-bold text-slate-900">Your Thoughts Matter</h2>
+      <p class="text-xs text-slate-500 mt-1">Please select your completed booking and let us know your feedback.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-5">
+      <!-- User Identification -->
+      <div>
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
+          {{ 'STUDENT' if user and user.is_Student() else 'STAFF' }} INFORMATION
+        </label>
+        <div class="relative">
+          <i class="fa {{ 'fa-user-circle' if user and user.is_Student() else 'fa-id-badge' }} absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input type="text"
+                 class="aria-input pl-10 bg-slate-50 text-slate-600 font-semibold cursor-not-allowed"
+                 value="{{ user.StudID if user and user.is_Student() else user.StaffID if user and user.is_Staff() else '' }}"
+                 readonly>
+        </div>
+        {% if user and user.is_Student() %}
+        <input type="hidden" name="StudID" value="{{ user.StudID }}">
+        {% elif user and user.is_Staff() %}
+        <input type="hidden" name="StaffID" value="{{ user.StaffID }}">
+        {% endif %}
+      </div>
+
+      <!-- Booking Type Selector -->
+      <div>
+        <label for="feedbackType" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Booking Type</label>
+        <select id="feedbackType"
+                name="feedbackType"
+                x-model="bookingType"
+                class="aria-input font-medium"
+                required>
+          <option disabled value="">Select type of booking...</option>
+          <option value="Room">Room Booking</option>
+          <option value="Event">Event Booking</option>
+        </select>
+      </div>
+
+      <!-- Room Booking Selection -->
+      <div x-show="bookingType === 'Room'" x-transition class="space-y-1.5">
+        <label for="rbook" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Select Room Booking</label>
+        <select class="aria-input font-medium" id="rbook" name="rbook" :required="bookingType === 'Room'">
+          <option disabled selected value="">Choose a completed room booking...</option>
+          {% for rb in roombookings %}
+            {% if (user and user.is_Student() and rb.StudID == user.StudID) or (user and user.is_Staff() and rb.StaffID == user.StaffID) %}
+              {% for rm in roomlist %}
+                {% if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed" %}
+                <option value="{{ rb.RBookID }}">{{ rb.Start.strftime('%m/%d/%Y %H:%M') }} — {{ rm.RoomName }}</option>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Event Booking Selection -->
+      <div x-show="bookingType === 'Event'" x-transition class="space-y-1.5">
+        <label for="ebook" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Select Event Hall Booking</label>
+        <select class="aria-input font-medium" id="ebook" name="ebook" :required="bookingType === 'Event'">
+          <option disabled selected value="">Choose a completed event booking...</option>
+          {% for eb in eventbookings %}
+            {% if (user and user.is_Student() and eb.StudID == user.StudID) or (user and user.is_Staff() and eb.StaffID == user.StaffID) %}
+              {% for rm in roomlist %}
+                {% if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed" %}
+                <option value="{{ eb.EBookID }}">{{ eb.Start.strftime('%m/%d/%Y %H:%M') }} — {{ rm.RoomName }}</option>
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+          {% endfor %}
+        </select>
+      </div>
+
+      <!-- Feedback Content -->
+      <div>
+        <label for="FeedbackContent" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Your Feedback & Experience</label>
+        <textarea name="FeedbackContent"
+                  id="FeedbackContent"
+                  rows="4"
+                  class="aria-input resize-y"
+                  placeholder="Tell us about facility cleanliness, equipment, or any issues encountered..."
+                  required></textarea>
+      </div>
+
+      <!-- Submit -->
+      <div class="pt-2">
+        <button type="submit" class="aria-btn-primary w-full py-3 flex items-center justify-center gap-2 font-bold shadow-md">
+          <i class="fa fa-paper-plane"></i>
+          <span>Submit Feedback</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

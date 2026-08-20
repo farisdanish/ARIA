@@ -1,0 +1,22 @@
+<div class="space-y-3" id="room-discovery-list">
+  <div class="flex items-center justify-between px-1">
+    <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider">Available Facilities</h3>
+    <div class="htmx-indicator w-3.5 h-3.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" id="rooms-loader"></div>
+  </div>
+
+  {% if not rooms %}
+  <div class="text-center py-8 px-4 border border-dashed border-slate-200 rounded-xl bg-slate-50">
+    <div class="w-10 h-10 mx-auto rounded-full bg-white flex items-center justify-center text-slate-400 mb-2 shadow-xs">
+      <i class="fa fa-search text-sm"></i>
+    </div>
+    <p class="text-xs font-bold text-slate-800">No facilities available</p>
+    <p class="text-[11px] text-slate-400 mt-0.5">Try changing your filters.</p>
+  </div>
+  {% endif %}
+
+  <div class="space-y-2.5">
+    {% for room in rooms %}
+      {% include 'partials/_room_card.aria.html' %}
+    {% endfor %}
+  </div>
+</div>

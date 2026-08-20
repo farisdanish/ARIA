@@ -9,6 +9,7 @@ from ..models.base import db
 from ..app import executor
 from ..utils.file_utils import allowed_file
 from ..utils.upload_validation import parse_data_url_image, validate_image_upload
+from ..utils.ui import render_ui_template
 import cv2
 import logging
 import time
@@ -98,16 +99,18 @@ def register_face():
     session['registration_faces'] = []
     
     if current_user.is_Student():
-        return render_template(
+        return render_ui_template(
             "faceRegister.html",
+            ui_group="dashboards",
             user=current_user,
             is_Student=True,
             is_Staff=False,
             is_Admin=False
         )
     elif current_user.is_Staff():
-        return render_template(
+        return render_ui_template(
             "faceRegister.html",
+            ui_group="dashboards",
             user=current_user,
             is_Student=False,
             is_Staff=True,
@@ -346,4 +349,29 @@ def face_sample(sample_path: str):
         str(current_app.config['FACES_DB_PATH']),
         sample_path,
         as_attachment=False,
+    )
+
+
+@facenet.route('/ManageFaces', methods=['GET'])
+@login_required
+def manage_faces():
+    """Manage registered face biometrics (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    reg_faces = db.session.query(RegisteredFace).all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+
+    return render_ui_template(
+        "manageFaces.html",
+        ui_group="admin",
+        user=current_user,
+        registeredfaces=reg_faces,
+        student=students,
+        staff=staff_list,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True
     )

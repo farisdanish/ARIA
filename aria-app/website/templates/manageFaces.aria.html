@@ -1,0 +1,100 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Biometrics Database — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto" x-data="{ search: '' }">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-amber-50/40">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
+        <i class="fa fa-user-circle"></i>
+        <span>Biometric Registry</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Face Manager</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Audit enrolled facial embeddings and manage secondary authentication records.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/homeAdmin" class="aria-btn-secondary flex items-center gap-2 text-xs">
+        <i class="fa fa-arrow-left"></i>
+        <span>Dashboard</span>
+      </a>
+      <form action="{{ url_for('facenet.train_data') }}" method="POST" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="aria-btn-primary flex items-center gap-2 text-xs">
+          <i class="fa fa-refresh"></i>
+          <span>Retrain Model</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="aria-card p-6 space-y-4">
+    <!-- Search Bar -->
+    <div class="relative max-w-md">
+      <i class="fa fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+      <input type="text"
+             x-model="search"
+             placeholder="Search registered faces by name or ID..."
+             class="aria-input pl-9 text-xs py-2">
+    </div>
+
+    <!-- Registered Faces Table -->
+    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
+      <table id="regFacesTable" class="w-full text-left text-sm text-slate-700">
+        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="px-5 py-3.5">Face ID</th>
+            <th class="px-5 py-3.5">Biometric Samples</th>
+            <th class="px-5 py-3.5">Role</th>
+            <th class="px-5 py-3.5">Enrolled User</th>
+            <th class="px-5 py-3.5 text-right">Status</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white font-normal">
+          {% for r in registeredfaces %}
+          {% set user_name = '' %}
+          {% set user_id = '' %}
+          {% if r.StudID != None %}
+            {% for stud in student %}{% if stud.StudID == r.StudID %}{% set user_name = stud.StudName %}{% set user_id = stud.StudID %}{% endif %}{% endfor %}
+          {% elif r.StaffID != None %}
+            {% for st in staff %}{% if st.StaffID == r.StaffID %}{% set user_name = st.StaffName %}{% set user_id = st.StaffID %}{% endif %}{% endfor %}
+          {% endif %}
+
+          <tr class="hover:bg-slate-50/70 transition"
+              x-show="!search || '{{ user_name|lower }}'.includes(search.toLowerCase()) || '{{ user_id|lower }}'.includes(search.toLowerCase())">
+            <td class="px-5 py-4 font-mono font-semibold text-xs text-amber-700">#{{ r.FaceID }}</td>
+            <td class="px-5 py-4">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                {% for line in (r.FaceIMG or '').split('\n') if line.strip() %}
+                <div class="w-10 h-10 rounded-full overflow-hidden border border-slate-200 shadow-xs bg-slate-100 flex items-center justify-center">
+                  <img src="{{ url_for('facenet.face_sample', sample_path=line) }}" class="w-full h-full object-cover" alt="Sample" onerror="this.style.display='none'">
+                </div>
+                {% endfor %}
+              </div>
+            </td>
+            <td class="px-5 py-4">
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold {{ 'bg-blue-50 text-blue-700 border border-blue-200' if r.StudID != None else 'bg-teal-50 text-teal-700 border border-teal-200' }}">
+                {{ 'Student' if r.StudID != None else 'Staff' }}
+              </span>
+            </td>
+            <td class="px-5 py-4">
+              <div class="font-bold text-slate-900">{{ user_name }}</div>
+              <div class="text-xs text-slate-400 font-mono">{{ user_id }}</div>
+            </td>
+            <td class="px-5 py-4 text-right">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Active
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

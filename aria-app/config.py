@@ -55,6 +55,10 @@ class Config:
     # Rate limiting storage (Flask-Limiter reads RATELIMIT_STORAGE_URI)
     RATELIMIT_STORAGE_URI = os.environ.get('RATELIMIT_STORAGE_URI')
 
+    # UI Modernization Rollout Flags (Phase 3)
+    ARIA_UI_ENABLED = os.environ.get('ARIA_UI_ENABLED', 'True').lower() == 'true'
+    ARIA_UI_PHASE = os.environ.get('ARIA_UI_PHASE', 'all')
+
     # Session
     PERMANENT_SESSION_LIFETIME = timedelta(
         minutes=int(os.environ.get('SESSION_LIFETIME_MINUTES', '60'))
@@ -159,6 +163,7 @@ class TestingConfig(Config):
 
     TESTING = True
     SECRET_KEY = os.environ.get('SECRET_KEY', 'test-secret-key-not-for-production')
+    DEVICE_API_TOKEN = os.environ.get('DEVICE_API_TOKEN', 'test-device-token')
     SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
     # In-memory SQLite cannot use connection pool options meant for Postgres.
     SQLALCHEMY_ENGINE_OPTIONS = {}

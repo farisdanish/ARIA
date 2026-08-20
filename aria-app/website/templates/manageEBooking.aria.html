@@ -1,0 +1,133 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Event Bookings Administration — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto" x-data="{ search: '', statusFilter: 'all' }">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-teal-50/40">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 mb-2">
+        <i class="fa fa-university"></i>
+        <span>Event Reservations</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Event Bookings Master</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Administrative oversight of institutional hall bookings, workshops, and society events.</p>
+    </div>
+
+    <div class="flex items-center gap-3">
+      <a href="/homeAdmin" class="aria-btn-secondary flex items-center gap-2 text-xs">
+        <i class="fa fa-arrow-left"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="/adminAddEBook" class="aria-btn-primary flex items-center gap-2 text-xs">
+        <i class="fa fa-plus"></i>
+        <span>Schedule Event</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="aria-card p-6 space-y-4">
+    <!-- Controls -->
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+      <div class="relative flex-1 max-w-md">
+        <i class="fa fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text"
+               x-model="search"
+               placeholder="Search by user name, ID, or hall..."
+               class="aria-input pl-9 text-xs py-2">
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label for="admin-ebook-status-filter" class="text-xs font-bold text-slate-500 uppercase tracking-wider text-[10px]">Status:</label>
+        <select id="admin-ebook-status-filter"
+                x-model="statusFilter"
+                class="aria-input py-2 px-3 text-xs w-auto rounded-xl bg-slate-50 font-semibold">
+          <option value="all">All Status</option>
+          <option value="Upcoming">Upcoming</option>
+          <option value="Ongoing">Ongoing</option>
+          <option value="Completed">Completed</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
+      <table id="ebookTable" class="w-full text-left text-sm text-slate-700">
+        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="px-5 py-3.5">ID</th>
+            <th class="px-5 py-3.5">User Profile</th>
+            <th class="px-5 py-3.5">Event Hall</th>
+            <th class="px-5 py-3.5">Schedule Window</th>
+            <th class="px-5 py-3.5">Purpose</th>
+            <th class="px-5 py-3.5">Status</th>
+            <th class="px-5 py-3.5 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white font-normal">
+          {% for eb in eventbookings %}
+          {% set user_name = '' %}
+          {% set user_id = '' %}
+          {% if eb.StudID != None %}
+            {% for stud in student %}{% if stud.StudID == eb.StudID %}{% set user_name = stud.StudName %}{% set user_id = stud.StudID %}{% endif %}{% endfor %}
+          {% elif eb.StaffID != None %}
+            {% for st in staff %}{% if st.StaffID == eb.StaffID %}{% set user_name = st.StaffName %}{% set user_id = st.StaffID %}{% endif %}{% endfor %}
+          {% endif %}
+
+          {% set room_name = '' %}
+          {% for rm in roomlist %}{% if rm.RoomID == eb.RoomID %}{% set room_name = rm.RoomName %}{% endif %}{% endfor %}
+
+          <tr class="hover:bg-slate-50/70 transition"
+              x-show="(statusFilter === 'all' || statusFilter === '{{ eb.EbookStatus }}') &&
+                      (!search || '{{ user_name|lower }}'.includes(search.toLowerCase()) || '{{ user_id|lower }}'.includes(search.toLowerCase()) || '{{ room_name|lower }}'.includes(search.toLowerCase()))">
+            <td class="px-5 py-4 font-mono font-semibold text-xs text-slate-500">#{{ eb.EBookID }}</td>
+            <td class="px-5 py-4">
+              <div class="font-bold text-slate-900">{{ user_name }}</div>
+              <div class="text-xs text-slate-400 font-mono">{{ 'Student: ' ~ user_id if eb.StudID != None else 'Staff: ' ~ user_id if eb.StaffID != None else '—' }}</div>
+            </td>
+            <td class="px-5 py-4">
+              <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                {{ room_name }}
+              </span>
+            </td>
+            <td class="px-5 py-4 whitespace-nowrap">
+              <div class="font-semibold text-slate-800 text-xs flex items-center gap-1.5">
+                <i class="fa fa-calendar-o text-teal-600"></i> {{ eb.Start }}
+              </div>
+              <div class="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                <i class="fa fa-clock-o"></i> {{ eb.End }}
+              </div>
+            </td>
+            <td class="px-5 py-4">
+              <div class="text-xs text-slate-500 truncate max-w-xs" title="{{ eb.Purpose }}">{{ eb.Purpose }}</div>
+            </td>
+            <td class="px-5 py-4">
+              {% set dot_color = 'bg-emerald-500' if eb.EbookStatus == 'Completed' or eb.EbookStatus == 'Ongoing' else 'bg-rose-500' if eb.EbookStatus == 'Cancelled' else 'bg-amber-500' %}
+              {% set badge_color = 'bg-emerald-50 text-emerald-700 border-emerald-200' if eb.EbookStatus == 'Completed' or eb.EbookStatus == 'Ongoing' else 'bg-rose-50 text-rose-700 border-rose-200' if eb.EbookStatus == 'Cancelled' else 'bg-amber-50 text-amber-700 border-amber-200' %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border {{ badge_color }}">
+                <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span> {{ eb.EbookStatus }}
+              </span>
+            </td>
+            <td class="px-5 py-4 text-right">
+              <form action="/deleteEBook/{{ eb.EBookID }}/" method="POST" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit"
+                        class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                        onclick="return confirm('Permanently delete this event booking record?')">
+                  <i class="fa fa-trash-o"></i>
+                  <span>Delete</span>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

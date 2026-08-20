@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-50">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}ARIA{% endblock %}</title>
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" crossorigin="anonymous" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/aria-theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}" />
+
+  <style>
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    [x-cloak] { display: none !important; }
+  </style>
+</head>
+
+<body class="min-h-full flex flex-col justify-center bg-slate-50 text-slate-800 antialiased">
+  <div class="min-h-screen flex flex-col lg:flex-row">
+    
+    <!-- Left Hero Column (Desktop) -->
+    <div class="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-[#0d4f8c] via-[#0a3e6f] to-[#082a4d] text-white p-12 lg:p-16 flex-col justify-between relative overflow-hidden">
+      <!-- Background Glow Decorations -->
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-teal-500/10 rounded-full blur-3xl pointer-events-none"></div>
+
+      <div class="relative z-10">
+        <a href="/" class="inline-flex items-center gap-3 mb-8 transition-transform hover:scale-105">
+          <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA Logo" class="h-12 w-auto">
+          <span class="text-3xl font-extrabold tracking-tight">ARIA</span>
+        </a>
+        <h1 class="text-3xl lg:text-4xl font-bold tracking-tight text-white mb-3">
+          Automated Room Interaction & Access
+        </h1>
+        <p class="text-lg text-blue-100/80 max-w-md">
+          Intelligent facial recognition and real-time scheduling for university meeting spaces.
+        </p>
+      </div>
+
+      <!-- Feature List -->
+      <div class="relative z-10 space-y-6 my-auto py-8">
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-teal-300 text-xl flex-shrink-0 shadow-sm">
+            <i class="fa fa-user-circle"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white text-base">Biometric Access</h3>
+            <p class="text-sm text-blue-100/70">Seamless room unlocking using state-of-the-art FaceNet recognition.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-teal-300 text-xl flex-shrink-0 shadow-sm">
+            <i class="fa fa-qrcode"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white text-base">QR Check-in</h3>
+            <p class="text-sm text-blue-100/70">Instant guest and member attendance verification with time-bound dynamic tokens.</p>
+          </div>
+        </div>
+
+        <div class="flex items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-white/10 backdrop-blur-md flex items-center justify-center text-teal-300 text-xl flex-shrink-0 shadow-sm">
+            <i class="fa fa-calendar-check-o"></i>
+          </div>
+          <div>
+            <h3 class="font-semibold text-white text-base">Smart Scheduling</h3>
+            <p class="text-sm text-blue-100/70">Conflict-free room reservation with live calendar availability.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="relative z-10 pt-6 border-t border-white/10 text-xs text-blue-200/60">
+        &copy; 2026 ARIA Smart Booking Platform. Universiti Malaysia Sabah.
+      </div>
+    </div>
+
+    <!-- Right Form Column -->
+    <div class="flex-1 flex flex-col justify-center px-4 sm:px-6 lg:px-12 py-12 bg-slate-50 overflow-y-auto">
+      <div class="max-w-md w-full mx-auto">
+        <!-- Mobile Header Branding -->
+        <div class="lg:hidden text-center mb-8">
+          <a href="/" class="inline-flex items-center gap-2">
+            <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA Logo" class="h-10 w-auto">
+            <span class="text-2xl font-bold text-slate-900 tracking-tight">ARIA</span>
+          </a>
+          <p class="text-xs text-slate-500 mt-1">Smart Room Booking Platform</p>
+        </div>
+
+        <!-- Auth Content Block -->
+        <div class="bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-slate-200/80">
+          {% block auth_content %}{% endblock %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reactive Alpine Toast Notifications Container -->
+  <div aria-live="polite" aria-atomic="true" class="fixed top-6 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <template x-for="toast in $store.toasts.items" :key="toast.id">
+      <div x-show="toast.visible"
+           x-transition:enter="transition ease-out duration-250 transform"
+           x-transition:enter-start="translate-y-2 opacity-0 scale-95"
+           x-transition:enter-end="translate-y-0 opacity-100 scale-100"
+           x-transition:leave="transition ease-in duration-200 transform"
+           x-transition:leave-start="translate-y-0 opacity-100 scale-100"
+           x-transition:leave-end="translate-y-1 opacity-0 scale-95"
+           class="pointer-events-auto flex items-start gap-3 p-4 rounded-xl shadow-lg border bg-white"
+           :class="{
+             'border-green-200 text-slate-800': toast.type === 'success',
+             'border-red-200 text-slate-800': toast.type === 'error' || toast.type === 'danger',
+             'border-amber-200 text-slate-800': toast.type === 'warning',
+             'border-blue-200 text-slate-800': toast.type === 'info'
+           }">
+        <div class="flex-shrink-0 mt-0.5">
+          <i class="fa" :class="{
+            'fa-check-circle text-green-600': toast.type === 'success',
+            'fa-exclamation-circle text-red-600': toast.type === 'error' || toast.type === 'danger',
+            'fa-exclamation-triangle text-amber-600': toast.type === 'warning',
+            'fa-info-circle text-blue-600': toast.type === 'info'
+          }"></i>
+        </div>
+        <div class="flex-1 text-sm font-medium leading-5" x-text="toast.message"></div>
+        <button @click="$store.toasts.remove(toast.id)" type="button" class="flex-shrink-0 text-slate-400 hover:text-slate-600 p-0.5 rounded">
+          <i class="fa fa-times text-xs"></i>
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <!-- Server-rendered Flash Messages bridge -->
+  <div id="legacy-flash-messages" class="hidden">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <span class="flash-data"
+                data-category="{{ 'error' if category == 'error' else 'success' if category == 'success' else 'warning' if category == 'warning' else 'info' }}"
+                data-message="{{ message }}"></span>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+  </div>
+
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+  <script src="{{ url_for('static', filename='aria-shell-alpine.js') }}"></script>
+  {% block auth_scripts %}{% endblock %}
+</body>
+
+</html>

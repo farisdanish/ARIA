@@ -1,0 +1,31 @@
+<div class="aria-card p-3 flex items-center gap-3 cursor-pointer hover:border-blue-400 hover:shadow-md transition group {{ 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-500/20' if active_room_id == room.id }}"
+     onclick="selectRoom('{{ room.id }}', '{{ 'r' if room.type == 'Normal Room' else 'e' }}')"
+     data-room-id="{{ room.id }}"
+     role="button"
+     tabindex="0"
+     aria-label="Select {{ room.name }}, currently {{ room.status }}">
+
+  <!-- Thumbnail / Icon -->
+  <div class="w-14 h-14 rounded-xl bg-slate-100 flex-shrink-0 overflow-hidden flex items-center justify-center text-slate-400 border border-slate-200">
+    {% if room.image %}
+    <img src="{{ url_for('static', filename='uploads/roomImages/' + room.image) }}" alt="{{ room.name }}" class="w-full h-full object-cover" loading="lazy">
+    {% else %}
+    <i class="fa {{ 'fa-door-open text-blue-600' if room.type == 'Normal Room' else 'fa-university text-teal-600' }} text-xl"></i>
+    {% endif %}
+  </div>
+
+  <!-- Info -->
+  <div class="flex-1 min-w-0">
+    <div class="flex items-center gap-2 mb-0.5">
+      <span class="text-[10px] font-bold tracking-wider uppercase px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">{{ 'ROOM' if room.type == 'Normal Room' else 'HALL' }}</span>
+    </div>
+    <div class="text-sm font-bold text-slate-900 truncate group-hover:text-blue-700 transition">{{ room.name }}</div>
+    <div class="flex items-center gap-1.5 mt-1">
+      {% set dot_color = 'bg-emerald-500' if room.status|lower == 'available' else 'bg-rose-500' if room.status|lower == 'occupied' else 'bg-amber-500' %}
+      {% set badge_color = 'bg-emerald-50 text-emerald-700 border-emerald-200' if room.status|lower == 'available' else 'bg-rose-50 text-rose-700 border-rose-200' if room.status|lower == 'occupied' else 'bg-amber-50 text-amber-700 border-amber-200' %}
+      <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold border {{ badge_color }}">
+        <span class="w-1.5 h-1.5 rounded-full {{ dot_color }}"></span> {{ room.status }}
+      </span>
+    </div>
+  </div>
+</div>

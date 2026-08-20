@@ -1,0 +1,122 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Room Access Log — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto" x-data="{ search: '', statusFilter: 'all' }">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-amber-50/30">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 mb-2">
+        <i class="fa fa-shield"></i>
+        <span>Security Audit Active</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Room Access Log</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Real-time audit history of biometric and QR facility access events.</p>
+    </div>
+
+    <a href="/homeAdmin" class="aria-btn-secondary flex items-center gap-2 text-xs">
+      <i class="fa fa-arrow-left"></i>
+      <span>Dashboard</span>
+    </a>
+  </div>
+
+  <!-- Table Card -->
+  <div class="aria-card p-6 space-y-4">
+    <!-- Controls -->
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+      <div class="relative flex-1 max-w-md">
+        <i class="fa fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text"
+               x-model="search"
+               placeholder="Search by user name, ID, or room..."
+               class="aria-input pl-9 text-xs py-2">
+      </div>
+
+      <div class="flex items-center gap-2">
+        <label for="access-status-filter" class="text-xs font-bold text-slate-500 uppercase tracking-wider text-[10px]">Result:</label>
+        <select id="access-status-filter"
+                x-model="statusFilter"
+                class="aria-input py-2 px-3 text-xs w-auto rounded-xl bg-slate-50 font-semibold">
+          <option value="all">All Results</option>
+          <option value="pass">PASS Only</option>
+          <option value="fail">FAIL Only</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Access Logs Table -->
+    <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
+      <table id="RAccessLogTable" class="w-full text-left text-sm text-slate-700">
+        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="px-5 py-3.5">Log ID</th>
+            <th class="px-5 py-3.5">Facility</th>
+            <th class="px-5 py-3.5">User Profile</th>
+            <th class="px-5 py-3.5">Access Status</th>
+            <th class="px-5 py-3.5">Timestamp</th>
+            <th class="px-5 py-3.5 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white font-normal">
+          {% for r in roomaccesslog %}
+          {% set user_name = '' %}
+          {% set user_id = '' %}
+          {% if r.StudID != None %}
+            {% for stud in student %}{% if stud.StudID == r.StudID %}{% set user_name = stud.StudName %}{% set user_id = stud.StudID %}{% endif %}{% endfor %}
+          {% elif r.StaffID != None %}
+            {% for st in staff %}{% if st.StaffID == r.StaffID %}{% set user_name = st.StaffName %}{% set user_id = st.StaffID %}{% endif %}{% endfor %}
+          {% endif %}
+
+          {% set room_name = '' %}
+          {% set room_type = '' %}
+          {% for rm in roomlist %}{% if rm.RoomID == r.RoomID %}{% set room_name = rm.RoomName %}{% set room_type = rm.RoomType %}{% endif %}{% endfor %}
+
+          <tr class="hover:bg-slate-50/70 transition"
+              x-show="(statusFilter === 'all' || (statusFilter === 'pass' && '{{ r.Status }}' === '0') || (statusFilter === 'fail' && '{{ r.Status }}' === '1')) &&
+                      (!search || '{{ user_name|lower }}'.includes(search.toLowerCase()) || '{{ user_id|lower }}'.includes(search.toLowerCase()) || '{{ room_name|lower }}'.includes(search.toLowerCase()))">
+            <td class="px-5 py-4 font-mono font-semibold text-xs text-slate-500">#{{ r.rmaID }}</td>
+            <td class="px-5 py-4">
+              <div class="font-bold text-slate-900">{{ room_name }}</div>
+              <div class="text-xs text-slate-400">{{ room_type }}</div>
+            </td>
+            <td class="px-5 py-4">
+              <div class="font-bold text-slate-900">{{ user_name }}</div>
+              <div class="text-xs text-slate-400 font-mono">{{ 'Student: ' ~ user_id if r.StudID != None else 'Staff: ' ~ user_id if r.StaffID != None else '—' }}</div>
+            </td>
+            <td class="px-5 py-4">
+              {% if r.Status == 0 %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> PASS
+              </span>
+              {% else %}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-500"></span> FAIL
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-4 whitespace-nowrap">
+              <div class="font-semibold text-slate-800 text-xs">
+                {{ r.Timestamp.strftime('%Y-%m-%d') if r.Timestamp.strftime is defined else r.Timestamp }}
+              </div>
+              <div class="text-xs text-slate-400">
+                {{ r.Timestamp.strftime('%H:%M:%S') if r.Timestamp.strftime is defined else '' }}
+              </div>
+            </td>
+            <td class="px-5 py-4 text-right">
+              <a href="/deleteRAccessLog/{{ r.rmaID }}/"
+                 class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                 onclick="return confirm('Permanently delete this access log record?')">
+                <i class="fa fa-trash-o"></i>
+                <span>Delete</span>
+              </a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

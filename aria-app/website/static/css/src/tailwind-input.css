@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .aria-card {
+    @apply bg-white rounded-xl border border-slate-200/80 shadow-sm transition-all;
+  }
+  .aria-card-hover {
+    @apply hover:shadow-md hover:border-slate-300;
+  }
+  .aria-btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 rounded-lg transition-colors disabled:opacity-50;
+  }
+  .aria-btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 hover:bg-slate-50 focus:ring-4 focus:ring-slate-100 rounded-lg transition-colors disabled:opacity-50;
+  }
+  .aria-input {
+    @apply w-full px-3 py-2 text-sm text-slate-900 bg-white rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors;
+  }
+}
+
+/* FullCalendar CSS Custom Properties Override for ARIA */
+:root {
+  --fc-button-text-color: #ffffff;
+  --fc-button-bg-color: #0d4f8c;
+  --fc-button-border-color: #0d4f8c;
+  --fc-button-hover-bg-color: #08335a;
+  --fc-button-hover-border-color: #08335a;
+  --fc-button-active-bg-color: #08335a;
+  --fc-button-active-border-color: #08335a;
+  --fc-event-bg-color: #0d4f8c;
+  --fc-event-border-color: #08335a;
+  --fc-event-text-color: #ffffff;
+  --fc-page-bg-color: #ffffff;
+  --fc-neutral-bg-color: #f8fafc;
+  --fc-list-event-hover-bg-color: #f1f5f9;
+  --fc-border-color: #e2e8f0;
+}

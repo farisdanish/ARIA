@@ -1,0 +1,24 @@
+<li class="p-4 hover:bg-slate-50 transition border-b border-slate-100 last:border-0"
+    {% if is_last and has_more %}
+    hx-get="/announcements/feed?page={{ page + 1 }}{% if search %}&search={{ search }}{% endif %}"
+    hx-trigger="revealed"
+    hx-swap="afterend"
+    {% endif %}>
+  <div class="flex items-center justify-between gap-2 mb-1">
+    <span class="inline-flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+      <i class="fa fa-clock-o"></i> {{ announcement.PostDate.strftime('%Y-%m-%d') }}
+    </span>
+    {% if announcement.PostDate.date() == today %}
+    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">New</span>
+    {% endif %}
+  </div>
+  <h4 class="text-sm font-semibold text-slate-900 leading-snug">
+    <a href="#"
+       class="hover:text-blue-700 transition"
+       hx-get="/announcements/view/{{ announcement.AnnounceID }}"
+       hx-target="#ariaAnnouncementModalContent"
+       @click="$dispatch('open-modal', { id: 'announcementModal' })">
+      {{ announcement.Title }}
+    </a>
+  </h4>
+</li>

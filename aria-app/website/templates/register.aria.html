@@ -1,0 +1,159 @@
+{% extends "auth_base.aria.html" %}
+{% block title %}Student Registration - ARIA{% endblock %}
+
+{% block auth_content %}
+<div class="w-full">
+  <div class="mb-6">
+    <a href="/RegisterSelect" class="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-700 hover:text-blue-900 mb-4 transition-colors">
+      <i class="fa fa-arrow-left text-xs"></i> Back to Selection
+    </a>
+    <h2 class="text-2xl font-bold text-slate-900 tracking-tight">Student Registration</h2>
+    <p class="text-sm text-slate-500 mt-1">Create your account to start booking library and event rooms.</p>
+  </div>
+
+  <form method="POST" hx-boost="true" class="space-y-4" x-data="{ showPass1: false, showPass2: false }">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+    <!-- Matric Number -->
+    <div>
+      <div class="flex items-center justify-between mb-1.5">
+        <label for="StudID" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider">
+          Matric Number
+        </label>
+        <div id="id-feedback" class="text-xs"></div>
+      </div>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i class="fa fa-id-card-o text-sm"></i>
+        </div>
+        <input type="text"
+               id="StudID"
+               name="StudID"
+               placeholder="e.g. BI21110001"
+               required
+               autofocus
+               hx-get="/api/auth/check-id?role=student"
+               hx-trigger="keyup changed delay:500ms"
+               hx-target="#id-feedback"
+               class="block w-full pl-10 pr-3.5 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+      </div>
+    </div>
+
+    <!-- Full Name -->
+    <div>
+      <label for="StudName" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+        Full Name (as in IC/Passport)
+      </label>
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+          <i class="fa fa-user text-sm"></i>
+        </div>
+        <input type="text"
+               id="StudName"
+               name="StudName"
+               placeholder="e.g. Muhammad Faris Bin Antoni"
+               required
+               class="block w-full pl-10 pr-3.5 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+      </div>
+    </div>
+
+    <!-- Email and Phone Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="StudEmail" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+          Student Email
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="fa fa-envelope text-sm"></i>
+          </div>
+          <input type="email"
+                 id="StudEmail"
+                 name="StudEmail"
+                 placeholder="name@student.ums.edu.my"
+                 required
+                 class="block w-full pl-10 pr-3.5 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+        </div>
+      </div>
+
+      <div>
+        <label for="StudContactNum" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+          Contact Number
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="fa fa-phone text-sm"></i>
+          </div>
+          <input type="tel"
+                 id="StudContactNum"
+                 name="StudContactNum"
+                 placeholder="0123456789"
+                 required
+                 class="block w-full pl-10 pr-3.5 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+        </div>
+      </div>
+    </div>
+
+    <!-- Password and Confirm Password Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label for="StudPassword1" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+          Password
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="fa fa-lock text-sm"></i>
+          </div>
+          <input :type="showPass1 ? 'text' : 'password'"
+                 id="StudPassword1"
+                 name="StudPassword1"
+                 placeholder="••••••••"
+                 required
+                 class="block w-full pl-10 pr-10 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+          <button type="button"
+                  @click="showPass1 = !showPass1"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  aria-label="Toggle password visibility">
+            <i class="fa text-xs" :class="showPass1 ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div>
+        <label for="StudPassword2" class="block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5">
+          Confirm Password
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+            <i class="fa fa-lock text-sm"></i>
+          </div>
+          <input :type="showPass2 ? 'text' : 'password'"
+                 id="StudPassword2"
+                 name="StudPassword2"
+                 placeholder="••••••••"
+                 required
+                 class="block w-full pl-10 pr-10 py-2.5 text-sm text-slate-900 bg-slate-50 border border-slate-300 rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-600 focus:border-blue-600 transition-colors">
+          <button type="button"
+                  @click="showPass2 = !showPass2"
+                  class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                  aria-label="Toggle password visibility">
+            <i class="fa text-xs" :class="showPass2 ? 'fa-eye-slash' : 'fa-eye'"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <button type="submit"
+            class="w-full inline-flex items-center justify-center gap-2 py-3 px-4 text-sm font-semibold text-white bg-blue-700 hover:bg-blue-800 focus:outline-none focus:ring-4 focus:ring-blue-200 rounded-xl shadow-sm transition-all hover:shadow mt-2">
+      <span>Create Student Account</span>
+      <i class="fa fa-arrow-right text-xs"></i>
+    </button>
+  </form>
+
+  <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+    <p class="text-xs text-slate-500">
+      Already have an account? <a href="/login" class="text-blue-700 font-semibold hover:underline">Sign In</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

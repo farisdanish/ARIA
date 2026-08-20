@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/announcement.css') }}" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/aria-theme.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tailwind.css') }}" />
   {% endblock %}
 </head>
 
@@ -27,10 +28,11 @@
   <a href="#main-content" class="skip-to-content shadow">Skip to Content</a>
 
   {% block top_nav %}
+  {% set u = user if user is defined and user is not none else current_user %}
   <nav class="navbar navbar-expand-lg navbar-dark aria-navbar sticky-top" aria-label="Primary">
     <div class="container-fluid">
       <a class="navbar-brand aria-brand d-flex align-items-center gap-2"
-        href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}">
+        href="{{ '/homeStud' if u.is_authenticated and u.is_Student() else '/homeStaff' if u.is_authenticated and u.is_Staff() else '/homeAdmin' if u.is_authenticated and u.is_Admin() else '/' }}">
         <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" height="30">
       </a>
 
@@ -41,15 +43,15 @@
 
       <div class="collapse navbar-collapse" id="navbar">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
-          {% if user.is_authenticated %}
-          {% if user.is_Student() %}
+          {% if u.is_authenticated %}
+          {% if u.is_Student() %}
           <li class="nav-item"><a class="nav-link" href="/homeStud"><i class="fa fa-home d-lg-none me-2"
                 title="Home"></i>Home</a></li>
           <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"
                 title="My Bookings"></i>My Bookings</a></li>
           <li class="nav-item"><a class="nav-link" href="/feedback"><i class="fa fa-comment d-lg-none me-2"
                 title="Feedback"></i>Feedback</a></li>
-          {% elif user.is_Staff() %}
+          {% elif u.is_Staff() %}
           <li class="nav-item"><a class="nav-link" href="/homeStaff"><i class="fa fa-home d-lg-none me-2"
                 title="Home"></i>Home</a></li>
           <li class="nav-item"><a class="nav-link" href="/MyBookings"><i class="fa fa-calendar d-lg-none me-2"
@@ -68,22 +70,22 @@
         </ul>
 
         <div class="navbar-nav align-items-lg-center">
-          {% if user.is_authenticated %}
+          {% if u.is_authenticated %}
           <div class="nav-item dropdown">
             <a class="user-dropdown-toggle dropdown-toggle" href="#" id="userDropdown" role="button"
               data-bs-toggle="dropdown" aria-expanded="false">
               <div class="user-avatar">
-                {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+                {{ u.StudName[0] if u.is_Student() else u.StaffName[0] if u.is_Staff() else 'A' }}
               </div>
               <span class="d-none d-sm-inline">
-                {{ user.StudName.split(' ')[0] if user.is_Student() else user.StaffName.split(' ')[0] if user.is_Staff()
+                {{ u.StudName.split(' ')[0] if u.is_Student() else u.StaffName.split(' ')[0] if u.is_Staff()
                 else 'Administrator' }}
               </span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="userDropdown">
               <li>
-                <h6 class="dropdown-header d-sm-none">{{ user.StudID if user.is_Student() else user.StaffID if
-                  user.is_Staff() else 'Admin' }}</h6>
+                <h6 class="dropdown-header d-sm-none">{{ u.StudID if u.is_Student() else u.StaffID if
+                  u.is_Staff() else 'Admin' }}</h6>
               </li>
               <li><a class="dropdown-item" href="/profile"><i class="fa fa-user"></i> My Profile</a></li>
               <li><a class="dropdown-item" href="/settings"><i class="fa fa-cog"></i> Settings</a></li>
@@ -112,21 +114,21 @@
       <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
     <div class="offcanvas-body sidebar-nav">
-      {% if user.is_authenticated %}
+      {% if u.is_authenticated %}
       <div class="d-flex align-items-center gap-3 mb-4 p-3 bg-white rounded-3 shadow-sm">
         <div class="user-avatar bg-primary">
-          {{ user.StudName[0] if user.is_Student() else user.StaffName[0] if user.is_Staff() else 'A' }}
+          {{ u.StudName[0] if u.is_Student() else u.StaffName[0] if u.is_Staff() else 'A' }}
         </div>
         <div>
-          <div class="fw-bold">{{ user.StudName if user.is_Student() else user.StaffName if user.is_Staff() else
+          <div class="fw-bold">{{ u.StudName if u.is_Student() else u.StaffName if u.is_Staff() else
             'Administrator' }}</div>
-          <div class="small text-muted">{{ user.StudID if user.is_Student() else user.StaffID if user.is_Staff() else
+          <div class="small text-muted">{{ u.StudID if u.is_Student() else u.StaffID if u.is_Staff() else
             'Admin Access' }}</div>
         </div>
       </div>
       <div class="nav flex-column">
-        {% if user.is_Student() or user.is_Staff() %}
-        <a class="nav-link" href="{{ '/homeStud' if user.is_Student() else '/homeStaff' }}"><i class="fa fa-home"></i>
+        {% if u.is_Student() or u.is_Staff() %}
+        <a class="nav-link" href="{{ '/homeStud' if u.is_Student() else '/homeStaff' }}"><i class="fa fa-home"></i>
           Home</a>
         <a class="nav-link" href="/MyBookings"><i class="fa fa-calendar"></i> My Bookings</a>
         <a class="nav-link" href="/demo"><i class="fa fa-camera"></i> Face Demo</a>
@@ -206,6 +208,7 @@
   </main>
 
   {% block page_scripts %}
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.8/dist/cdn.min.js"></script>
   <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.13.2/jquery-ui.min.js"></script>

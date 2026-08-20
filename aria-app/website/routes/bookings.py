@@ -9,6 +9,7 @@ from ..services.mail_service import MailService
 from ..services.qr_service import QRService
 from ..schemas.booking_schema import RoomBookingCreateSchema, EventBookingCreateSchema
 from ..utils.validation import validate_form_data
+from ..utils.ui import render_ui_template
 from ..models.user import Student, Staff
 from ..models.room import RoomBooking, EventBooking
 from ..models.base import db
@@ -137,21 +138,23 @@ def filter_bookings():
     if booking_type == 'room':
         if status != 'all':
             room_bookings = [b for b in room_bookings if b.RBookStatus == status]
-        return render_template('partials/_room_bookings_table.html', 
-                               roombookings=room_bookings, 
-                               roomlist=rooms,
-                               student=student,
-                               staff=staff,
-                               is_Student=is_student)
+        return render_ui_template('partials/_room_bookings_table.html',
+                                  ui_group="dashboards",
+                                  roombookings=room_bookings, 
+                                  roomlist=rooms,
+                                  student=student,
+                                  staff=staff,
+                                  is_Student=is_student)
     else:
         if status != 'all':
             event_bookings = [b for b in event_bookings if b.EbookStatus == status]
-        return render_template('partials/_event_bookings_table.html', 
-                               eventbookings=event_bookings,
-                               roomlist=rooms,
-                               student=student,
-                               staff=staff,
-                               is_Student=is_student)
+        return render_ui_template('partials/_event_bookings_table.html',
+                                  ui_group="dashboards",
+                                  eventbookings=event_bookings,
+                                  roomlist=rooms,
+                                  student=student,
+                                  staff=staff,
+                                  is_Student=is_student)
 
 
 @bookings.route('/MyBookings', methods=['GET', 'POST'])
@@ -186,8 +189,9 @@ def my_bookings():
     from ..services.announcement_service import AnnouncementService
     announcements = AnnouncementService.get_all()
     
-    return render_template(
+    return render_ui_template(
         template,
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         student=students if is_student else [],
@@ -197,10 +201,10 @@ def my_bookings():
         currentDate=curr_date,
         rBookTimeList=room_time_list,
         eBookTimeList=event_time_list,
+        announcements=announcements,
         is_Student=is_student,
         is_Staff=not is_student,
-        is_Admin=False,
-        announcements=announcements
+        is_Admin=False
     )
 
 
@@ -540,14 +544,42 @@ def manage_room_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_template(
+    return render_ui_template(
         "manageRBooking.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
         student=students,
         roombookings=room_bookings,
         rBookTimeList=room_time_list,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True
+    )
+
+
+@bookings.route('/adminAddRBook', methods=['GET'])
+@login_required
+def admin_add_room_booking():
+    """Admin calendar view to add room booking."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    room_bookings = BookingService.get_all_room_bookings()
+    rooms = RoomService.get_all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+
+    return render_ui_template(
+        "adminAddRBook.html",
+        ui_group="admin",
+        user=current_user,
+        roomlist=rooms,
+        staff=staff_list,
+        student=students,
+        roombookings=room_bookings,
         is_Student=False,
         is_Staff=False,
         is_Admin=True
@@ -569,14 +601,42 @@ def manage_event_bookings():
     students = db.session.query(Student).all()
     staff_list = db.session.query(Staff).all()
     
-    return render_template(
+    return render_ui_template(
         "manageEBooking.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
         student=students,
         eventbookings=event_bookings,
         eBookTimeList=event_time_list,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True
+    )
+
+
+@bookings.route('/adminAddEBook', methods=['GET'])
+@login_required
+def admin_add_event_booking():
+    """Admin calendar view to add event booking."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    event_bookings = BookingService.get_all_event_bookings()
+    rooms = RoomService.get_all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+
+    return render_ui_template(
+        "adminAddEBook.html",
+        ui_group="admin",
+        user=current_user,
+        roomlist=rooms,
+        staff=staff_list,
+        student=students,
+        eventbookings=event_bookings,
         is_Student=False,
         is_Staff=False,
         is_Admin=True
@@ -602,7 +662,7 @@ def qr_checkin():
     if not token or not booking_id:
         if request.is_json:
             return jsonify({"success": False, "message": "Missing token or booking ID."}), 400
-        return render_template("checkin_qr.html", success=False, message="Invalid QR code.")
+        return render_ui_template("checkin_qr.html", ui_group="public", user=current_user, success=False, message="Invalid QR code.")
 
     try:
         booking_id = int(booking_id)
@@ -648,7 +708,7 @@ def qr_checkin():
         }), 200 if success else 400
 
     if not device_request and not current_user.is_Admin() and not success and message == "This QR code does not belong to your account.":
-        return render_template("checkin_qr.html", success=False, message=message), 403
+        return render_ui_template("checkin_qr.html", ui_group="public", user=current_user, success=False, message=message), 403
 
     # Browser / phone scan path
     if success and booking:
@@ -659,4 +719,4 @@ def qr_checkin():
             booking_id=booking_id,
             booking_type=booking_type
         )
-    return render_template("checkin_qr.html", success=success, message=message)
+    return render_ui_template("checkin_qr.html", ui_group="public", user=current_user, success=success, message=message)

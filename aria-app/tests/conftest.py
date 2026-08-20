@@ -98,6 +98,9 @@ def make_room(app):
 @pytest.fixture
 def login_as(client):
     def _login(user):
+        from flask import g
+        if hasattr(g, '_login_user'):
+            delattr(g, '_login_user')
         with client.session_transaction() as session:
             session['_user_id'] = user.get_id()
             session['_fresh'] = True

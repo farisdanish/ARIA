@@ -135,7 +135,7 @@ def create_app(config_name: str = None) -> Flask:
             f"connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
             f"img-src 'self' data:; "
             f"font-src 'self' data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;"
-            f"script-src 'self' 'unsafe-inline' {_csp_hosts}; "
+            f"script-src 'self' 'unsafe-inline' 'unsafe-eval' {_csp_hosts}; "
             f"style-src 'self' 'unsafe-inline' {_csp_hosts}"
         )
         return response
@@ -144,8 +144,8 @@ def create_app(config_name: str = None) -> Flask:
     def inject_ui_flags():
         """Expose UI rollout flags to templates."""
         return {
-            'aria_ui_enabled': True,
-            'aria_ui_phase': 'all',
+            'aria_ui_enabled': app.config.get('ARIA_UI_ENABLED', True),
+            'aria_ui_phase': app.config.get('ARIA_UI_PHASE', 'all'),
         }
 
     # Start background scheduler and Redis subscriber

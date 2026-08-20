@@ -1,0 +1,84 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Announcement Management — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-teal-50/40">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700 border border-teal-200 mb-2">
+        <i class="fa fa-bullhorn"></i>
+        <span>Broadcast System</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Announcements</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Publish campus alerts, facility maintenance notices, and official announcements.</p>
+    </div>
+
+    <a href="/homeAdmin" class="aria-btn-secondary flex items-center gap-2 text-xs">
+      <i class="fa fa-arrow-left"></i>
+      <span>Dashboard</span>
+    </a>
+  </div>
+
+  <!-- Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <!-- Published Announcements Feed (7 cols) -->
+    <div class="lg:col-span-7 aria-card p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div class="flex items-center gap-2">
+          <div class="w-8 h-8 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center text-sm font-semibold">
+            <i class="fa fa-list"></i>
+          </div>
+          <h2 class="text-base font-bold text-slate-900">Published Broadcasts</h2>
+        </div>
+        <button class="px-3 py-1.5 text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 rounded-lg transition border border-teal-200"
+                hx-get="/ManageAnnouncements"
+                hx-target="#announcement-list"
+                hx-swap="innerHTML">
+          <i class="fa fa-refresh me-1"></i> Refresh
+        </button>
+      </div>
+
+      <div id="announcement-list" class="divide-y divide-slate-100">
+        {% include 'partials/_announcement_list.aria.html' %}
+      </div>
+    </div>
+
+    <!-- Create Broadcast Form (5 cols) -->
+    <div class="lg:col-span-5 aria-card p-6 space-y-4">
+      <div class="flex items-center gap-2 border-b border-slate-100 pb-3">
+        <div class="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-sm font-semibold">
+          <i class="fa fa-pencil"></i>
+        </div>
+        <h2 class="text-base font-bold text-slate-900">Publish New Notice</h2>
+      </div>
+
+      <form method="POST"
+            action="/ManageAnnouncements"
+            hx-post="/ManageAnnouncements"
+            hx-target="#announcement-list"
+            hx-swap="innerHTML"
+            class="space-y-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div>
+          <label for="ATitle" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Announcement Title</label>
+          <input type="text" id="ATitle" name="ATitle" class="aria-input" placeholder="e.g. Library Maintenance on Saturday" required>
+        </div>
+
+        <div>
+          <label for="AContent" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Content / Details</label>
+          <textarea id="AContent" name="AContent" rows="5" class="aria-input resize-y" placeholder="Full notice details, affected facilities, and contact info..." required></textarea>
+        </div>
+
+        <button type="submit" class="aria-btn-primary w-full py-3 flex items-center justify-center gap-2 font-bold shadow-md">
+          <i class="fa fa-paper-plane"></i>
+          <span>Publish Broadcast</span>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

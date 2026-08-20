@@ -157,7 +157,7 @@ class QRService:
         if expected_user_id is not None and owner_id != expected_user_id:
             return False, "This QR code does not belong to your account.", None
 
-        now = datetime.now()
+        now = datetime.utcnow()
         window_open = booking.Start - \
             __import__('datetime').timedelta(minutes=QR_EARLY_CHECKIN_MINUTES)
 
@@ -210,7 +210,7 @@ class QRService:
         if expected_user_id is not None and owner_id != expected_user_id:
             return False, "This QR code does not belong to your account.", None
 
-        now = datetime.now()
+        now = datetime.utcnow()
         window_open = booking.Start - \
             __import__('datetime').timedelta(minutes=QR_EARLY_CHECKIN_MINUTES)
 

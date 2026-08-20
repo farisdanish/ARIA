@@ -1,5 +1,5 @@
 """Home page routes."""
-from flask import Blueprint, redirect, url_for, render_template, request
+from flask import Blueprint, redirect, url_for, render_template, request, flash
 from flask_login import login_required, current_user
 from datetime import datetime
 from ..models.user import Student, Staff, Admin
@@ -9,6 +9,7 @@ from ..models.face import RegisteredFace
 from ..models.base import db
 from ..services.announcement_service import AnnouncementService
 from ..services.room_service import RoomService
+from ..utils.ui import render_ui_template
 import logging
 
 logger = logging.getLogger(__name__)
@@ -34,8 +35,9 @@ def index():
         elif current_user.is_Student():
             return redirect(url_for('home.student'))
     
-    return render_template(
+    return render_ui_template(
         "home.html",
+        ui_group="public",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -69,8 +71,9 @@ def student():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StudID=current_user.StudID).first()
     
-    return render_template(
+    return render_ui_template(
         "homeStud.html",
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -109,8 +112,9 @@ def staff():
     
     reg_face = db.session.query(RegisteredFace).filter_by(StaffID=current_user.StaffID).first()
     
-    return render_template(
+    return render_ui_template(
         "homeStaff.html",
+        ui_group="dashboards",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -150,8 +154,9 @@ def admin():
     feedbacks = db.session.query(Feedback).all()
     announcements = db.session.query(Announcement).all()
     
-    return render_template(
+    return render_ui_template(
         "homeAdmin.html",
+        ui_group="admin",
         user=current_user,
         roomlist=rooms,
         staff=staff_list,
@@ -196,3 +201,99 @@ def ui_pulse():
     response = make_response("", 204) # No content
     response.headers['HX-Trigger'] = json.dumps(triggers)
     return response
+
+
+@home.route('/ViewRoomAccessLog', methods=['GET'])
+@login_required
+def view_access_log():
+    """View room access audit logs (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    from ..models.access import RoomAccessLog
+    rooms = RoomService.get_all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+    logs = db.session.query(RoomAccessLog).order_by(RoomAccessLog.Timestamp.desc()).all()
+
+    return render_ui_template(
+        "AccessLogView.html",
+        ui_group="admin",
+        user=current_user,
+        roomlist=rooms,
+        staff=staff_list,
+        student=students,
+        roomaccesslog=logs,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True
+    )
+
+
+@home.route('/deleteRAccessLog/<int:rma_id>/', methods=['GET', 'POST'])
+@login_required
+def delete_access_log(rma_id):
+    """Delete a room access log entry (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    from ..models.access import RoomAccessLog
+    rma = db.session.query(RoomAccessLog).filter_by(rmaID=rma_id).first()
+    if rma:
+        db.session.delete(rma)
+        db.session.commit()
+        flash("Room access log record has been deleted", category="success")
+    else:
+        flash("Record not found", category="error")
+
+    return redirect(url_for('home.view_access_log'))
+
+
+@home.route('/ManageReport', methods=['GET'])
+@login_required
+def manage_reports():
+    """View usage reports (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    from ..models.report import Report
+    rooms = RoomService.get_all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+    reports = db.session.query(Report).all()
+
+    return render_ui_template(
+        "ManageReport.html",
+        ui_group="admin",
+        user=current_user,
+        roomlist=rooms,
+        staff=staff_list,
+        student=students,
+        report=reports,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True
+    )
+
+
+@home.route('/deleteReport/<int:report_id>', methods=['GET', 'POST'])
+@login_required
+def delete_report(report_id):
+    """Delete a report (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    from ..models.report import Report
+    rep = db.session.query(Report).filter_by(ReportID=report_id).first()
+    if rep:
+        db.session.delete(rep)
+        db.session.commit()
+        flash("Report deleted successfully", category="success")
+    else:
+        flash("Report not found", category="error")
+
+    return redirect(url_for('home.manage_reports'))

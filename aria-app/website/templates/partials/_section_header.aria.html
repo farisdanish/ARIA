@@ -1,0 +1,13 @@
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+  <div>
+    <h2 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">{{ title }}</h2>
+    {% if subtitle is defined and subtitle %}
+    <p class="text-sm text-slate-500 mt-1">{{ subtitle }}</p>
+    {% endif %}
+  </div>
+  {% if actions is defined and actions %}
+  <div class="flex items-center gap-3">
+    {{ actions|safe }}
+  </div>
+  {% endif %}
+</div>
