@@ -41,9 +41,8 @@
         <!-- Brand Logo -->
         <div class="flex items-center gap-6">
           <a href="{{ '/homeStud' if user.is_authenticated and user.is_Student() else '/homeStaff' if user.is_authenticated and user.is_Staff() else '/homeAdmin' if user.is_authenticated and user.is_Admin() else '/' }}"
-             class="flex items-center gap-2 text-white font-bold tracking-tight text-xl transition-opacity hover:opacity-90">
+             class="flex items-center transition-opacity hover:opacity-90">
             <img src="{{ url_for('static', filename='aria-logo.svg') }}" alt="ARIA" class="h-8 w-auto">
-            <span class="text-white font-semibold text-lg tracking-wide hidden sm:inline-block">ARIA</span>
           </a>
 
           <!-- Desktop Navigation Links -->
