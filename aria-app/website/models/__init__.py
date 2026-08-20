@@ -7,6 +7,7 @@ from .guest import GuestUser
 from .access import RoomAccessLog
 from .feedback import Feedback
 from .report import Report
+from .demo_visit import DemoVisitLog
 
 __all__ = [
     'Student',
@@ -21,5 +22,6 @@ __all__ = [
     'RoomAccessLog',
     'Feedback',
     'Report',
+    'DemoVisitLog',
 ]
 

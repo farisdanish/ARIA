@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Demo Visitor Logs — ARIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 mb-1 text-dark fw-bold">Public Demo Visitor Logs</h2>
+      <p class="text-muted small mb-0">Audit history of anonymous face demo interactions.</p>
+    </div>
+    <div>
+      <a href="/homeAdmin" class="btn btn-outline-secondary btn-sm me-2">
+        <i class="fa fa-arrow-left"></i> Dashboard
+      </a>
+      <form action="/clearDemoLogs" method="POST" onsubmit="return confirm('Purge all demo visitor logs?');" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-danger btn-sm">
+          <i class="fa fa-trash-o"></i> Clear Logs
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase">
+            <tr>
+              <th>ID</th>
+              <th>Visitor</th>
+              <th>Event</th>
+              <th>Message</th>
+              <th>IP</th>
+              <th>Timestamp</th>
+              <th class="text-end">Action</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            {% for log in logs %}
+            <tr>
+              <td class="text-muted font-monospace">#{{ log.id }}</td>
+              <td><span class="badge bg-light text-dark font-monospace">{{ log.GuestID }}</span></td>
+              <td>
+                <span class="badge bg-primary">{{ log.Action }}</span>
+              </td>
+              <td class="font-monospace small">{{ log.Message }}</td>
+              <td class="text-muted font-monospace">{{ log.IPAddress or '—' }}</td>
+              <td>{{ log.Timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.Timestamp.strftime is defined else log.Timestamp }}</td>
+              <td class="text-end">
+                <a href="/deleteDemoLog/{{ log.id }}/" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Delete this log record?')">
+                  <i class="fa fa-trash"></i>
+                </a>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="text-center py-4 text-muted">No demo visitor activity recorded yet.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

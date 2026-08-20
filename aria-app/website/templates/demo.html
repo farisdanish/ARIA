@@ -44,14 +44,27 @@
             </div>
         </div>
         <canvas id="capture-canvas" style="display:none;"></canvas>
+
+        <div class="card border-0 bg-light rounded-3 p-3 mt-3 shadow-sm">
+            <div class="d-flex align-items-start gap-3">
+                <i class="fa fa-shield text-primary fs-4 mt-1"></i>
+                <div class="small text-muted">
+                    <strong class="text-dark d-block mb-1">Privacy & Logging Transparency</strong>
+                    <ul class="mb-0 ps-3">
+                        <li><strong>No photos stored:</strong> Camera snapshots are processed in memory to create your temporary test pass and automatically expire.</li>
+                        <li><strong>Activity logs:</strong> We only record developer activity timestamps and match scores for prototype testing.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div class="col-lg-4">
-        <div class="aria-section-card shadow-sm h-100">
+        <div class="aria-section-card shadow-sm mb-3">
             <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
                     <h5 class="fw-bold mb-1">Demo State</h5>
-                    <p class="text-muted small mb-0">The server is small, so the demo runs one guest-only embedding flow at a time.</p>
+                    <p class="text-muted small mb-0">Single guest session runner</p>
                 </div>
                 <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-3 py-2">{{ demo_state|replace('_', ' ')|title }}</span>
             </div>
@@ -61,7 +74,7 @@
                 <div class="progress" style="height: 10px;">
                     <div id="sample-progress" class="progress-bar bg-success" role="progressbar" style="width: {{ (demo_sample_count / demo_required_samples * 100) if demo_required_samples else 0 }}%;"></div>
                 </div>
-                <div id="sample-count" class="small mt-2 text-muted">{{ demo_sample_count }}/{{ demo_required_samples }} samples captured</div>
+                <div id="sample-count" class="small mt-2 text-muted">{{ demo_sample_count }}/{{ demo_required_samples }} snapshots captured</div>
             </div>
 
             <div class="mb-3">
@@ -97,6 +110,24 @@
             <div id="message-box" class="alert alert-secondary mt-3 mb-0">
                 Create a temporary session to begin.
             </div>
+        </div>
+
+        <div class="aria-section-card shadow-sm">
+            <h6 class="fw-bold text-uppercase small text-muted mb-3">How It Works</h6>
+            <ol class="list-unstyled small mb-0">
+                <li class="mb-2.5">
+                    <strong>1. Start Session</strong><br>
+                    <span class="text-muted">Get a temporary guest pass — no login needed.</span>
+                </li>
+                <li class="mb-2.5">
+                    <strong>2. Take 5 Snapshots</strong><br>
+                    <span class="text-muted">Capture 5 quick angles so ARIA can learn your face.</span>
+                </li>
+                <li>
+                    <strong>3. Test Recognition</strong><br>
+                    <span class="text-muted">Look at the camera to see if ARIA recognizes you!</span>
+                </li>
+            </ol>
         </div>
     </div>
 </div>

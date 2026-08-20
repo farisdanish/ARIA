@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import logging
 import secrets
 from datetime import datetime, timedelta
 from typing import Optional
@@ -13,15 +14,37 @@ from itsdangerous import BadSignature, URLSafeSerializer
 from PIL import Image
 
 from ..models.base import db
+from ..models.demo_visit import DemoVisitLog
 from ..models.face import RegisteredFace
 from ..models.guest import GuestUser
 from ..services.face_service import FaceService
 from ..utils.upload_validation import validate_image_upload
 
+logger = logging.getLogger(__name__)
 
 DEMO_COOKIE_NAME = 'demo_token'
 _face_service = FaceService()
 _MAX_DEMO_IMAGE_BYTES = 5 * 1024 * 1024
+
+
+def log_demo_activity(
+    guest_id: str,
+    action: str,
+    message: str,
+    ip_address: Optional[str] = None,
+) -> DemoVisitLog:
+    """Record an audit log for demo activity and output to application log."""
+    log_entry = DemoVisitLog(
+        GuestID=guest_id,
+        Action=action,
+        Message=message,
+        IPAddress=ip_address,
+        Timestamp=datetime.utcnow(),
+    )
+    db.session.add(log_entry)
+    db.session.commit()
+    logger.info("[%s] %s", datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"), message)
+    return log_entry
 
 
 class DemoBusyError(RuntimeError):
@@ -117,7 +140,7 @@ def cosine_similarity_np(a, b):
     return float(np.dot(a_vec, b_vec) / denom)
 
 
-def create_demo_session(app) -> tuple[GuestUser, str]:
+def create_demo_session(app, ip_address: Optional[str] = None) -> tuple[GuestUser, str]:
     """
     Create a guest demo session and return the DB row plus raw token.
 
@@ -143,6 +166,12 @@ def create_demo_session(app) -> tuple[GuestUser, str]:
     )
     db.session.add(guest)
     db.session.commit()
+    log_demo_activity(
+        guest.GuestID,
+        'session_started',
+        f"VISITOR {guest.GuestID} started demo session (IP: {ip_address or 'unknown'})",
+        ip_address,
+    )
     return guest, raw_token
 
 
@@ -187,7 +216,7 @@ def load_guest_from_signed_cookie(cookie_value: str, *, include_expired: bool = 
     return guest
 
 
-def add_demo_frame(guest: GuestUser, image_bytes: bytes) -> dict:
+def add_demo_frame(guest: GuestUser, image_bytes: bytes, ip_address: Optional[str] = None) -> dict:
     """
     Extract one embedding for a guest demo session and persist it in JSON form.
     """
@@ -202,10 +231,16 @@ def add_demo_frame(guest: GuestUser, image_bytes: bytes) -> dict:
     record.EmbeddingsJSON = json.dumps(embeddings)
     guest.Status = 'enrolling'
     db.session.commit()
+    log_demo_activity(
+        guest.GuestID,
+        'sample_captured',
+        f"VISITOR {guest.GuestID} captured snapshot {len(embeddings)}/{required}",
+        ip_address,
+    )
     return {'sample_count': len(embeddings), 'required': required}
 
 
-def complete_demo_enrollment(guest: GuestUser) -> None:
+def complete_demo_enrollment(guest: GuestUser, ip_address: Optional[str] = None) -> None:
     """
     Mark a guest as ready once the required embeddings are present.
     """
@@ -217,9 +252,15 @@ def complete_demo_enrollment(guest: GuestUser) -> None:
 
     guest.Status = 'ready'
     db.session.commit()
+    log_demo_activity(
+        guest.GuestID,
+        'enrollment_complete',
+        f"VISITOR {guest.GuestID} completed face enrollment ({required}/{required} snapshots)",
+        ip_address,
+    )
 
 
-def recognize_demo_guest(guest: GuestUser, image_bytes: bytes) -> dict:
+def recognize_demo_guest(guest: GuestUser, image_bytes: bytes, ip_address: Optional[str] = None) -> dict:
     """
     Run guest-only embedding similarity without touching the shared SGD model.
     """
@@ -250,6 +291,14 @@ def recognize_demo_guest(guest: GuestUser, image_bytes: bytes) -> dict:
     guest.LastRecognitionConfidence = confidence
     db.session.commit()
 
+    result_label = 'MATCHED' if matched else 'NO MATCH'
+    log_demo_activity(
+        guest.GuestID,
+        'recognition_tested',
+        f"VISITOR {guest.GuestID} tested recognition: {result_label} (confidence: {confidence:.1%})",
+        ip_address,
+    )
+
     return {
         'matched': matched,
         'confidence': confidence,
@@ -257,10 +306,16 @@ def recognize_demo_guest(guest: GuestUser, image_bytes: bytes) -> dict:
     }
 
 
-def cleanup_demo_guest(guest: GuestUser) -> None:
+def cleanup_demo_guest(guest: GuestUser, ip_address: Optional[str] = None) -> None:
     """
     Delete one guest demo session and any guest-only embedding row.
     """
+    log_demo_activity(
+        guest.GuestID,
+        'session_reset',
+        f"VISITOR {guest.GuestID} reset demo session",
+        ip_address,
+    )
     records = db.session.query(RegisteredFace).filter_by(GuestID=guest.GuestID).all()
     for record in records:
         db.session.delete(record)

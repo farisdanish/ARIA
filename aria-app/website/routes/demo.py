@@ -6,14 +6,19 @@ from datetime import datetime
 from flask import (
     Blueprint,
     current_app,
+    flash,
     jsonify,
     make_response,
+    redirect,
     request,
+    url_for,
 )
-from flask_login import current_user
+from flask_login import current_user, login_required
 from ..utils.ui import render_ui_template
 
 from ..extensions import limiter
+from ..models.base import db
+from ..models.demo_visit import DemoVisitLog
 from ..models.room import RoomList
 from ..services import demo_service
 from ..services.demo_service import (
@@ -25,6 +30,12 @@ from ..utils.upload_validation import parse_data_url_image
 
 
 demo_bp = Blueprint('demo', __name__)
+
+
+def _client_ip() -> str:
+    if request.headers.get('X-Forwarded-For'):
+        return request.headers['X-Forwarded-For'].split(',')[0].strip()
+    return request.remote_addr or '127.0.0.1'
 
 
 def _active_guest():
@@ -89,7 +100,7 @@ def demo():
 def create_session():
     """Start a new public demo session."""
     try:
-        guest, raw_token = demo_service.create_demo_session(current_app)
+        guest, raw_token = demo_service.create_demo_session(current_app, ip_address=_client_ip())
     except DemoBusyError:
         return jsonify({'error': 'demo_busy'}), 503
 
@@ -137,7 +148,7 @@ def register_frame():
         return jsonify({'error': 'invalid_state', 'status': guest.Status}), 403
 
     try:
-        result = demo_service.add_demo_frame(guest, _image_bytes_from_request())
+        result = demo_service.add_demo_frame(guest, _image_bytes_from_request(), ip_address=_client_ip())
         return jsonify(result)
     except DemoEnrollmentCompleteError:
         return jsonify({'error': 'enrollment_complete'}), 429
@@ -159,7 +170,7 @@ def register_complete():
         return jsonify({'error': 'invalid_session'}), 401
 
     try:
-        demo_service.complete_demo_enrollment(guest)
+        demo_service.complete_demo_enrollment(guest, ip_address=_client_ip())
         return jsonify({'status': 'ready'})
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
@@ -176,7 +187,7 @@ def recognize():
         return jsonify({'error': 'guest_not_ready', 'status': guest.Status}), 403
 
     try:
-        result = demo_service.recognize_demo_guest(guest, _image_bytes_from_request())
+        result = demo_service.recognize_demo_guest(guest, _image_bytes_from_request(), ip_address=_client_ip())
         return jsonify(result)
     except ValueError as exc:
         return jsonify({'error': str(exc)}), 400
@@ -196,7 +207,59 @@ def reset():
     if guest is None:
         return jsonify({'error': 'invalid_session'}), 401
 
-    demo_service.cleanup_demo_guest(guest)
+    demo_service.cleanup_demo_guest(guest, ip_address=_client_ip())
     response = make_response(jsonify({'status': 'reset'}))
     response.delete_cookie(DEMO_COOKIE_NAME)
     return response
+
+
+@demo_bp.route('/ManageDemoLogs', methods=['GET'])
+@login_required
+def manage_demo_logs():
+    """View public demo visitor logs (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    logs = DemoVisitLog.query.order_by(DemoVisitLog.Timestamp.desc()).limit(500).all()
+    return render_ui_template(
+        'ManageDemoLogs.html',
+        ui_group='admin',
+        user=current_user,
+        logs=logs,
+        is_Student=False,
+        is_Staff=False,
+        is_Admin=True,
+    )
+
+
+@demo_bp.route('/deleteDemoLog/<int:log_id>/', methods=['GET', 'POST'])
+@login_required
+def delete_demo_log(log_id: int):
+    """Delete a single demo visit log record (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    log_entry = db.session.query(DemoVisitLog).filter_by(id=log_id).first()
+    if log_entry:
+        db.session.delete(log_entry)
+        db.session.commit()
+        flash('Demo log record deleted.', category='success')
+    else:
+        flash('Record not found.', category='error')
+    return redirect(url_for('demo.manage_demo_logs'))
+
+
+@demo_bp.route('/clearDemoLogs', methods=['POST'])
+@login_required
+def clear_demo_logs():
+    """Purge all demo visit logs (admin only)."""
+    if not current_user.is_Admin():
+        flash('Only admin allowed on that URL.', category='error')
+        return redirect(url_for('home.index'))
+
+    DemoVisitLog.query.delete()
+    db.session.commit()
+    flash('All demo visit logs have been purged.', category='success')
+    return redirect(url_for('demo.manage_demo_logs'))

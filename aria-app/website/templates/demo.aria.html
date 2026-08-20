@@ -59,6 +59,20 @@
       </div>
     </div>
     <canvas id="capture-canvas" class="hidden"></canvas>
+
+    <!-- Privacy & Transparency Notice -->
+    <div class="mt-4 p-4 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-start gap-3.5 text-xs text-slate-600 shadow-xs">
+      <div class="w-8 h-8 rounded-xl bg-blue-100/80 text-blue-700 flex items-center justify-center shrink-0 mt-0.5">
+        <i class="fa fa-shield text-sm"></i>
+      </div>
+      <div class="space-y-1">
+        <div class="font-bold text-slate-900">Privacy & Logging Transparency</div>
+        <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-600 leading-relaxed">
+          <li><strong>No photos stored:</strong> Camera snapshots are processed in memory to create your temporary test pass and automatically expire. No photos enter any database.</li>
+          <li><strong>Activity logs:</strong> We only record developer activity timestamps and match scores for prototype testing (e.g. <code class="bg-blue-100/60 px-1 py-0.5 rounded text-blue-900 font-mono text-[10px]">[time] VISITOR guest-xxxx tested recognition: MATCHED 95.6%</code>).</li>
+        </ul>
+      </div>
+    </div>
   </div>
 
   <!-- Demo Control Panel (Right Column) -->
@@ -144,6 +158,37 @@
         Create a temporary session to begin.
       </div>
     </div>
+
+    <!-- How It Works Stepper -->
+    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+      <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between">
+        <span>How It Works</span>
+        <span class="text-[10px] text-slate-400 font-normal">3 Simple Steps</span>
+      </h3>
+      <ol class="space-y-2 text-xs">
+        <li id="step-1-item" class="flex items-start gap-3 p-2.5 rounded-xl transition-all border border-transparent">
+          <span id="step-1-badge" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 transition-colors">1</span>
+          <div>
+            <div class="font-bold text-slate-900" id="step-1-title">Start Session</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Get a temporary guest pass — no account or login needed.</div>
+          </div>
+        </li>
+        <li id="step-2-item" class="flex items-start gap-3 p-2.5 rounded-xl transition-all border border-transparent">
+          <span id="step-2-badge" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 transition-colors">2</span>
+          <div>
+            <div class="font-bold text-slate-900" id="step-2-title">Take 5 Snapshots</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Capture 5 quick angles so ARIA can learn your face.</div>
+          </div>
+        </li>
+        <li id="step-3-item" class="flex items-start gap-3 p-2.5 rounded-xl transition-all border border-transparent">
+          <span id="step-3-badge" class="w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 transition-colors">3</span>
+          <div>
+            <div class="font-bold text-slate-900" id="step-3-title">Test Recognition</div>
+            <div class="text-[11px] text-slate-500 mt-0.5">Look at the camera to see if ARIA recognizes and lets you in!</div>
+          </div>
+        </li>
+      </ol>
+    </div>
   </div>
 </div>
 {% endblock %}
@@ -202,7 +247,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function updateSampleUI() {
-        sampleCount.textContent = `${state.sampleCount}/${state.required} samples captured`;
+        sampleCount.textContent = `${state.sampleCount}/${state.required} snapshots captured`;
         sampleProgress.style.width = `${Math.min(100, (state.sampleCount / state.required) * 100)}%`;
     }
 
@@ -224,6 +269,63 @@ document.addEventListener("DOMContentLoaded", () => {
         countdownText.textContent = `Expires in ${hours}h ${minutes}m ${seconds}s`;
     }
 
+    function updateStepper() {
+        const step1 = document.getElementById("step-1-item");
+        const step1Badge = document.getElementById("step-1-badge");
+        const step2 = document.getElementById("step-2-item");
+        const step2Badge = document.getElementById("step-2-badge");
+        const step3 = document.getElementById("step-3-item");
+        const step3Badge = document.getElementById("step-3-badge");
+
+        if (!step1 || !step2 || !step3) return;
+
+        const activeClass = "bg-blue-50 border-blue-200 text-blue-900";
+        const completeClass = "bg-emerald-50 border-emerald-200 text-emerald-900";
+        const inactiveClass = "bg-slate-50 border-transparent text-slate-600 opacity-60";
+
+        const badgeActive = "bg-blue-600 text-white shadow-xs";
+        const badgeComplete = "bg-emerald-600 text-white shadow-xs";
+        const badgeInactive = "bg-slate-200 text-slate-600";
+
+        if (state.demoState === "no_session" || state.demoState === "expired") {
+            step1.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${activeClass}`;
+            step1Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeActive}`;
+            step1Badge.innerHTML = "1";
+
+            step2.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${inactiveClass}`;
+            step2Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeInactive}`;
+            step2Badge.innerHTML = "2";
+
+            step3.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${inactiveClass}`;
+            step3Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeInactive}`;
+            step3Badge.innerHTML = "3";
+        } else if (state.demoState === "pending" || state.demoState === "enrolling") {
+            step1.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${completeClass}`;
+            step1Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeComplete}`;
+            step1Badge.innerHTML = '<i class="fa fa-check text-[10px]"></i>';
+
+            step2.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${activeClass}`;
+            step2Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeActive}`;
+            step2Badge.innerHTML = `${state.sampleCount || 0}`;
+
+            step3.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${inactiveClass}`;
+            step3Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeInactive}`;
+            step3Badge.innerHTML = "3";
+        } else if (state.demoState === "ready") {
+            step1.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${completeClass}`;
+            step1Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeComplete}`;
+            step1Badge.innerHTML = '<i class="fa fa-check text-[10px]"></i>';
+
+            step2.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${completeClass}`;
+            step2Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeComplete}`;
+            step2Badge.innerHTML = '<i class="fa fa-check text-[10px]"></i>';
+
+            step3.className = `flex items-start gap-3 p-2.5 rounded-xl transition-all border ${activeClass}`;
+            step3Badge.className = `w-6 h-6 rounded-full flex items-center justify-center font-bold text-xs shrink-0 mt-0.5 ${badgeActive}`;
+            step3Badge.innerHTML = "3";
+        }
+    }
+
     function renderState() {
         statePill.textContent = state.demoState.replace('_', ' ');
         startBtn.style.display = (state.demoState === "no_session" || state.demoState === "expired") ? "" : "none";
@@ -235,32 +337,37 @@ document.addEventListener("DOMContentLoaded", () => {
         if (state.demoState === "no_session") {
             overlay.textContent = "Waiting to start demo";
             setBadge("No session", "bg-slate-600/80", "fa fa-user");
-            setMessage("Create a temporary session to begin.", "secondary");
-            subtext.textContent = "Create a temporary demo session, capture five samples, then test recognition against your guest-only embeddings.";
+            setMessage("Click 'Start Demo Session' to begin. Your data is temporary and automatically deleted.", "secondary");
+            subtext.textContent = "Take a quick 5-snapshot demo to test how ARIA recognizes authorized guests.";
         } else if (state.demoState === "pending") {
-            overlay.textContent = "Camera ready for capture";
+            overlay.textContent = "Camera ready for snapshot";
             setBadge("Session started", "bg-blue-600/90 shadow-blue-500/50", "fa fa-camera");
-            setMessage("Capture your first sample. Frames are throttled to protect the demo server.", "info");
-            subtext.textContent = "Use the capture button to submit one sample every 1.5 seconds.";
+            setMessage("Look into the camera and tap 'Capture Next Sample'. Try slight angle variations for best results.", "info");
+            subtext.textContent = "Tap capture once every 1.5s to record your snapshots.";
         } else if (state.demoState === "enrolling") {
-            overlay.textContent = `Sample ${state.sampleCount}/${state.required}`;
-            setBadge("Enrolling", "bg-blue-600/90 shadow-blue-500/50", "fa fa-camera");
-            setMessage("Processing your samples. Keep camera steady and capture the next frame when re-enabled.", "primary");
-            subtext.textContent = "This public demo stores five guest-only embeddings and never retrains the production classifier.";
+            overlay.textContent = `Snapshot ${state.sampleCount}/${state.required}`;
+            setBadge("Taking snapshots", "bg-blue-600/90 shadow-blue-500/50", "fa fa-camera");
+            if (state.sampleCount >= state.required) {
+                setMessage("All 5 snapshots captured! Setting up your guest face profile...", "primary");
+            } else {
+                setMessage(`Snapshot ${state.sampleCount} of ${state.required} saved! Keep your face in view and capture the next snapshot.`, "primary");
+            }
+            subtext.textContent = "Multiple snapshots from slight angles help ARIA recognize you accurately.";
         } else if (state.demoState === "ready") {
             overlay.textContent = "Ready to test recognition";
             setBadge("Ready", "bg-teal-600/90 shadow-teal-500/50", "fa fa-check");
-            setMessage("Your temporary guest profile is ready. Try recognition against your own captured embeddings.", "success");
-            subtext.textContent = "Recognition compares your live face embedding against the five guest embeddings stored for this temporary session.";
+            setMessage("Profile ready! Tap 'Test Face Recognition' to check if ARIA recognizes you.", "success");
+            subtext.textContent = "Face the camera naturally to see if ARIA recognizes your guest pass.";
         } else if (state.demoState === "expired") {
             overlay.textContent = "Session expired";
             setBadge("Expired", "bg-red-600/90 shadow-red-500/50", "fa fa-clock-o");
-            setMessage("Your demo session expired. Start a new one to continue.", "warning");
-            subtext.textContent = "Guest demo sessions auto-expire and are cleaned up without touching production recognition data.";
+            setMessage("Your guest pass has expired. Start a new session to try again.", "warning");
+            subtext.textContent = "Guest passes auto-expire and are removed automatically.";
         }
 
         updateSampleUI();
         updateExpiryUI();
+        updateStepper();
     }
 
     async function ensureCamera() {
@@ -361,7 +468,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const now = Date.now();
         if (now - state.lastCaptureAt < state.frameIntervalMs) {
             const remaining = Math.ceil((state.frameIntervalMs - (now - state.lastCaptureAt)) / 1000);
-            setMessage(`Please wait ${remaining}s before capturing next sample.`, "warning");
+            setMessage(`Please wait ${remaining}s before capturing next snapshot.`, "warning");
             return;
         }
         if (!await ensureCamera()) return;
@@ -371,7 +478,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         state.lastCaptureAt = now;
         captureBtn.disabled = true;
-        overlay.textContent = "Processing sample...";
+        overlay.textContent = "Processing snapshot...";
         const { response, data } = await postJson("/demo/register-frame", {
             image: captureFrameDataUrl()
         });
@@ -396,8 +503,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     async function finishEnrollment() {
         completeBtn.disabled = true;
-        overlay.textContent = "Processing your samples...";
-        setMessage("Processing your samples. This may take a few seconds on the demo server.", "info");
+        overlay.textContent = "Finishing setup...";
+        setMessage("Setting up your guest profile. This may take a few seconds on the server...", "info");
         const { response, data } = await postJson("/demo/register-complete");
         completeBtn.disabled = false;
         if (!response.ok) {
@@ -416,7 +523,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         recognizeBtn.disabled = true;
-        overlay.textContent = "Running recognition...";
+        overlay.textContent = "Checking face...";
         const { response, data } = await postJson("/demo/recognize", {
             image: captureFrameDataUrl()
         });
@@ -427,15 +534,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const confidencePct = `${(Number(data.confidence || 0) * 100).toFixed(1)}%`;
         if (data.matched) {
-            overlay.textContent = `Recognized (${confidencePct})`;
+            overlay.textContent = `Access Granted (${confidencePct})`;
             setBadge("Matched", "bg-teal-600/90 shadow-teal-500/50", "fa fa-unlock");
-            setMessage(`Recognition matched your guest profile with ${confidencePct} confidence.`, "success");
+            setMessage(`Access Granted! ARIA recognized you with ${confidencePct} match confidence.`, "success");
         } else {
-            overlay.textContent = `No match (${confidencePct})`;
+            overlay.textContent = `Access Denied (${confidencePct})`;
             setBadge("Not matched", "bg-amber-600/90 shadow-amber-500/50", "fa fa-lock");
-            setMessage(`Recognition did not match your guest profile. Confidence was ${confidencePct}.`, "warning");
+            setMessage(`Access Denied (${confidencePct} match). Ensure good lighting and look directly at the camera, then try again.`, "warning");
         }
-        window.setTimeout(() => renderState(), 2500);
+        window.setTimeout(() => renderState(), 3500);
     }
 
     async function resetDemo() {

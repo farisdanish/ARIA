@@ -1,0 +1,190 @@
+{% extends "base.aria.html" %}
+
+{% block title %}Demo Visitor Logs — ARIA{% endblock %}
+
+{% block content %}
+<div class="space-y-6 max-w-7xl mx-auto" x-data="{ search: '', actionFilter: 'all', viewMode: 'table' }">
+
+  <!-- Header Card -->
+  <div class="aria-card p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gradient-to-r from-white to-blue-50/30">
+    <div>
+      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
+        <i class="fa fa-terminal"></i>
+        <span>Developer Activity Stream</span>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Public Demo Visitor Logs</h1>
+      <p class="text-xs text-slate-500 mt-0.5">Real-time developer logs of anonymous public face demo interactions.</p>
+    </div>
+
+    <div class="flex items-center gap-2">
+      <a href="/homeAdmin" class="aria-btn-secondary flex items-center gap-2 text-xs">
+        <i class="fa fa-arrow-left"></i>
+        <span>Dashboard</span>
+      </a>
+      <form action="/clearDemoLogs" method="POST" onsubmit="return confirm('Purge all demo visitor logs? This action cannot be undone.');" class="inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-xl transition border border-rose-200 shadow-xs">
+          <i class="fa fa-trash-o"></i>
+          <span>Clear Logs</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Card -->
+  <div class="aria-card p-6 space-y-4">
+    <!-- Controls & View Mode Toggle -->
+    <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-3">
+      <div class="relative flex-1 max-w-md">
+        <i class="fa fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+        <input type="text"
+               x-model="search"
+               placeholder="Search by visitor ID, message, or IP..."
+               class="aria-input pl-9 text-xs py-2">
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <div class="flex items-center gap-2">
+          <label for="demo-action-filter" class="text-xs font-bold text-slate-500 uppercase tracking-wider text-[10px]">Action:</label>
+          <select id="demo-action-filter"
+                  x-model="actionFilter"
+                  class="aria-input py-2 px-3 text-xs w-auto rounded-xl bg-slate-50 font-semibold">
+            <option value="all">All Events</option>
+            <option value="session_started">Session Started</option>
+            <option value="sample_captured">Sample Captured</option>
+            <option value="enrollment_complete">Enrollment Complete</option>
+            <option value="recognition_tested">Recognition Tested</option>
+            <option value="session_reset">Session Reset</option>
+          </select>
+        </div>
+
+        <div class="inline-flex rounded-xl bg-slate-100 p-1 border border-slate-200 text-xs font-semibold">
+          <button type="button"
+                  @click="viewMode = 'table'"
+                  :class="viewMode === 'table' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+                  class="px-3 py-1 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa fa-table"></i>
+            <span>Table View</span>
+          </button>
+          <button type="button"
+                  @click="viewMode = 'raw'"
+                  :class="viewMode === 'raw' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-500 hover:text-slate-700'"
+                  class="px-3 py-1 rounded-lg transition flex items-center gap-1.5">
+            <i class="fa fa-file-text-o"></i>
+            <span>Raw Log Stream</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. Table View -->
+    <div x-show="viewMode === 'table'" class="overflow-x-auto rounded-xl border border-slate-200 shadow-xs">
+      <table class="w-full text-left text-sm text-slate-700">
+        <thead class="bg-slate-50 text-xs uppercase font-bold text-slate-500 border-b border-slate-200">
+          <tr>
+            <th class="px-5 py-3.5">Log ID</th>
+            <th class="px-5 py-3.5">Visitor Pass</th>
+            <th class="px-5 py-3.5">Event</th>
+            <th class="px-5 py-3.5">Log Message</th>
+            <th class="px-5 py-3.5">IP Address</th>
+            <th class="px-5 py-3.5">Timestamp</th>
+            <th class="px-5 py-3.5 text-right">Action</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white font-normal text-xs">
+          {% for log in logs %}
+          {% set log_msg = log.Message %}
+          {% set log_guest = log.GuestID %}
+          {% set log_ip = log.IPAddress or '—' %}
+          <tr class="hover:bg-slate-50/70 transition"
+              x-show="(actionFilter === 'all' || actionFilter === '{{ log.Action }}') &&
+                      (!search || '{{ log_msg|lower }}'.includes(search.toLowerCase()) || '{{ log_guest|lower }}'.includes(search.toLowerCase()) || '{{ log_ip|lower }}'.includes(search.toLowerCase()))">
+            <td class="px-5 py-3.5 font-mono text-slate-400">#{{ log.id }}</td>
+            <td class="px-5 py-3.5">
+              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-mono text-[11px] font-semibold bg-slate-100 text-slate-800 border border-slate-200">
+                <i class="fa fa-user-circle text-slate-400"></i>
+                {{ log.GuestID }}
+              </span>
+            </td>
+            <td class="px-5 py-3.5">
+              {% if log.Action == 'session_started' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Session Start
+              </span>
+              {% elif log.Action == 'sample_captured' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500"></span> Snapshot
+              </span>
+              {% elif log.Action == 'enrollment_complete' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Ready
+              </span>
+              {% elif log.Action == 'recognition_tested' %}
+                {% if 'MATCHED' in log.Message %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-teal-50 text-teal-700 border border-teal-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Matched
+                </span>
+                {% else %}
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> No Match
+                </span>
+                {% endif %}
+              {% elif log.Action == 'session_reset' %}
+              <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span> Reset
+              </span>
+              {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full font-semibold bg-slate-100 text-slate-600">
+                {{ log.Action }}
+              </span>
+              {% endif %}
+            </td>
+            <td class="px-5 py-3.5 font-mono text-[11px] text-slate-800">
+              {{ log.Message }}
+            </td>
+            <td class="px-5 py-3.5 font-mono text-[11px] text-slate-500">
+              {{ log_ip }}
+            </td>
+            <td class="px-5 py-3.5 whitespace-nowrap">
+              <div class="font-semibold text-slate-800">
+                {{ log.Timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.Timestamp.strftime is defined else log.Timestamp }}
+              </div>
+            </td>
+            <td class="px-5 py-3.5 text-right">
+              <a href="/deleteDemoLog/{{ log.id }}/"
+                 class="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-semibold text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                 onclick="return confirm('Delete this log record?')">
+                <i class="fa fa-trash-o"></i>
+              </a>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="7" class="px-5 py-8 text-center text-slate-400 text-xs">
+              No demo visitor activity recorded yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 2. Raw Log Stream View (like laravel.log) -->
+    <div x-show="viewMode === 'raw'" class="space-y-2">
+      <div class="flex items-center justify-between text-xs text-slate-500">
+        <span class="font-semibold">Simulated Log Stream (<code class="font-mono text-slate-700">demo_visitors.log</code>)</span>
+        <button type="button"
+                @click="navigator.clipboard.writeText(document.getElementById('raw-log-content').innerText); alert('Copied raw logs to clipboard!')"
+                class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition inline-flex items-center gap-1.5 text-xs">
+          <i class="fa fa-clipboard"></i>
+          <span>Copy All</span>
+        </button>
+      </div>
+
+      <pre id="raw-log-content"
+           class="p-4 rounded-xl bg-slate-950 text-slate-200 font-mono text-xs overflow-x-auto max-h-[460px] leading-relaxed border border-slate-800 select-all whitespace-pre-wrap">{% for log in logs %}[{{ log.Timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.Timestamp.strftime is defined else log.Timestamp }}] {{ log.Message }}
+{% else %}# No logs recorded yet.{% endfor %}</pre>
+    </div>
+  </div>
+</div>
+{% endblock %}
