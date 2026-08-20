@@ -128,13 +128,15 @@ def create_app(config_name: str = None) -> Flask:
             'https://cdn.datatables.net '
             'https://code.jquery.com '
             'https://ajax.googleapis.com '
-            'https://unpkg.com'
+            'https://unpkg.com '
+            'https://fonts.googleapis.com '
+            'https://fonts.gstatic.com'
         )
         response.headers['Content-Security-Policy'] = (
             f"default-src 'self'; "
-            f"connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            f"connect-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://fonts.gstatic.com; "
             f"img-src 'self' data:; "
-            f"font-src 'self' data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net;"
+            f"font-src 'self' data: https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://fonts.gstatic.com; "
             f"script-src 'self' 'unsafe-inline' 'unsafe-eval' {_csp_hosts}; "
             f"style-src 'self' 'unsafe-inline' {_csp_hosts}"
         )
