@@ -64,9 +64,9 @@ def create_app(config_name: str = None) -> Flask:
     )
     limiter.init_app(app)
 
-    # Bootstrap database tables for local/dev environments when missing.
-    auto_create_db = os.environ.get('AUTO_CREATE_DB', 'True').lower() == 'true'
-    if auto_create_db:
+    # Bootstrap database tables for local/dev environments when explicitly requested.
+    auto_create_db = os.environ.get('AUTO_CREATE_DB', 'false').lower() == 'true'
+    if auto_create_db and config_name not in ('production', 'prod'):
         with app.app_context():
             db.create_all()
         logger.info('Database tables ensured via db.create_all()')

@@ -17,16 +17,20 @@ depends_on = None
 
 
 def upgrade():
-    op.create_table(
-        'demo_visit_log',
-        sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-        sa.Column('Timestamp', sa.DateTime(), nullable=False),
-        sa.Column('GuestID', sa.String(length=50), nullable=False),
-        sa.Column('Action', sa.String(length=50), nullable=False),
-        sa.Column('Message', sa.String(length=255), nullable=False),
-        sa.Column('IPAddress', sa.String(length=45), nullable=True),
-        sa.PrimaryKeyConstraint('id')
-    )
+    conn = op.get_bind()
+    inspector = sa.inspect(conn)
+    tables = inspector.get_table_names()
+    if 'demo_visit_log' not in tables:
+        op.create_table(
+            'demo_visit_log',
+            sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
+            sa.Column('Timestamp', sa.DateTime(), nullable=False),
+            sa.Column('GuestID', sa.String(length=50), nullable=False),
+            sa.Column('Action', sa.String(length=50), nullable=False),
+            sa.Column('Message', sa.String(length=255), nullable=False),
+            sa.Column('IPAddress', sa.String(length=45), nullable=True),
+            sa.PrimaryKeyConstraint('id')
+        )
 
 
 def downgrade():

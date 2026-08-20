@@ -31,7 +31,7 @@ jobs:
             
             # Auto-stamp baseline migration if unversioned tables exist
             cd /home/aria/ARIA/aria-app
-            FLASK_SKIP_BACKGROUND_THREADS=1 python3 -c "
+            FLASK_SKIP_BACKGROUND_THREADS=1 AUTO_CREATE_DB=false python3 -c "
             from website.app import create_app
             from website.models.base import db
             from sqlalchemy import inspect
@@ -44,7 +44,7 @@ jobs:
                     print('Existing unversioned database detected. Auto-stamping to head...')
                     stamp(directory='migrations', revision='head')
             "
-            FLASK_SKIP_BACKGROUND_THREADS=1 flask db upgrade
+            FLASK_SKIP_BACKGROUND_THREADS=1 AUTO_CREATE_DB=false flask db upgrade
             
             # Sync systemd unit and restart service
             sudo cp /home/aria/ARIA/aria-app/aria.service /etc/systemd/system/aria.service
