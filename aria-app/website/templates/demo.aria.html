@@ -2,38 +2,38 @@
 {% block title %}ARIA Face Demo{% endblock %}
 
 {% block content %}
-<!-- Demo Hero Banner (Compact & non-intrusive) -->
-<div class="rounded-2xl bg-gradient-to-b from-blue-50/70 via-slate-50/40 to-white border border-slate-200/80 p-4 sm:p-5 mb-4 text-center shadow-xs">
-  <div class="max-w-2xl mx-auto">
-    <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-blue-100/90 text-blue-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5">
-      <i class="fa fa-camera text-[10px]"></i> Live Biometric Prototype
+<!-- Demo Header Bar (Slim, fits in single view on 1080p) -->
+<div class="rounded-xl bg-gradient-to-r from-blue-50/70 via-slate-50/40 to-white border border-slate-200/80 px-3.5 py-2 mb-3 flex flex-wrap items-center justify-between gap-2 shadow-2xs">
+  <div class="flex items-center gap-2">
+    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-100/90 text-blue-800 text-[10px] font-bold uppercase tracking-wider">
+      <i class="fa fa-camera text-[9px]"></i> Live Prototype
     </span>
-    <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">ARIA Public Face Demo</h1>
-    <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-lg mx-auto leading-relaxed">
-      Create a temporary guest face profile that expires automatically. It never enters the production room-access dataset.
-    </p>
+    <h1 class="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight">ARIA Public Face Demo</h1>
   </div>
+  <p class="text-[11px] text-slate-500 max-w-md text-right hidden sm:block">
+    Ephemeral guest pass for public biometric matching. No photos stored.
+  </p>
 </div>
 
-<div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
   <!-- PRIMARY CAMERA & ACTION WORKSPACE (Full-width on mobile, 8 cols on desktop) -->
-  <div class="lg:col-span-8 space-y-4">
+  <div class="lg:col-span-8 space-y-3">
 
     <!-- Primary Camera Stage Card -->
-    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+    <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       
       <!-- 🌟 PROMINENT TOP GUIDANCE & STATUS BAR (Eye-level, never covers the face) -->
-      <div id="guidance-banner" class="px-4 py-3 sm:px-5 sm:py-3.5 bg-blue-50/90 border-b border-blue-100/80 transition-colors duration-300">
+      <div id="guidance-banner" class="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-blue-50/90 border-b border-blue-100/80 transition-colors duration-300">
         <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0">
-            <div id="guidance-icon-box" class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300">
-              <i id="guidance-icon" class="fa fa-info text-xs sm:text-sm"></i>
+          <div class="flex items-center gap-2.5 min-w-0">
+            <div id="guidance-icon-box" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300">
+              <i id="guidance-icon" class="fa fa-info text-xs"></i>
             </div>
             <div class="min-w-0">
               <div id="guidance-title" class="text-xs sm:text-sm font-bold text-blue-950 truncate tracking-tight">
                 Ready to Start Demo
               </div>
-              <div id="guidance-text" class="text-[11px] sm:text-xs text-blue-800/90 mt-0.5 leading-snug">
+              <div id="guidance-text" class="text-[10px] sm:text-xs text-blue-800/90 leading-tight">
                 Click "Start Demo Session" below to generate a temporary guest pass.
               </div>
             </div>
@@ -41,20 +41,20 @@
           
           <div class="flex items-center gap-2 shrink-0">
             <!-- Session Countdown Pill -->
-            <div id="expiry-pill" class="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-white/90 border border-blue-200/80 text-[10px] sm:text-[11px] font-mono text-slate-700 shadow-2xs">
+            <div id="expiry-pill" class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 border border-blue-200/80 text-[10px] font-mono text-slate-700 shadow-2xs">
               <i class="fa fa-clock-o text-slate-400 text-[10px]"></i>
               <span id="countdown-text">No session</span>
             </div>
             <!-- State Badge -->
-            <span id="state-pill" class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border border-blue-200/60">
+            <span id="state-pill" class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-[10px] font-bold uppercase tracking-wider border border-blue-200/60">
               {{ demo_state|replace('_', ' ')|title }}
             </span>
           </div>
         </div>
       </div>
 
-      <!-- 📷 100% UNCLUTTERED LIVE CAMERA VIEWPORT (4:3 on mobile for portrait room, 16:9 on desktop) -->
-      <div class="relative bg-slate-950 aspect-[4/3] sm:aspect-video w-full overflow-hidden flex items-center justify-center">
+      <!-- 📷 100% UNCLUTTERED LIVE CAMERA VIEWPORT (4:3 mobile, 16:9 desktop with max-height for 1080p fit) -->
+      <div class="relative bg-slate-950 aspect-[4/3] sm:aspect-video max-h-[300px] sm:max-h-[340px] w-full overflow-hidden flex items-center justify-center">
         <!-- Live Video Stream -->
         <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
@@ -63,7 +63,7 @@
 
         <!-- Subtle Biometric Face Reticle Alignment Guide (Clean dashed oval, no floating text) -->
         <div id="face-reticle" class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 opacity-0 z-10">
-          <div class="w-44 h-56 sm:w-52 sm:h-64 rounded-[45%] border-2 border-dashed border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.15)]"></div>
+          <div class="w-36 h-48 sm:w-44 sm:h-56 rounded-[45%] border-2 border-dashed border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.15)]"></div>
         </div>
       </div>
 
@@ -71,23 +71,23 @@
       <canvas id="capture-canvas" class="hidden"></canvas>
 
       <!-- 🎮 INTEGRATED SUB-CAMERA CONTROLS DOCK -->
-      <div class="p-4 sm:p-5 bg-slate-50/90 border-t border-slate-200/80 space-y-3.5">
+      <div class="p-3 sm:p-3.5 bg-slate-50/90 border-t border-slate-200/80 space-y-2.5">
         
         <!-- Segmented 5-Step Progress Indicators -->
-        <div class="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-200/70 shadow-2xs">
+        <div class="flex items-center justify-between gap-3 bg-white p-2 sm:p-2.5 rounded-lg border border-slate-200/70 shadow-2xs">
           <div class="space-y-0.5">
-            <div class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Sample Progress</div>
+            <div class="text-[10px] font-bold uppercase tracking-wider text-slate-600">Sample Progress</div>
             <div id="sample-count" class="text-xs text-slate-800 font-medium font-mono">
               {{ demo_sample_count }}/{{ demo_required_samples }} captured
             </div>
           </div>
           
           <!-- 5-Dot Segmented Badges -->
-          <div id="segmented-dots" class="flex items-center gap-1.5 sm:gap-2">
+          <div id="segmented-dots" class="flex items-center gap-1.5">
             {% for i in range(1, 6) %}
             <div id="dot-step-{{ i }}"
-                 class="w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 {{ 'bg-blue-600 text-white shadow-xs' if i <= demo_sample_count else 'bg-slate-100 text-slate-400 border border-slate-200' }}">
-              {{ '<i class="fa fa-check text-[10px]"></i>'|safe if i <= demo_sample_count else i }}
+                 class="w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300 {{ 'bg-blue-600 text-white shadow-xs' if i <= demo_sample_count else 'bg-slate-100 text-slate-400 border border-slate-200' }}">
+              {{ '<i class="fa fa-check text-[9px]"></i>'|safe if i <= demo_sample_count else i }}
             </div>
             {% endfor %}
           </div>
@@ -100,10 +100,10 @@
         </div>
 
         <!-- Action Buttons Bar -->
-        <div id="action-panel" class="space-y-2">
+        <div id="action-panel" class="space-y-1.5">
           <!-- Button 1: Start Demo -->
           <button id="start-demo-btn"
-                  class="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-5 text-sm sm:text-base font-bold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.99] rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm sm:text-base font-bold text-white bg-blue-700 hover:bg-blue-800 active:scale-[0.99] rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   {% if demo_state != 'no_session' and demo_state != 'expired' %}style="display:none;"{% endif %}>
             <i class="fa fa-play text-xs"></i>
             <span>Start Demo Session</span>
@@ -111,7 +111,7 @@
 
           <!-- Button 2: Capture Next Sample (Primary Camera Shutter) -->
           <button id="capture-btn"
-                  class="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-5 text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.99] rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm sm:text-base font-bold text-white bg-blue-600 hover:bg-blue-700 active:scale-[0.99] rounded-lg shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   {% if demo_state not in ('pending', 'enrolling') %}style="display:none;"{% endif %}>
             <i class="fa fa-camera text-sm"></i>
             <span>Capture Next Sample (1/5)</span>
@@ -119,7 +119,7 @@
 
           <!-- Button 3: Complete Enrollment -->
           <button id="complete-btn"
-                  class="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-5 text-sm sm:text-base font-bold text-white bg-green-600 hover:bg-green-700 active:scale-[0.99] rounded-xl shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm sm:text-base font-bold text-white bg-green-600 hover:bg-green-700 active:scale-[0.99] rounded-lg shadow-sm transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   style="display:none;">
             <i class="fa fa-check text-sm"></i>
             <span>Finish Enrollment</span>
@@ -127,19 +127,19 @@
 
           <!-- Button 4: Test Recognition -->
           <button id="recognize-btn"
-                  class="w-full inline-flex items-center justify-center gap-2.5 py-3.5 px-5 text-sm sm:text-base font-bold text-white bg-teal-600 hover:bg-teal-700 active:scale-[0.99] rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                  class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 text-sm sm:text-base font-bold text-white bg-teal-600 hover:bg-teal-700 active:scale-[0.99] rounded-lg shadow-md transition-all cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   {% if demo_state != 'ready' %}style="display:none;"{% endif %}>
             <i class="fa fa-user-check text-sm"></i>
             <span>Test Face Recognition</span>
           </button>
 
           <!-- Auxiliary Button: Reset Session -->
-          <div class="flex items-center justify-between pt-1">
+          <div class="flex items-center justify-between pt-0.5">
             <div id="subtext" class="text-[11px] text-slate-500">
               Session expires automatically. No photos retained.
             </div>
             <button id="reset-btn"
-                    class="inline-flex items-center gap-1.5 py-1.5 px-3 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all cursor-pointer"
+                    class="inline-flex items-center gap-1 py-1 px-2.5 text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition-all cursor-pointer"
                     {% if demo_state == 'no_session' %}style="display:none;"{% endif %}>
               <i class="fa fa-refresh text-[10px]"></i>
               <span>Reset Session</span>

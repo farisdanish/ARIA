@@ -2,41 +2,41 @@
 {% block title %}ARIA Face Demo{% endblock %}
 
 {% block content %}
-<div class="aria-hero landing-hero text-center mb-3">
-    <div class="container py-2">
-        <h1 class="display-6 fw-800 mb-1" style="color: var(--aria-primary);">ARIA Public Face Demo</h1>
-        <p class="lead text-muted mb-0 mx-auto small" style="max-width: 680px;">
+<div class="aria-hero landing-hero text-center mb-2">
+    <div class="container py-1">
+        <h1 class="h5 fw-800 mb-0" style="color: var(--aria-primary);">ARIA Public Face Demo</h1>
+        <p class="text-muted mb-0 mx-auto small" style="max-width: 680px; font-size: 0.8rem;">
             This demo creates a temporary guest face profile that expires automatically. It never enters the
             production room-access model.
         </p>
     </div>
 </div>
 
-<div class="row g-4 align-items-start">
+<div class="row g-3 align-items-start">
     <!-- Camera & Interactive Control Stage -->
     <div class="col-lg-8">
         <div class="aria-section-card p-0 overflow-hidden shadow-lg border-primary-o20">
             
             <!-- 🌟 PROMINENT TOP GUIDANCE BANNER -->
-            <div id="guidance-banner" class="p-3 border-bottom alert-primary d-flex align-items-center justify-content-between gap-3 mb-0" style="transition: all 0.3s ease;">
-                <div class="d-flex align-items-center gap-3">
-                    <div id="guidance-icon-box" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 36px; height: 36px; flex-shrink: 0;">
-                        <i id="guidance-icon" class="fa fa-info"></i>
+            <div id="guidance-banner" class="p-2.5 border-bottom alert-primary d-flex align-items-center justify-content-between gap-3 mb-0" style="transition: all 0.3s ease;">
+                <div class="d-flex align-items-center gap-2.5">
+                    <div id="guidance-icon-box" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; flex-shrink: 0;">
+                        <i id="guidance-icon" class="fa fa-info small"></i>
                     </div>
                     <div>
                         <div id="guidance-title" class="fw-bold text-dark small">Ready to Start Demo</div>
-                        <div id="guidance-text" class="text-muted small">Click "Start Demo" below to generate a temporary guest pass.</div>
+                        <div id="guidance-text" class="text-muted small" style="font-size: 0.78rem;">Click "Start Demo" below to generate a temporary guest pass.</div>
                     </div>
                 </div>
                 <div class="d-flex align-items-center gap-2">
-                    <span id="expiry-pill" class="badge rounded-pill bg-white text-muted border px-2.5 py-1.5 font-monospace small">
+                    <span id="expiry-pill" class="badge rounded-pill bg-white text-muted border px-2 py-1 font-monospace small" style="font-size: 0.75rem;">
                         <i class="fa fa-clock-o me-1"></i><span id="countdown-text">No session</span>
                     </span>
-                    <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-3 py-2 text-uppercase">{{ demo_state|replace('_', ' ')|title }}</span>
+                    <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-2.5 py-1 text-uppercase small" style="font-size: 0.75rem;">{{ demo_state|replace('_', ' ')|title }}</span>
                 </div>
             </div>
 
-            <!-- Video Stage Viewport (4:3 on mobile, 16:9 on desktop) -->
+            <!-- Video Stage Viewport (4:3 on mobile, 16:9 on desktop with max-height) -->
             <div class="position-relative bg-dark w-100 overflow-hidden d-flex align-items-center justify-content-center camera-stage">
                 <video id="webcam" autoplay playsinline muted class="w-100 h-100 bg-dark" style="object-fit: cover;"></video>
                 
@@ -45,50 +45,50 @@
 
                 <!-- Face Reticle Overlay -->
                 <div id="face-reticle" class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style="opacity: 0; pointer-events: none; transition: opacity 0.4s ease; z-index: 10;">
-                    <div style="width: 190px; height: 250px; border-radius: 45%; border: 2px dashed rgba(255,255,255,0.4); box-shadow: 0 0 25px rgba(255,255,255,0.15);"></div>
+                    <div style="width: 160px; height: 210px; border-radius: 45%; border: 2px dashed rgba(255,255,255,0.4); box-shadow: 0 0 25px rgba(255,255,255,0.15);"></div>
                 </div>
             </div>
 
             <!-- Integrated Controls Dock Under Camera -->
-            <div class="p-3 p-md-4 bg-light border-top">
+            <div class="p-2.5 p-md-3 bg-light border-top">
                 <!-- Progress Row -->
-                <div class="d-flex justify-content-between align-items-center mb-3 bg-white p-2.5 rounded-3 border">
+                <div class="d-flex justify-content-between align-items-center mb-2 bg-white p-2 rounded-3 border">
                     <div>
-                        <div class="small fw-bold text-uppercase text-muted">Sample Progress</div>
+                        <div class="small fw-bold text-uppercase text-muted" style="font-size: 0.75rem;">Sample Progress</div>
                         <div id="sample-count" class="small font-monospace text-dark">{{ demo_sample_count }}/{{ demo_required_samples }} captured</div>
                     </div>
                     <div class="d-flex gap-1.5" id="segmented-dots">
                         {% for i in range(1, 6) %}
                         <div id="dot-step-{{ i }}"
                              class="rounded-circle d-flex align-items-center justify-content-center fw-bold small {{ 'bg-primary text-white' if i <= demo_sample_count else 'bg-light text-muted border' }}"
-                             style="width: 32px; height: 32px;">
+                             style="width: 28px; height: 28px; font-size: 0.75rem;">
                             {{ '<i class="fa fa-check"></i>'|safe if i <= demo_sample_count else i }}
                         </div>
                         {% endfor %}
                     </div>
                 </div>
 
-                <div class="progress mb-3" style="height: 6px;">
+                <div class="progress mb-2" style="height: 5px;">
                     <div id="sample-progress" class="progress-bar bg-primary" role="progressbar" style="width: {{ (demo_sample_count / demo_required_samples * 100) if demo_required_samples else 0 }}%;"></div>
                 </div>
 
                 <!-- Action Buttons -->
-                <div id="action-panel" class="d-grid gap-2">
-                    <button id="start-demo-btn" class="btn btn-primary btn-lg fw-bold" {% if demo_state != 'no_session' and demo_state != 'expired' %}style="display:none;"{% endif %}>
+                <div id="action-panel" class="d-grid gap-1.5">
+                    <button id="start-demo-btn" class="btn btn-primary py-2 fw-bold" {% if demo_state != 'no_session' and demo_state != 'expired' %}style="display:none;"{% endif %}>
                         <i class="fa fa-play me-1.5"></i> Start Demo Session
                     </button>
-                    <button id="capture-btn" class="btn btn-primary btn-lg fw-bold" {% if demo_state not in ('pending', 'enrolling') %}style="display:none;"{% endif %}>
+                    <button id="capture-btn" class="btn btn-primary py-2 fw-bold" {% if demo_state not in ('pending', 'enrolling') %}style="display:none;"{% endif %}>
                         <i class="fa fa-camera me-1.5"></i> <span>Capture Next Sample (1/5)</span>
                     </button>
-                    <button id="complete-btn" class="btn btn-success btn-lg fw-bold" style="display:none;">
+                    <button id="complete-btn" class="btn btn-success py-2 fw-bold" style="display:none;">
                         <i class="fa fa-check me-1.5"></i> Finish Enrollment
                     </button>
-                    <button id="recognize-btn" class="btn btn-accent text-white btn-lg fw-bold" {% if demo_state != 'ready' %}style="display:none;"{% endif %}>
+                    <button id="recognize-btn" class="btn btn-accent text-white py-2 fw-bold" {% if demo_state != 'ready' %}style="display:none;"{% endif %}>
                         <i class="fa fa-user-check me-1.5"></i> Test Face Recognition
                     </button>
-                    <div class="d-flex justify-content-between align-items-center pt-1">
-                        <small id="subtext" class="text-muted">Session expires automatically. No photos retained.</small>
-                        <button id="reset-btn" class="btn btn-sm btn-outline-danger" {% if demo_state == 'no_session' %}style="display:none;"{% endif %}>
+                    <div class="d-flex justify-content-between align-items-center pt-0.5">
+                        <small id="subtext" class="text-muted" style="font-size: 0.75rem;">Session expires automatically. No photos retained.</small>
+                        <button id="reset-btn" class="btn btn-sm btn-outline-danger py-0.5 px-2" style="font-size: 0.75rem; {% if demo_state == 'no_session' %}display:none;{% endif %}">
                             <i class="fa fa-refresh me-1"></i> Reset Session
                         </button>
                     </div>
@@ -98,11 +98,11 @@
         <canvas id="capture-canvas" style="display:none;"></canvas>
 
         <!-- Privacy Card -->
-        <div class="card border-0 bg-light rounded-3 p-3 mt-3 shadow-sm">
-            <div class="d-flex align-items-start gap-3">
-                <i class="fa fa-shield text-primary fs-4 mt-1"></i>
-                <div class="small text-muted">
-                    <strong class="text-dark d-block mb-1">Privacy & Logging Transparency</strong>
+        <div class="card border-0 bg-light rounded-3 p-2.5 mt-2.5 shadow-sm">
+            <div class="d-flex align-items-start gap-2.5">
+                <i class="fa fa-shield text-primary mt-1"></i>
+                <div class="small text-muted" style="font-size: 0.78rem;">
+                    <strong class="text-dark d-block mb-0.5">Privacy & Logging Transparency</strong>
                     <ul class="mb-0 ps-3">
                         <li><strong>No photos stored:</strong> Camera snapshots are processed in memory to create your temporary test pass and automatically expire.</li>
                         <li><strong>Activity logs:</strong> We only record developer activity timestamps and match scores for prototype testing.</li>
@@ -133,15 +133,19 @@
         </div>
 
         <div class="aria-section-card shadow-sm">
-            <h6 class="fw-bold text-uppercase small text-muted mb-3">Biometric Details</h6>
-            <div class="small text-muted space-y-2">
-                <div class="d-flex justify-content-between mb-1 pb-1 border-bottom">
-                    <span>Architecture:</span>
-                    <strong class="text-dark">FaceNet (Inception-ResNet)</strong>
+            <h6 class="fw-bold text-uppercase small text-muted mb-3">Biometric Specifications</h6>
+            <div class="small text-muted">
+                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span>Model Architecture:</span>
+                    <strong class="text-dark">Inception-ResNet-v1</strong>
                 </div>
-                <div class="d-flex justify-content-between mb-1 pb-1 border-bottom">
-                    <span>Embedding:</span>
-                    <strong class="text-dark">512-Dimensional</strong>
+                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span>Embedding Vector:</span>
+                    <strong class="text-dark font-monospace">512-Dimensional</strong>
+                </div>
+                <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span>Match Metric:</span>
+                    <strong class="text-dark">Cosine Distance</strong>
                 </div>
                 <div class="d-flex justify-content-between">
                     <span>Session Expiry:</span>
@@ -159,9 +163,15 @@
 </div>
 
 <style>
-    .camera-stage { aspect-ratio: 4/3; }
+    .camera-stage {
+        aspect-ratio: 4/3;
+        max-height: 300px;
+    }
     @media (min-width: 576px) {
-        .camera-stage { aspect-ratio: 16/9; }
+        .camera-stage {
+            aspect-ratio: 16/9;
+            max-height: 340px;
+        }
     }
     .bg-soft-primary { background: rgba(13, 79, 140, 0.1); }
     .bg-soft-accent { background: rgba(31, 157, 139, 0.1); }
