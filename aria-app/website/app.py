@@ -8,6 +8,7 @@ from flask_mail import Mail
 from flask_executor import Executor
 from flask_wtf.csrf import CSRFProtect
 from flask_migrate import Migrate
+from werkzeug.middleware.proxy_fix import ProxyFix
 from config import assert_production_ready, config
 from .models.base import db
 from .models import Student, Staff, Admin
@@ -38,6 +39,7 @@ def create_app(config_name: str = None) -> Flask:
     assert_production_ready()
 
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
 
     # Load configuration
     if config_name is None:

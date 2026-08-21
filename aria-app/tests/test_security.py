@@ -124,3 +124,32 @@ def test_qr_checkin_is_owner_bound_and_one_time_use(client, make_student, make_r
     response = client.get(f'/checkin/qr?token={token}&booking_id={booking.RBookID}&type=room')
     assert response.status_code == 200
     assert 'already been used' in response.get_data(as_text=True)
+
+
+def test_proxy_fix_resolves_remote_address(app):
+    """Verify that ProxyFix correctly extracts client IP and proto from headers."""
+    @app.route('/_test_proxy_info')
+    def proxy_info():
+        from flask import jsonify, request
+        return jsonify({
+            'remote_addr': request.remote_addr,
+            'scheme': request.scheme,
+            'host': request.host,
+        })
+
+    with app.test_client() as client:
+        response = client.get(
+            '/_test_proxy_info',
+            headers={
+                'X-Forwarded-For': '203.0.113.195',
+                'X-Forwarded-Proto': 'https',
+                'X-Forwarded-Host': 'aria.farisantoni.com',
+            },
+        )
+        assert response.status_code == 200
+        data = response.get_json()
+        assert data['remote_addr'] == '203.0.113.195'
+        assert data['scheme'] == 'https'
+        assert data['host'] == 'aria.farisantoni.com'
+
+
