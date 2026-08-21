@@ -22,7 +22,7 @@
     <!-- Primary Camera Stage Card -->
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
       
-      <!-- 🌟 PROMINENT TOP GUIDANCE & STATUS BAR -->
+      <!-- 🌟 PROMINENT TOP GUIDANCE & STATUS BAR (Eye-level, never covers the face) -->
       <div id="guidance-banner" class="px-4 py-3 sm:px-5 sm:py-3.5 bg-blue-50/90 border-b border-blue-100/80 transition-colors duration-300">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
@@ -40,10 +40,10 @@
           </div>
           
           <div class="flex items-center gap-2 shrink-0">
-            <!-- Desktop Countdown Pill -->
-            <div id="expiry-pill" class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/90 border border-blue-200/80 text-[11px] font-mono text-slate-700 shadow-2xs">
+            <!-- Session Countdown Pill -->
+            <div id="expiry-pill" class="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-full bg-white/90 border border-blue-200/80 text-[10px] sm:text-[11px] font-mono text-slate-700 shadow-2xs">
               <i class="fa fa-clock-o text-slate-400 text-[10px]"></i>
-              <span id="countdown-text">No active session</span>
+              <span id="countdown-text">No session</span>
             </div>
             <!-- State Badge -->
             <span id="state-pill" class="px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider border border-blue-200/60">
@@ -53,43 +53,17 @@
         </div>
       </div>
 
-      <!-- Live Video Viewport Container (Aspect-4/3 on mobile, aspect-video on desktop) -->
+      <!-- 📷 100% UNCLUTTERED LIVE CAMERA VIEWPORT (Zero floating badges covering eyes or face) -->
       <div class="relative bg-slate-950 aspect-4/3 sm:aspect-video w-full overflow-hidden flex items-center justify-center">
-        <!-- Live Video Element -->
+        <!-- Live Video Stream -->
         <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
         <!-- Shutter Flash Effect Overlay -->
         <div id="shutter-flash" class="absolute inset-0 bg-white pointer-events-none opacity-0 transition-opacity duration-150 z-30"></div>
 
-        <!-- Subtle Biometric Face Reticle Alignment Guide -->
+        <!-- Subtle Biometric Face Reticle Alignment Guide (Clean dashed oval, no floating text) -->
         <div id="face-reticle" class="absolute inset-0 flex items-center justify-center pointer-events-none transition-opacity duration-500 opacity-0 z-10">
           <div class="w-44 h-56 sm:w-52 sm:h-64 rounded-[45%] border-2 border-dashed border-white/40 shadow-[0_0_20px_rgba(255,255,255,0.15)]"></div>
-        </div>
-
-        <!-- Top-Left Status Overlay Pill (Corner-pinned) -->
-        <div class="absolute top-3 left-3 z-20 pointer-events-none">
-          <div class="px-3 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[11px] sm:text-xs font-semibold shadow-md flex items-center gap-1.5 border border-white/10">
-            <span id="live-dot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-            <span id="result-overlay">Waiting to start demo</span>
-          </div>
-        </div>
-
-        <!-- Top-Right Mobile Countdown Pill (Corner-pinned) -->
-        <div class="absolute top-3 right-3 sm:hidden z-20 pointer-events-none">
-          <div class="px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-md text-white/90 text-[10px] font-mono shadow-md flex items-center gap-1 border border-white/10">
-            <i class="fa fa-clock-o text-slate-400 text-[9px]"></i>
-            <span id="countdown-text-mobile">No session</span>
-          </div>
-        </div>
-
-        <!-- Bottom-Right Door Match Badge (Corner-pinned) -->
-        <div class="absolute bottom-3 right-3 z-20 pointer-events-none">
-          <div class="flex items-center gap-2 bg-slate-900/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/15 shadow-xl">
-            <div id="door-indicator" class="w-6 h-6 rounded-full flex items-center justify-center text-xs text-white bg-slate-600 transition-all duration-300">
-              <i id="door-icon" class="fa fa-user"></i>
-            </div>
-            <span id="status-badge" class="text-[11px] font-bold text-white/95 tracking-wide">No session</span>
-          </div>
         </div>
       </div>
 
@@ -289,17 +263,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const video = document.getElementById("webcam");
     const canvas = document.getElementById("capture-canvas");
-    const overlay = document.getElementById("result-overlay");
-    const liveDot = document.getElementById("live-dot");
-    const statusBadge = document.getElementById("status-badge");
-    const doorIndicator = document.getElementById("door-indicator");
-    const doorIcon = document.getElementById("door-icon");
     const statePill = document.getElementById("state-pill");
     const sampleCount = document.getElementById("sample-count");
     const sampleProgress = document.getElementById("sample-progress");
     const expiryText = document.getElementById("expiry-text");
     const countdownText = document.getElementById("countdown-text");
-    const countdownTextMobile = document.getElementById("countdown-text-mobile");
     const startBtn = document.getElementById("start-demo-btn");
     const captureBtn = document.getElementById("capture-btn");
     const completeBtn = document.getElementById("complete-btn");
@@ -369,13 +337,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }, 120);
     }
 
-    function setBadge(label, ringBgClass, iconClass, dotBgClass = "bg-blue-500 animate-pulse") {
-        statusBadge.textContent = label;
-        doorIndicator.className = `w-6 h-6 rounded-full flex items-center justify-center text-xs text-white transition-all duration-300 ${ringBgClass}`;
-        doorIcon.className = iconClass;
-        if (liveDot) liveDot.className = `w-2 h-2 rounded-full ${dotBgClass}`;
-    }
-
     function updateSampleUI() {
         sampleCount.textContent = `${state.sampleCount}/${state.required} snapshots captured`;
         sampleProgress.style.width = `${Math.min(100, (state.sampleCount / state.required) * 100)}%`;
@@ -407,22 +368,18 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!state.expiresAt) {
             expiryText.textContent = "12h from creation";
             countdownText.textContent = "No active session";
-            if (countdownTextMobile) countdownTextMobile.textContent = "No session";
             return;
         }
         expiryText.textContent = new Date(state.expiresAt).toLocaleTimeString();
         const remainingMs = new Date(state.expiresAt).getTime() - Date.now();
         if (remainingMs <= 0) {
             countdownText.textContent = "Expired";
-            if (countdownTextMobile) countdownTextMobile.textContent = "Expired";
             return;
         }
         const hours = Math.floor(remainingMs / 3600000);
         const minutes = Math.floor((remainingMs % 3600000) / 60000);
         const seconds = Math.floor((remainingMs % 60000) / 1000);
-        const formatted = `${hours}h ${minutes}m ${seconds}s`;
-        countdownText.textContent = formatted;
-        if (countdownTextMobile) countdownTextMobile.textContent = `${hours}h ${minutes}m`;
+        countdownText.textContent = `${hours}h ${minutes}m ${seconds}s`;
     }
 
     function updateStepper() {
@@ -532,34 +489,24 @@ document.addEventListener("DOMContentLoaded", () => {
         resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
 
         if (state.demoState === "no_session") {
-            overlay.textContent = "Waiting to start demo";
-            setBadge("No session", "bg-slate-600", "fa fa-user", "bg-slate-400");
             setGuidance("Ready to Start Demo", "Click 'Start Demo Session' below to generate a temporary guest pass.", "primary", "fa fa-play");
             subtext.textContent = "Session expires automatically. No photos retained.";
             if (faceReticle) faceReticle.classList.replace("opacity-100", "opacity-0");
         } else if (state.demoState === "pending") {
-            overlay.textContent = "Camera Ready";
-            setBadge("Session active", "bg-blue-600", "fa fa-camera", "bg-emerald-400 animate-pulse");
             const g = getEnrollingGuidance(0, state.required);
             setGuidance(g.title, g.text, "primary", g.icon);
             subtext.textContent = "Center face in reticle and tap capture once every 1.5s.";
             if (faceReticle) faceReticle.classList.replace("opacity-0", "opacity-100");
         } else if (state.demoState === "enrolling") {
-            overlay.textContent = `Snapshot ${state.sampleCount}/${state.required}`;
-            setBadge("Enrolling", "bg-blue-600", "fa fa-camera", "bg-blue-400 animate-pulse");
             const g = getEnrollingGuidance(state.sampleCount, state.required);
             setGuidance(g.title, g.text, state.sampleCount >= state.required ? "success" : "indigo", g.icon);
             subtext.textContent = "Multiple angles help ARIA match your face under varying lighting.";
             if (faceReticle) faceReticle.classList.replace("opacity-0", "opacity-100");
         } else if (state.demoState === "ready") {
-            overlay.textContent = "Ready to test";
-            setBadge("Ready", "bg-teal-600", "fa fa-check", "bg-teal-400 animate-pulse");
             setGuidance("Guest Profile Active!", "Look naturally into the camera and tap 'Test Face Recognition' to verify door access.", "success", "fa fa-user-check");
             subtext.textContent = "Face the camera naturally to see if ARIA recognizes your guest pass.";
             if (faceReticle) faceReticle.classList.replace("opacity-0", "opacity-100");
         } else if (state.demoState === "expired") {
-            overlay.textContent = "Session expired";
-            setBadge("Expired", "bg-red-600", "fa fa-clock-o", "bg-rose-500");
             setGuidance("Session Expired", "Your temporary guest pass has expired. Start a new session to try again.", "warning", "fa fa-clock-o");
             subtext.textContent = "Guest passes auto-expire and are removed automatically.";
             if (faceReticle) faceReticle.classList.replace("opacity-100", "opacity-0");
@@ -573,7 +520,6 @@ document.addEventListener("DOMContentLoaded", () => {
     async function ensureCamera() {
         if (state.streamReady) return true;
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            overlay.textContent = "Webcam not supported";
             setGuidance("Camera Not Supported", "This browser does not support webcam capture for the public demo.", "danger", "fa fa-exclamation-triangle");
             return false;
         }
@@ -591,7 +537,6 @@ document.addEventListener("DOMContentLoaded", () => {
             if (faceReticle) faceReticle.classList.replace("opacity-0", "opacity-100");
             return true;
         } catch (error) {
-            overlay.textContent = "Camera access denied";
             setGuidance("Camera Access Required", "Please allow camera permissions in your browser settings and try again.", "danger", "fa fa-video-camera");
             return false;
         }
@@ -660,8 +605,6 @@ document.addEventListener("DOMContentLoaded", () => {
             startBtn.disabled = false;
             startBtn.innerHTML = '<i class="fa fa-play text-xs"></i> <span>Start Demo Session</span>';
             setGuidance("Demo Busy", "The demo server is busy right now. Try again in a moment.", "warning", "fa fa-clock-o");
-            overlay.textContent = "Demo busy";
-            setBadge("Busy", "bg-amber-600", "fa fa-clock-o", "bg-amber-400");
             return;
         }
         if (!response.ok) {
@@ -699,7 +642,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Immediately disable and change button text to processing
         captureBtn.disabled = true;
         captureBtn.innerHTML = `<i class="fa fa-spinner fa-spin text-sm"></i> <span>Processing Snapshot (${state.sampleCount + 1}/${state.required})...</span>`;
-        overlay.textContent = "Processing...";
         setGuidance("Processing Snapshot...", "Extracting 512-d biometric embeddings in memory...", "indigo", "fa fa-cog fa-spin");
 
         const { response, data } = await postJson("/demo/register-frame", {
@@ -743,7 +685,6 @@ document.addEventListener("DOMContentLoaded", () => {
         state.isProcessing = true;
         completeBtn.disabled = true;
         completeBtn.innerHTML = '<i class="fa fa-spinner fa-spin text-sm"></i> <span>Finalizing Profile...</span>';
-        overlay.textContent = "Finalizing...";
         setGuidance("Finalizing Profile...", "Setting up your guest face profile on the server. Please wait a few seconds...", "primary", "fa fa-cog fa-spin");
         const { response, data } = await postJson("/demo/register-complete");
         state.isProcessing = false;
@@ -770,7 +711,6 @@ document.addEventListener("DOMContentLoaded", () => {
         triggerShutterFlash();
         recognizeBtn.disabled = true;
         recognizeBtn.innerHTML = '<i class="fa fa-spinner fa-spin text-sm"></i> <span>Verifying Biometrics...</span>';
-        overlay.textContent = "Verifying...";
         setGuidance("Verifying Face...", "Comparing live face embeddings against stored guest pass...", "indigo", "fa fa-search fa-spin");
 
         const { response, data } = await postJson("/demo/recognize", {
@@ -789,12 +729,8 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         const confidencePct = `${(Number(data.confidence || 0) * 100).toFixed(1)}%`;
         if (data.matched) {
-            overlay.textContent = `Access Granted (${confidencePct})`;
-            setBadge("Access Granted", "bg-emerald-600", "fa fa-unlock", "bg-emerald-400");
             setGuidance(`Access Granted! (${confidencePct} match)`, "ARIA recognized your temporary guest profile. Door unlocked!", "success", "fa fa-unlock");
         } else {
-            overlay.textContent = `Access Denied (${confidencePct})`;
-            setBadge("Access Denied", "bg-amber-600", "fa fa-lock", "bg-amber-400");
             setGuidance(`Access Denied (${confidencePct} match)`, "Face did not match with sufficient confidence. Ensure good lighting and look straight ahead.", "warning", "fa fa-lock");
         }
         window.setTimeout(() => renderState(), 4000);
