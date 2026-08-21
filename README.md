@@ -1,19 +1,25 @@
-# ARIA
+# ARIA (Automated Room Identification & Access)
 
-ARIA is a Flask application for library room booking and room access control. The current implementation combines a server-rendered web app, a Flask-RESTX API, Redis-backed background workflows, and a Raspberry Pi client or simulator for door access.
+ARIA is an integrated library room booking and smart access control system. The platform combines a modernized server-rendered web application, a secure Flask-RESTX device API, Redis-backed pub/sub workflows, FaceNet biometric verification, a public guest demo experience, and an edge device client (or simulator) for automated door access.
 
-This README covers the repository as it exists today. For the edge client, see `aria-app/client/README.md`.
+This README covers the core web application and platform services. For edge client setup and hardware details, see [`aria-app/client/README.md`](file:///home/nian014/projects/ARIA/aria-app/client/README.md).
+
+---
 
 ## What The System Currently Does
 
-- Student, staff, and admin accounts with role-based dashboards
-- Room and event booking flows with conflict checks
-- QR-based check-in for bookings
-- Face registration and face recognition using OpenCV, Keras FaceNet, and a classifier trained from stored face images
-- Access logging plus optional email notifications
-- Redis pub/sub between the Flask app and the edge device
-- Background booking notifications and hourly guest-face cleanup
-- Local Docker Compose stack with Postgres, Redis, the Flask app, and a Pi simulator
+- **Role-Based Accounts & Dashboards**: Dedicated portal views and authorization for Students, Staff, and Administrators.
+- **Modernized Responsive Interface**: Built with Tailwind CSS, Alpine.js, and HTMX partials for seamless reactivity, alongside FullCalendar for scheduling.
+- **Room & Event Bookings**: Conflict-free booking creation with PostgreSQL advisory locking to prevent race conditions and cross-type double-booking.
+- **Secure QR Check-In**: Cryptographically signed, single-use QR tokens bound to booking owners with replay protection and automatic door-unlock triggering.
+- **Biometric Face Recognition**: Pipeline utilizing OpenCV, Keras FaceNet (160×160 embeddings), and an SGD classifier with thread-safe model reloading.
+- **Public Guest Face Demo (`/demo`)**: Live camera face enrollment, cosine-similarity verification, session lifecycle management, and visitor audit logs.
+- **Edge Device Integration**: Bearer-authenticated REST API and Redis pub/sub synchronization (`watch_room`, `face_matched`, `token_validated`) for Raspberry Pi hardware or simulator.
+- **Database Migrations**: Version-controlled database schema management via Flask-Migrate (Alembic) with automated baseline auto-stamping in CI/CD.
+- **Automated Background Jobs**: APScheduler tasks for upcoming booking notifications and hourly guest demo face data purges.
+- **Containerized Stack**: Local Docker Compose environment with PostgreSQL 15, Redis 7, Flask app, and the Pi simulator.
+
+---
 
 ## Repository Layout
 
@@ -22,223 +28,295 @@ ARIA/
 ├── README.md
 ├── docker-compose.yml
 ├── render.yaml
-├── aria-app/
-│   ├── main.py
-│   ├── config.py
-│   ├── requirements.txt
-│   ├── gunicorn.conf.py
-│   ├── aria.service
-│   ├── Caddyfile
-│   ├── client/
-│   └── website/
-│       ├── app.py
-│       ├── extensions.py
-│       ├── models/
-│       ├── routes/
-│       ├── services/
-│       ├── schemas/
-│       ├── static/
-│       ├── templates/
-│       └── utils/
+├── .github/
+│   └── workflows/
+│       ├── ci-cd.yml
+│       └── deploy.yml
+├── supabase/
+│   └── rls_lockdown.sql
 ├── pi-simulator/
-└── RaspPiScript/
+│   └── test_images/
+├── RaspPiScript/
+└── aria-app/
+    ├── main.py
+    ├── config.py
+    ├── seed.py
+    ├── requirements.txt
+    ├── gunicorn.conf.py
+    ├── aria.service
+    ├── Caddyfile
+    ├── Dockerfile
+    ├── migrations/
+    │   ├── alembic.ini
+    │   ├── env.py
+    │   └── versions/
+    ├── client/
+    │   ├── main.py
+    │   ├── simulator_main.py
+    │   ├── api_client.py
+    │   ├── face_recognition.py
+    │   ├── hardware.py
+    │   ├── room_monitor.py
+    │   └── Dockerfile.simulator
+    ├── tests/
+    │   ├── conftest.py
+    │   ├── test_security.py
+    │   ├── test_ui_rollout.py
+    │   ├── unit/
+    │   ├── integration/
+    │   └── e2e/
+    └── website/
+        ├── app.py
+        ├── extensions.py
+        ├── models/
+        ├── routes/
+        │   ├── api/
+        │   ├── auth.py
+        │   ├── bookings.py
+        │   ├── rooms.py
+        │   ├── announcements.py
+        │   ├── face.py
+        │   ├── demo.py
+        │   └── home.py
+        ├── services/
+        ├── schemas/
+        ├── static/
+        ├── templates/
+        └── utils/
 ```
 
-Key directories:
+### Key Directories
+- **`aria-app/website/`**: Application factory, blueprints, SQLAlchemy models, services, templates, and static assets.
+- **`aria-app/client/`**: Raspberry Pi edge client and simulator daemon.
+- **`aria-app/migrations/`**: Alembic database migration scripts managed by Flask-Migrate.
+- **`aria-app/tests/`**: Unit, integration, security, and Playwright E2E test suites.
+- **`supabase/`**: Supabase Row Level Security (RLS) hardening scripts.
+- **`pi-simulator/`**: Test images and fixtures for containerized simulation.
 
-- `aria-app/website/` holds the Flask app, blueprints, models, services, templates, and static assets.
-- `aria-app/client/` holds the Raspberry Pi client and simulator-specific client code.
-- `pi-simulator/test_images/` is used by the simulator container.
-- `RaspPiScript/` contains older Pi-side scripts kept alongside the newer client package.
+---
 
 ## Runtime Architecture
 
-The Flask app is created in `aria-app/website/app.py` and started from `aria-app/main.py`.
+```
+                  ┌──────────────────────────────────────────────┐
+                  │                 Browser Client               │
+                  │   (Tailwind CSS + Alpine.js + HTMX / /demo)  │
+                  └──────────────────────┬───────────────────────┘
+                                         │ HTTPS / Session Cookie
+                                         ▼
+┌────────────────────────────────────────────────────────────────────────┐
+│                        ARIA Flask Application                          │
+│                                                                        │
+│  ┌───────────────────────┐   ┌──────────────────────────────────────┐  │
+│  │ Web Blueprints        │   │ Flask-RESTX Device API               │  │
+│  │ (Auth, Rooms, Bookings│   │ (Bearer Token Auth via               │  │
+│  │  Announcements, Demo) │   │  DEVICE_API_TOKEN)                   │  │
+│  └──────────┬────────────┘   └──────────────────┬───────────────────┘  │
+│             │                                   │                      │
+│             ▼                                   ▼                      │
+│  ┌──────────────────────────────────────────────────────────────────┐  │
+│  │ Services Layer (Booking, Face, QR, Demo, Room, Mail, Scheduler)  │  │
+│  └──────────────────┬───────────────────────────┬───────────────────┘  │
+└─────────────────────┼───────────────────────────┼──────────────────────┘
+                      │                           │
+         SQLAlchemy   ▼              Redis Pub/Sub▼
+   ┌───────────────────────┐         ┌────────────────────────┐
+   │ PostgreSQL Database   │         │ Redis 7 Instance       │
+   │ (Flask-Migrate/RLS)   │         │ (Pub/Sub & Rate Limits)│
+   └───────────────────────┘         └───────────┬────────────┘
+                                                 │
+                                                 │ Event Channels
+                                                 ▼
+                                     ┌────────────────────────┐
+                                     │ Raspberry Pi / Edge    │
+                                     │ (Client or Simulator)  │
+                                     └────────────────────────┘
+```
 
-Current runtime pieces:
+### Redis Event Channels
+- **`watch_room:{room_id}`**: Published by the Flask scheduler when an approved booking is within the lead time window.
+- **`face_matched:{room_id}`**: Published by the edge device upon successful biometric match to mark bookings ongoing and log access.
+- **`token_validated:{room_id}`**: Published by Flask after successful QR check-in to trigger door unlock on the edge device.
 
-- Flask web app with blueprints for home, auth, bookings, rooms, announcements, face routes, and `/api`
-- SQLAlchemy models for users, rooms, bookings, faces, access logs, reports, feedback, guests, and announcements
-- Flask-Limiter for global and route-specific rate limits
-- APScheduler background jobs from `aria-app/website/services/scheduler.py`
-- Redis subscriber thread from `aria-app/website/services/subscriber.py`
-
-Redis event flow implemented in the repo:
-
-- `watch_room:{room_id}` is published when a booking is approaching.
-- `face_matched:{room_id}` is consumed by the Flask app to mark matching bookings as ongoing and log access.
-- `token_validated:{room_id}` is published after successful QR check-in so the Pi side can unlock the door.
+---
 
 ## Requirements
 
-- Python 3.8+
-- PostgreSQL for the normal app flow
-- Redis for full functionality; production startup requires it
-- Build tools for native Python packages where needed
-- Camera access if you want to use live face capture or recognition locally
+- **Python 3.8+**
+- **PostgreSQL 14+** (configured via `DATABASE_URL`)
+- **Redis 6+** (required for pub/sub, background threads, and production rate limiting)
+- **C/C++ Build Tools & CMake** (for dlib/OpenCV dependencies if installing outside Docker)
+- **Webcam / Video Device** (optional, for live client-side face capture)
 
-The app reads its database from `DATABASE_URL`; the documented stack in this repository is PostgreSQL plus Redis. There is no documented local MySQL default in the current implementation.
+---
 
 ## Local Setup
+
+### 1. Clone and Install Dependencies
 
 ```bash
 git clone <repository-url>
 cd ARIA/aria-app
-python -m venv venv
+python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip setuptools
 pip install -r requirements.txt
 ```
 
-Create environment variables for local development:
+### 2. Configure Environment Variables
+
+Create an environment file or export variables:
 
 ```bash
-SECRET_KEY=change-me
-DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/ariadb
-REDIS_URL=redis://localhost:6379/0
-FLASK_ENV=development
+# Core Configuration
+export FLASK_ENV=development
+export SECRET_KEY=dev-secret-key-change-in-production
+export DATABASE_URL=postgresql+psycopg2://user:password@localhost:5432/ariadb
+export REDIS_URL=redis://localhost:6379/0
+export DEVICE_API_TOKEN=dev-device-token-12345
+
+# Optional Settings
+export SESSION_LIFETIME_MINUTES=60
+export FACE_CONFIDENCE_THRESHOLD=0.85
+export ARIA_UI_ENABLED=true
+export ARIA_UI_PHASE=all
+export AUTO_CREATE_DB=false
 ```
 
-Useful optional variables from `aria-app/config.py`:
+### 3. Initialize Database Migrations
 
-- `SESSION_LIFETIME_MINUTES`
-- `MAX_CONTENT_LENGTH`
-- `FACE_CONFIDENCE_THRESHOLD`
-- `MAIL_SERVER`, `MAIL_PORT`, `MAIL_USE_TLS`, `MAIL_USE_SSL`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_DEFAULT_SENDER`
-- `ARIA_INSTANCE_DIR`
-- `AUTO_CREATE_DB`
-- `FLASK_SKIP_BACKGROUND_THREADS`
-- `RATELIMIT_STORAGE_URI`
-
-Production guardrails in code:
-
-- `FLASK_ENV=production` requires `SECRET_KEY`, `DATABASE_URL`, and `REDIS_URL`
-- non-testing startup requires `DATABASE_URL`
-- production forces secure session cookies and uses Redis for limiter storage
-
-## Running The App
-
-From `aria-app/`:
+Apply the database migrations to set up the database schema:
 
 ```bash
-python main.py
+flask db upgrade
 ```
 
-The server listens on `0.0.0.0` and defaults to port `5000`.
-
-Optional development seed:
+*(Optional)* Seed sample rooms, accounts, and demo data:
 
 ```bash
 python seed.py
 ```
 
-`AUTO_CREATE_DB` defaults to `true`, so the app will call `db.create_all()` on startup unless you disable it.
+### 4. Run the Development Server
 
-## Docker Compose
+```bash
+python main.py
+```
 
-The root [docker-compose.yml](docker-compose.yml) currently starts:
+The application will be accessible at `http://localhost:5000`.
 
-- `db`: Postgres 15
-- `redis`: Redis 7
-- `flask-app`: Flask server from `aria-app/Dockerfile`
-- `pi-simulator`: simulator client from `aria-app/client/Dockerfile.simulator`
+---
 
-Start the local stack from the repository root:
+## Docker Compose (Recommended for Local Dev)
+
+The root [`docker-compose.yml`](file:///home/nian014/projects/ARIA/docker-compose.yml) provisions the complete stack:
+
+- **`db`**: PostgreSQL 15 database
+- **`redis`**: Redis 7 service
+- **`flask-app`**: ARIA web server running with live-reloading mounts
+- **`pi-simulator`**: Automated edge client simulating camera feeds and door access
+
+Run the stack:
 
 ```bash
 docker-compose up --build
 ```
 
-The compose file bind-mounts parts of `website/static`, `website/templates`, and `website/routes` into the Flask container for faster local iteration.
+---
 
-## API Surface
+## Database Management & Migrations
 
-The REST API is mounted at `/api`, with Flask-RESTX docs typically available at `/api/docs/`.
+Database schema changes are managed via **Flask-Migrate (Alembic)**:
 
-Implemented endpoints in `aria-app/website/routes/api/routes.py` include:
+```bash
+# Apply pending migrations
+flask db upgrade
 
-- `GET /api/studentlist`
-- `GET /api/students/<StudID>`
-- `GET /api/stafflist`
-- `GET /api/staff/<StaffID>`
-- `GET /api/roomlist`
-- `GET /api/rbooklists`
-- `GET /api/RoomBookings/<RBookID>`
-- `GET /api/accesslogs`
-- `POST /api/accesslogs`
-- `GET /api/faces`
-- `GET /api/facesembeds`
-- `POST /api/recognize_frame`
+# Generate a new migration after modifying models
+flask db migrate -m "describe schema change"
 
-## Access Control Flows
+# View current migration revision
+flask db current
+```
 
-Web-side flows currently implemented:
+> **Note for Production:** In production (`FLASK_ENV=production`), `AUTO_CREATE_DB` is disabled. All schema updates must be applied via `flask db upgrade`. The deployment workflow automatically handles baseline auto-stamping if upgrading an unversioned database.
 
-- Login and logout with Flask-Login session handling
-- Student and staff self-registration
-- Room and event booking creation
-- QR token generation and email delivery on room bookings
-- Browser QR check-in at `/checkin/qr`
-- Face registration by repeated scanner capture or single uploaded image
-- Admin-triggered face model training at `/train_data`
+---
 
-Face data is stored under the app instance directory, not under versioned static assets:
+## API Surface & Authentication
 
-- training images under `instance/MalaysianFacesDB`
-- face dataset at `instance/registered-faces-db.npz`
-- embeddings at `instance/registered-faces-db-embeddings.npz`
+The REST API is mounted at `/api/` with interactive OpenAPI documentation available at `/api/docs/`.
+
+### Authorization Scheme
+- **Admin Session Required**: Accessible only by authenticated administrators in active browser sessions.
+- **Device Bearer Token Required**: Requires `Authorization: Bearer <DEVICE_API_TOKEN>` header for edge devices.
+- **Session or Device Token Required**: Accepts either authenticated browser session or valid device bearer token.
+
+| Endpoint | Method | Required Authorization | Purpose |
+| :--- | :---: | :---: | :--- |
+| `/api/studentlist` | `GET` | Admin Session | Retrieve registered student profiles |
+| `/api/students/<StudID>` | `GET` | Admin Session | Retrieve specific student details |
+| `/api/stafflist` | `GET` | Admin Session | Retrieve staff member profiles |
+| `/api/staff/<StaffID>` | `GET` | Admin Session | Retrieve specific staff details |
+| `/api/roomlist` | `GET` | Device Bearer Token | Retrieve rooms and status |
+| `/api/rbooklists` | `GET` | Device Bearer Token | Retrieve upcoming room bookings |
+| `/api/RoomBookings/<RBookID>` | `GET` | Admin Session | Retrieve specific booking details |
+| `/api/accesslogs` | `GET` | Admin Session | Retrieve historical access logs |
+| `/api/accesslogs` | `POST` | Device Bearer Token | Post room access event from edge device |
+| `/api/faces` | `GET` | Device Bearer Token | Download face training dataset (`.npz`) |
+| `/api/facesembeds` | `GET` | Device Bearer Token | Download FaceNet embeddings (`.npz`) |
+| `/api/recognize_frame` | `POST` | Session or Device Token | Process webcam frame for identification |
+
+---
 
 ## Testing
 
-From `aria-app/`:
+Tests are executed with `pytest` from the `aria-app/` directory:
 
 ```bash
+cd aria-app
+
+# Run all test suites
 pytest
+
+# Run specific test suites
+pytest tests/unit/
+pytest tests/integration/
+pytest tests/test_security.py
+pytest tests/test_ui_rollout.py
+
+# Run Playwright E2E browser smoke tests
+pytest tests/e2e/
 ```
 
-The test setup in `aria-app/tests/conftest.py` forces `FLASK_SKIP_BACKGROUND_THREADS=1`, uses `create_app('testing')`, creates an in-memory SQLite database, and creates/drops tables per test fixture.
+### Test Configuration
+The test harness in [`aria-app/tests/conftest.py`](file:///home/nian014/projects/ARIA/aria-app/tests/conftest.py) uses an isolated in-memory SQLite database, disables background threads (`FLASK_SKIP_BACKGROUND_THREADS=1`), and provides fixtures for student, staff, admin, and room entities.
 
-Current repository tests cover:
+---
 
-- basic route accessibility
-- login protection
-- UI rollout helper behavior
+## Deployment & Production Architecture
 
-## Deployment Requirements
-
-Basic production deployment requirements for the current implementation:
-
-- Python 3.8+ runtime with the packages from `aria-app/requirements.txt`
-- A PostgreSQL database reachable through `DATABASE_URL`
-- A Redis instance reachable through `REDIS_URL`
-- A strong `SECRET_KEY`
-- `FLASK_ENV=production`
-- Writable application storage for `instance/`, including uploads and face model artifacts
-- A process manager or app server for the Flask app, such as Gunicorn
-- A reverse proxy or ingress layer in front of the app for TLS and public HTTP handling
-
-Minimum production environment variables:
-
+### Production Environment Variables
 ```bash
 FLASK_ENV=production
-SECRET_KEY=<strong-random-value>
-DATABASE_URL=postgresql+psycopg2://user:password@host:5432/dbname
-REDIS_URL=redis://host:6379/0
+SECRET_KEY=<generate-strong-random-key>
+DATABASE_URL=postgresql+psycopg2://user:password@db-host:5432/ariadb
+REDIS_URL=redis://redis-host:6379/0
+DEVICE_API_TOKEN=<secure-device-token>
+AUTO_CREATE_DB=false
+SESSION_COOKIE_SECURE=true
+RATELIMIT_STORAGE_URI=redis://redis-host:6379/0
 ```
 
-Recommended production considerations:
+### Production Components
+- **Application Server**: Gunicorn with multi-worker configuration ([`aria-app/gunicorn.conf.py`](file:///home/nian014/projects/ARIA/aria-app/gunicorn.conf.py)).
+- **Reverse Proxy**: Caddy with automated HTTPS, CSP headers, and static caching ([`aria-app/Caddyfile`](file:///home/nian014/projects/ARIA/aria-app/Caddyfile)).
+- **Process Manager**: systemd service unit ([`aria-app/aria.service`](file:///home/nian014/projects/ARIA/aria-app/aria.service)).
+- **CI/CD Pipeline**: GitHub Actions workflow ([`.github/workflows/deploy.yml`](file:///home/nian014/projects/ARIA/.github/workflows/deploy.yml)) providing automated testing, SSH deployment, migration execution, and systemd service reloads.
+- **Database Hardening**: Optional Row Level Security (RLS) enforcement via [`supabase/rls_lockdown.sql`](file:///home/nian014/projects/ARIA/supabase/rls_lockdown.sql).
 
-- Disable `AUTO_CREATE_DB` after initial provisioning if you want schema changes to stay explicit.
-- Store face data and uploads outside the repository.
-- Keep Redis persistent and network-restricted, since it is used for pub/sub and production rate limiting.
-- Run the app behind HTTPS, because production enables secure session cookies.
-
-## Known Gaps
-
-- Database migrations are not implemented; the app still relies on `db.create_all()` and manual schema updates where needed.
-- Some legacy code remains in `website/routes/views.py`, `archive/`, and `RaspPiScript/`.
-- Live face recognition and Pi hardware flows still require camera and hardware access to validate fully outside the simulator.
+---
 
 ## License
 
-See `LICENSE`.
+See [`LICENSE`](file:///home/nian014/projects/ARIA/LICENSE) for details.
