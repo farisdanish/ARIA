@@ -1,120 +1,127 @@
 {% extends "base.aria.html" %}
 
-{% block title %}Booking Feedback — ARIA{% endblock %}
+{% block title %}Share Feedback — ARIA{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto py-6 space-y-6">
-
-  <!-- Header Card -->
-  <div class="aria-card p-6 flex items-center justify-between gap-4 bg-gradient-to-r from-white to-blue-50/30">
+<div class="max-w-3xl mx-auto space-y-6">
+  <!-- Page Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-      <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
-        <i class="fa fa-commenting-o"></i>
-        <span>Quality Assurance</span>
-      </div>
-      <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Booking Feedback</h1>
-      <p class="text-xs text-slate-500 mt-0.5">Share your experience to help us improve campus facilities.</p>
+      <h1 class="text-2xl font-black text-slate-900 tracking-tight">Booking Feedback</h1>
+      <p class="text-xs text-slate-500 mt-1">Help us improve campus facility services by sharing your experience.</p>
     </div>
-
-    <a href="{{ '/homeStud' if user and user.is_Student() else '/homeStaff' if user and user.is_Staff() else '/' }}"
-       class="aria-btn-secondary flex items-center gap-2 text-xs">
-      <i class="fa fa-arrow-left"></i>
-      <span>Back</span>
-    </a>
+    <div>
+      <a href="/" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition shadow-xs">
+        <i class="fa fa-arrow-left"></i>
+        <span>Return to Dashboard</span>
+      </a>
+    </div>
   </div>
 
   <!-- Feedback Form Card -->
-  <div class="aria-card p-6 sm:p-8" x-data="{ bookingType: '' }">
-    <div class="text-center mb-6">
-      <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center mx-auto mb-3 text-xl shadow-xs">
-        <i class="fa fa-comments"></i>
+  <div class="aria-card p-6 sm:p-8" x-data="{ feedbackType: '' }">
+    <div class="flex items-center gap-3 mb-6 pb-4 border-b border-slate-100">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-base">
+        <i class="fa fa-commenting-o"></i>
       </div>
-      <h2 class="text-lg font-bold text-slate-900">Your Thoughts Matter</h2>
-      <p class="text-xs text-slate-500 mt-1">Please select your completed booking and let us know your feedback.</p>
+      <div>
+        <h2 class="text-base font-bold text-slate-900">Your Experience Matters</h2>
+        <p class="text-xs text-slate-400">Select a completed booking and submit your rating and comments.</p>
+      </div>
     </div>
 
-    <form method="POST" enctype="multipart/form-data" class="space-y-5">
-      <!-- User Identification -->
+    <form action="/feedback" method="POST" class="space-y-5">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+      <!-- User Identification Badge -->
       <div>
-        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">
-          {{ 'STUDENT' if user and user.is_Student() else 'STAFF' }} INFORMATION
-        </label>
-        <div class="relative">
-          <i class="fa {{ 'fa-user-circle' if user and user.is_Student() else 'fa-id-badge' }} absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-          <input type="text"
-                 class="aria-input pl-10 bg-slate-50 text-slate-600 font-semibold cursor-not-allowed"
-                 value="{{ user.StudID if user and user.is_Student() else user.StaffID if user and user.is_Staff() else '' }}"
-                 readonly>
+        <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Submitted By</label>
+        <div class="flex items-center gap-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200/80">
+          <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs">
+            {{ user.StudName[0] if is_Student else user.StaffName[0] if is_Staff else 'A' }}
+          </div>
+          <div>
+            <div class="text-xs font-bold text-slate-800">
+              {{ user.StudName if is_Student else user.StaffName if is_Staff else 'Administrator' }}
+            </div>
+            <div class="text-[11px] font-mono text-slate-400">
+              {{ user.StudID if is_Student else user.StaffID if is_Staff else 'Admin' }}
+            </div>
+          </div>
         </div>
-        {% if user and user.is_Student() %}
-        <input type="hidden" name="StudID" value="{{ user.StudID }}">
-        {% elif user and user.is_Staff() %}
-        <input type="hidden" name="StaffID" value="{{ user.StaffID }}">
-        {% endif %}
       </div>
 
-      <!-- Booking Type Selector -->
+      <!-- Booking Type Selection -->
       <div>
-        <label for="feedbackType" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Booking Type</label>
+        <label for="feedbackType" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Booking Category</label>
         <select id="feedbackType"
                 name="feedbackType"
-                x-model="bookingType"
-                class="aria-input font-medium"
+                x-model="feedbackType"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"
                 required>
-          <option disabled value="">Select type of booking...</option>
+          <option value="" disabled selected>Select category...</option>
           <option value="Room">Room Booking</option>
           <option value="Event">Event Booking</option>
         </select>
       </div>
 
       <!-- Room Booking Selection -->
-      <div x-show="bookingType === 'Room'" x-transition class="space-y-1.5">
-        <label for="rbook" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Select Room Booking</label>
-        <select class="aria-input font-medium" id="rbook" name="rbook" :required="bookingType === 'Room'">
-          <option disabled selected value="">Choose a completed room booking...</option>
+      <div x-show="feedbackType === 'Room'" x-cloak>
+        <label for="rbook" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Associated Room Booking</label>
+        <select id="rbook"
+                name="rbook"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <option value="" disabled selected>Choose a booking...</option>
           {% for rb in roombookings %}
-            {% if (user and user.is_Student() and rb.StudID == user.StudID) or (user and user.is_Staff() and rb.StaffID == user.StaffID) %}
-              {% for rm in roomlist %}
-                {% if rm.RoomID == rb.RoomID and rb.RBookStatus == "Completed" %}
-                <option value="{{ rb.RBookID }}">{{ rb.Start.strftime('%m/%d/%Y %H:%M') }} — {{ rm.RoomName }}</option>
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+          {% for rm in roomlist %}
+          {% if rm.RoomID == rb.RoomID %}
+          <option value="{{ rb.RBookID }}">
+            #{{ rb.RBookID }} - {{ rm.RoomName }} ({{ rb.Start.strftime('%Y-%m-%d %H:%M') if rb.Start.strftime is defined else rb.Start }})
+          </option>
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <option disabled>No recent bookings recorded.</option>
           {% endfor %}
         </select>
       </div>
 
       <!-- Event Booking Selection -->
-      <div x-show="bookingType === 'Event'" x-transition class="space-y-1.5">
-        <label for="ebook" class="block text-xs font-bold uppercase tracking-wider text-slate-500">Select Event Hall Booking</label>
-        <select class="aria-input font-medium" id="ebook" name="ebook" :required="bookingType === 'Event'">
-          <option disabled selected value="">Choose a completed event booking...</option>
+      <div x-show="feedbackType === 'Event'" x-cloak>
+        <label for="ebook" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Associated Event Booking</label>
+        <select id="ebook"
+                name="ebook"
+                class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs font-medium text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition">
+          <option value="" disabled selected>Choose an event...</option>
           {% for eb in eventbookings %}
-            {% if (user and user.is_Student() and eb.StudID == user.StudID) or (user and user.is_Staff() and eb.StaffID == user.StaffID) %}
-              {% for rm in roomlist %}
-                {% if rm.RoomID == eb.RoomID and eb.EbookStatus == "Completed" %}
-                <option value="{{ eb.EBookID }}">{{ eb.Start.strftime('%m/%d/%Y %H:%M') }} — {{ rm.RoomName }}</option>
-                {% endif %}
-              {% endfor %}
-            {% endif %}
+          {% for rm in roomlist %}
+          {% if rm.RoomID == eb.RoomID %}
+          <option value="{{ eb.EBookID }}">
+            #{{ eb.EBookID }} - {{ rm.RoomName }} ({{ eb.Start.strftime('%Y-%m-%d %H:%M') if eb.Start.strftime is defined else eb.Start }})
+          </option>
+          {% endif %}
+          {% endfor %}
+          {% else %}
+          <option disabled>No recent event bookings recorded.</option>
           {% endfor %}
         </select>
       </div>
 
-      <!-- Feedback Content -->
+      <!-- Feedback Comments Area -->
       <div>
-        <label for="FeedbackContent" class="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-1.5">Your Feedback & Experience</label>
-        <textarea name="FeedbackContent"
-                  id="FeedbackContent"
+        <label for="FeedbackContent" class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Comments & Observations</label>
+        <textarea id="FeedbackContent"
+                  name="FeedbackContent"
                   rows="4"
-                  class="aria-input resize-y"
-                  placeholder="Tell us about facility cleanliness, equipment, or any issues encountered..."
-                  required></textarea>
+                  required
+                  placeholder="Share details on room condition, equipment functionality, air conditioning, cleanliness, or security..."
+                  class="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 bg-white text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition"></textarea>
       </div>
 
-      <!-- Submit -->
+      <!-- Submit Button -->
       <div class="pt-2">
-        <button type="submit" class="aria-btn-primary w-full py-3 flex items-center justify-center gap-2 font-bold shadow-md">
+        <button type="submit"
+                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl transition shadow-xs">
           <i class="fa fa-paper-plane"></i>
           <span>Submit Feedback</span>
         </button>

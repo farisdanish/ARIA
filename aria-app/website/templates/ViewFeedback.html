@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}User Feedback — ARIA{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2 class="h4 mb-1 text-dark fw-bold">User Feedback & QA Reports</h2>
+      <p class="text-muted small mb-0">Browse experience reports submitted by students and staff.</p>
+    </div>
+    <div>
+      <a href="/homeAdmin" class="btn btn-outline-secondary btn-sm">
+        <i class="fa fa-arrow-left"></i> Dashboard
+      </a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-3">
+    <div class="card-body p-0">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light small text-uppercase">
+            <tr>
+              <th>ID</th>
+              <th>User</th>
+              <th>Subject</th>
+              <th>Comments</th>
+              <th>Submitted At</th>
+            </tr>
+          </thead>
+          <tbody class="small">
+            {% for fb in feedbacks %}
+            <tr>
+              <td class="text-muted font-monospace">#{{ fb.FeedbackID }}</td>
+              <td>
+                <div class="fw-bold text-dark">
+                  {% if fb.StudID %}
+                    {{ students.get(fb.StudID, fb.StudID) }}
+                    <span class="badge bg-primary ms-1">Student</span>
+                  {% elif fb.StaffID %}
+                    {{ staff_members.get(fb.StaffID, fb.StaffID) }}
+                    <span class="badge bg-info text-dark ms-1">Staff</span>
+                  {% else %}
+                    <span class="text-muted">Anonymous</span>
+                  {% endif %}
+                </div>
+                <div class="font-monospace text-muted small">
+                  {{ fb.StudID or fb.StaffID }}
+                </div>
+              </td>
+              <td class="fw-semibold text-dark">{{ fb.Subject }}</td>
+              <td>{{ fb.Content }}</td>
+              <td class="text-muted whitespace-nowrap">
+                {{ fb.PostDate.strftime('%Y-%m-%d %H:%M') if fb.PostDate.strftime is defined else fb.PostDate }}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="5" class="text-center py-5 text-muted">
+                No user feedback submitted yet.
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

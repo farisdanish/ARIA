@@ -67,6 +67,8 @@ class BookingScheduler:
         _scheduler = sched
         logger.info('APScheduler started (booking notifications + hourly guest cleanup).')
 
+    _notified_bookings = set()
+
     @classmethod
     def stop(cls):
         """Stop the scheduler (e.g. tests)."""
@@ -74,6 +76,7 @@ class BookingScheduler:
         if _scheduler is not None:
             _scheduler.shutdown(wait=False)
             _scheduler = None
+            cls._notified_bookings.clear()
             logger.info('APScheduler stopped.')
 
     @classmethod
@@ -91,12 +94,15 @@ class BookingScheduler:
         ).all()
 
         for booking in upcoming_rooms:
-            logger.info(
-                'Notify Pi: Upcoming room booking %s starting at %s',
-                booking.RBookID,
-                booking.Start,
-            )
-            RedisService.publish_watch_room(booking.RoomID)
+            key = ('room', booking.RBookID)
+            if key not in cls._notified_bookings:
+                logger.info(
+                    'Notify Pi: Upcoming room booking %s starting at %s',
+                    booking.RBookID,
+                    booking.Start,
+                )
+                RedisService.publish_watch_room(booking.RoomID)
+                cls._notified_bookings.add(key)
 
         upcoming_events = EventBooking.query.filter(
             EventBooking.EbookStatus == 'Upcoming',
@@ -105,9 +111,12 @@ class BookingScheduler:
         ).all()
 
         for booking in upcoming_events:
-            logger.info(
-                'Notify Pi: Upcoming event booking %s starting at %s',
-                booking.EBookID,
-                booking.Start,
-            )
-            RedisService.publish_watch_room(booking.RoomID)
+            key = ('event', booking.EBookID)
+            if key not in cls._notified_bookings:
+                logger.info(
+                    'Notify Pi: Upcoming event booking %s starting at %s',
+                    booking.EBookID,
+                    booking.Start,
+                )
+                RedisService.publish_watch_room(booking.RoomID)
+                cls._notified_bookings.add(key)
