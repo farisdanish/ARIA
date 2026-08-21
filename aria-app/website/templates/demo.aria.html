@@ -22,24 +22,27 @@
     <!-- Primary Camera Stage Card -->
     <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
       
-      <!-- 🌟 PROMINENT TOP GUIDANCE & STATUS BAR (Eye-level, never covers the face) -->
-      <div id="guidance-banner" class="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-blue-50/90 border-b border-blue-100/80 transition-colors duration-300">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-2.5 min-w-0">
-            <div id="guidance-icon-box" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300">
+      <!-- 🌟 PROMINENT TOP GUIDANCE & STATUS BAR (Full width text on mobile, single row on desktop) -->
+      <div id="guidance-banner" class="p-3 sm:px-4 sm:py-2.5 bg-blue-50/90 border-b border-blue-100/80 transition-colors duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          
+          <!-- Guidance Message (Full width on mobile) -->
+          <div class="flex items-start sm:items-center gap-2.5 min-w-0 flex-1">
+            <div id="guidance-icon-box" class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300 mt-0.5 sm:mt-0">
               <i id="guidance-icon" class="fa fa-info text-xs"></i>
             </div>
-            <div class="min-w-0">
-              <div id="guidance-title" class="text-xs sm:text-sm font-bold text-blue-950 truncate tracking-tight">
+            <div class="min-w-0 flex-1">
+              <div id="guidance-title" class="text-xs sm:text-sm font-bold text-blue-950 tracking-tight leading-tight">
                 Ready to Start Demo
               </div>
-              <div id="guidance-text" class="text-[10px] sm:text-xs text-blue-800/90 leading-tight">
+              <div id="guidance-text" class="text-[11px] sm:text-xs text-blue-800/90 leading-tight mt-0.5">
                 Click "Start Demo Session" below to generate a temporary guest pass.
               </div>
             </div>
           </div>
           
-          <div class="flex items-center gap-2 shrink-0">
+          <!-- Status & Expiry Badges (Neat row) -->
+          <div class="flex items-center justify-between sm:justify-end gap-1.5 shrink-0 pt-1 sm:pt-0 border-t border-blue-100/50 sm:border-0">
             <!-- Session Countdown Pill -->
             <div id="expiry-pill" class="flex items-center gap-1 px-2 py-0.5 rounded-full bg-white/90 border border-blue-200/80 text-[10px] font-mono text-slate-700 shadow-2xs">
               <i class="fa fa-clock-o text-slate-400 text-[10px]"></i>
@@ -50,6 +53,7 @@
               {{ demo_state|replace('_', ' ')|title }}
             </span>
           </div>
+
         </div>
       </div>
 
@@ -318,12 +322,12 @@ document.addEventListener("DOMContentLoaded", () => {
         };
 
         const theme = themeMap[type] || themeMap.primary;
-        guidanceBanner.className = `px-4 py-3 sm:px-5 sm:py-3.5 border-b transition-colors duration-300 ${theme.banner}`;
-        guidanceIconBox.className = `w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300 ${theme.iconBox}`;
+        guidanceBanner.className = `p-3 sm:px-4 sm:py-2.5 border-b transition-colors duration-300 ${theme.banner}`;
+        guidanceIconBox.className = `w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center shrink-0 shadow-xs transition-colors duration-300 mt-0.5 sm:mt-0 ${theme.iconBox}`;
         guidanceIcon.className = iconClass;
         guidanceTitle.className = `text-xs sm:text-sm font-bold tracking-tight leading-tight ${theme.title}`;
         guidanceTitle.textContent = title;
-        guidanceText.className = `text-[11px] sm:text-xs mt-0.5 leading-snug ${theme.text}`;
+        guidanceText.className = `text-[11px] sm:text-xs mt-0.5 leading-tight ${theme.text}`;
         guidanceText.textContent = text;
     }
 

@@ -18,21 +18,23 @@
         <div class="aria-section-card p-0 overflow-hidden shadow-lg border-primary-o20">
             
             <!-- 🌟 PROMINENT TOP GUIDANCE BANNER -->
-            <div id="guidance-banner" class="p-2.5 border-bottom alert-primary d-flex align-items-center justify-content-between gap-3 mb-0" style="transition: all 0.3s ease;">
-                <div class="d-flex align-items-center gap-2.5">
-                    <div id="guidance-icon-box" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; flex-shrink: 0;">
-                        <i id="guidance-icon" class="fa fa-info small"></i>
+            <div id="guidance-banner" class="p-2.5 border-bottom alert-primary mb-0" style="transition: all 0.3s ease;">
+                <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2">
+                    <div class="d-flex align-items-center gap-2.5 flex-grow-1">
+                        <div id="guidance-icon-box" class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center shadow-sm" style="width: 32px; height: 32px; flex-shrink: 0;">
+                            <i id="guidance-icon" class="fa fa-info small"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <div id="guidance-title" class="fw-bold text-dark small">Ready to Start Demo</div>
+                            <div id="guidance-text" class="text-muted small" style="font-size: 0.78rem;">Click "Start Demo" below to generate a temporary guest pass.</div>
+                        </div>
                     </div>
-                    <div>
-                        <div id="guidance-title" class="fw-bold text-dark small">Ready to Start Demo</div>
-                        <div id="guidance-text" class="text-muted small" style="font-size: 0.78rem;">Click "Start Demo" below to generate a temporary guest pass.</div>
+                    <div class="d-flex align-items-center justify-content-between justify-content-sm-end gap-2 pt-1 pt-sm-0 border-top border-sm-0 border-primary-o20">
+                        <span id="expiry-pill" class="badge rounded-pill bg-white text-muted border px-2 py-1 font-monospace small" style="font-size: 0.75rem;">
+                            <i class="fa fa-clock-o me-1"></i><span id="countdown-text">No session</span>
+                        </span>
+                        <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-2.5 py-1 text-uppercase small" style="font-size: 0.75rem;">{{ demo_state|replace('_', ' ')|title }}</span>
                     </div>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span id="expiry-pill" class="badge rounded-pill bg-white text-muted border px-2 py-1 font-monospace small" style="font-size: 0.75rem;">
-                        <i class="fa fa-clock-o me-1"></i><span id="countdown-text">No session</span>
-                    </span>
-                    <span id="state-pill" class="badge rounded-pill bg-soft-primary text-primary px-2.5 py-1 text-uppercase small" style="font-size: 0.75rem;">{{ demo_state|replace('_', ' ')|title }}</span>
                 </div>
             </div>
 
