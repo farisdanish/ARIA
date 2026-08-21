@@ -262,6 +262,16 @@ document.addEventListener("DOMContentLoaded", () => {
         recognizeBtn.style.display = (state.demoState === "ready") ? "" : "none";
         resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
 
+        if (!state.isProcessing) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fa fa-play me-1.5"></i> Start Demo Session';
+            recognizeBtn.disabled = false;
+            recognizeBtn.innerHTML = '<i class="fa fa-user-check me-1.5"></i> Test Face Recognition';
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = '<i class="fa fa-check me-1.5"></i> Finish Enrollment';
+            resetBtn.disabled = false;
+        }
+
         if (state.demoState === "no_session") {
             setGuidance("Ready to Start Demo", "Click 'Start Demo Session' below to generate a temporary guest pass.", "primary", "fa fa-play");
             subtext.textContent = "Session expires automatically. No photos retained.";

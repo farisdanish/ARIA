@@ -480,13 +480,15 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function renderState() {
-        statePill.textContent = state.demoState.replace('_', ' ');
-        startBtn.style.display = (state.demoState === "no_session" || state.demoState === "expired") ? "" : "none";
-        captureBtn.style.display = (state.demoState === "pending" || state.demoState === "enrolling") ? "" : "none";
-        completeBtn.style.display = (state.demoState === "enrolling" && state.sampleCount >= state.required) ? "" : "none";
-        recognizeBtn.style.display = (state.demoState === "ready") ? "" : "none";
-        resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
+        if (!state.isProcessing) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fa fa-play text-xs"></i> <span>Start Demo Session</span>';
+            recognizeBtn.disabled = false;
+            recognizeBtn.innerHTML = '<i class="fa fa-user-check text-sm"></i> <span>Test Face Recognition</span>';
+            completeBtn.disabled = false;
+            completeBtn.innerHTML = '<i class="fa fa-check text-sm"></i> <span>Finish Enrollment</span>';
+            resetBtn.disabled = false;
+        }
 
         if (state.demoState === "no_session") {
             setGuidance("Ready to Start Demo", "Click 'Start Demo Session' below to generate a temporary guest pass.", "primary", "fa fa-play");
