@@ -57,6 +57,7 @@ def logout():
 
 
 @auth.route('/api/auth/check-id', methods=['GET'])
+@limiter.limit('20 per minute')
 def check_id_availability():
     """Real-time ID availability check for HTMX."""
     user_id = request.args.get('id', '').strip()

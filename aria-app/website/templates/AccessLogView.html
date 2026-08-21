@@ -82,10 +82,13 @@
                         </td>
                         <td class="text-end">
                             <span data-bs-toggle="tooltip" title="Delete Log Entry">
-                                <a href="/deleteRAccessLog/{{r.rmaID}}/" class="btn btn-soft-danger rounded-pill px-3"
-                                    onclick="return confirm('Permanently delete this access log?')">
-                                    <i class="fa fa-trash-o"></i>
-                                </a>
+                                <form action="/deleteRAccessLog/{{r.rmaID}}/" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-soft-danger rounded-pill px-3"
+                                        onclick="return confirm('Permanently delete this access log?')">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
+                                </form>
                             </span>
                         </td>
                     </tr>

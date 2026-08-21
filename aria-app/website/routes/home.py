@@ -20,13 +20,6 @@ home = Blueprint('home', __name__)
 @home.route('/')
 def index():
     """Home page."""
-    announcements = AnnouncementService.get_all()
-    rooms = RoomService.get_all()
-    students = db.session.query(Student).all()
-    staff_list = db.session.query(Staff).all()
-    room_bookings = db.session.query(RoomBooking).all()
-    event_bookings = db.session.query(EventBooking).all()
-    
     if current_user.is_authenticated:
         if current_user.is_Staff():
             return redirect(url_for('home.staff'))
@@ -34,6 +27,13 @@ def index():
             return redirect(url_for('home.admin'))
         elif current_user.is_Student():
             return redirect(url_for('home.student'))
+
+    announcements = AnnouncementService.get_all()
+    rooms = RoomService.get_all()
+    students = db.session.query(Student).all()
+    staff_list = db.session.query(Staff).all()
+    room_bookings = db.session.query(RoomBooking).all()
+    event_bookings = db.session.query(EventBooking).all()
     
     return render_ui_template(
         "home.html",
@@ -231,7 +231,7 @@ def view_access_log():
     )
 
 
-@home.route('/deleteRAccessLog/<int:rma_id>/', methods=['GET', 'POST'])
+@home.route('/deleteRAccessLog/<int:rma_id>/', methods=['POST'])
 @login_required
 def delete_access_log(rma_id):
     """Delete a room access log entry (admin only)."""
@@ -279,7 +279,7 @@ def manage_reports():
     )
 
 
-@home.route('/deleteReport/<int:report_id>', methods=['GET', 'POST'])
+@home.route('/deleteReport/<int:report_id>', methods=['POST'])
 @login_required
 def delete_report(report_id):
     """Delete a report (admin only)."""

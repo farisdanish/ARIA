@@ -49,9 +49,12 @@
               <td class="text-muted font-monospace">{{ log.IPAddress or '—' }}</td>
               <td>{{ log.Timestamp.strftime('%Y-%m-%d %H:%M:%S') if log.Timestamp.strftime is defined else log.Timestamp }}</td>
               <td class="text-end">
-                <a href="/deleteDemoLog/{{ log.id }}/" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Delete this log record?')">
-                  <i class="fa fa-trash"></i>
-                </a>
+                <form action="/deleteDemoLog/{{ log.id }}/" method="POST" class="d-inline">
+                  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                  <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2" onclick="return confirm('Delete this log record?')">
+                    <i class="fa fa-trash"></i>
+                  </button>
+                </form>
               </td>
             </tr>
             {% else %}

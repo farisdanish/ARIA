@@ -39,7 +39,7 @@
         <span class="w-1.5 h-1.5 rounded-full bg-teal-500"></span> Verified
       </span>
       {% else %}
-      <a href="/face-register" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
+      <a href="{{ url_for('facenet.register_face') }}" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition">
         <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse"></span> Action Needed
       </a>
       {% endif %}

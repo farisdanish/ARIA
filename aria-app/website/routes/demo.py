@@ -233,7 +233,7 @@ def manage_demo_logs():
     )
 
 
-@demo_bp.route('/deleteDemoLog/<int:log_id>/', methods=['GET', 'POST'])
+@demo_bp.route('/deleteDemoLog/<int:log_id>/', methods=['POST'])
 @login_required
 def delete_demo_log(log_id: int):
     """Delete a single demo visit log record (admin only)."""

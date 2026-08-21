@@ -50,11 +50,13 @@
                         <td>{{r.MonthYear.strftime("%B %Y")}}</td>
                         <td class="text-end">
                             <span data-bs-toggle="tooltip" title="Delete Report">
-                                <a href="/deleteReport/{{r.ReportID}}"
-                                    class="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                    onclick="return confirm('Permanently delete this report?')">
-                                    <i class="fa fa-trash-o"></i>
-                                </a>
+                                <form action="/deleteReport/{{r.ReportID}}" method="POST" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                                        onclick="return confirm('Permanently delete this report?')">
+                                        <i class="fa fa-trash-o"></i>
+                                    </button>
+                                </form>
                             </span>
                         </td>
                     </tr>
