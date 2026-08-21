@@ -96,7 +96,7 @@ def demo():
 
 
 @demo_bp.route('/demo/session', methods=['POST'])
-@limiter.limit('3 per hour')
+@limiter.limit('30 per hour; 10 per minute')
 def create_session():
     """Start a new public demo session."""
     try:
@@ -200,7 +200,7 @@ def recognize():
 
 
 @demo_bp.route('/demo/reset', methods=['POST'])
-@limiter.limit('5 per hour')
+@limiter.limit('30 per hour; 10 per minute')
 def reset():
     """Delete the active guest demo session and clear its cookie."""
     guest = _guest_for_render()

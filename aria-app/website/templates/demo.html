@@ -372,16 +372,22 @@ document.addEventListener("DOMContentLoaded", () => {
         setGuidance("Creating Session...", "Allocating temporary guest session...", "primary", "fa fa-spinner fa-spin");
         const { response, data } = await postJson("/demo/session");
 
+        if (response.status === 429) {
+            startBtn.disabled = false;
+            startBtn.innerHTML = '<i class="fa fa-play me-1.5"></i> Start Demo Session';
+            setGuidance("Rate Limit Exceeded", "You have started multiple demo sessions recently. Please wait a moment before trying again.", "warning", "fa fa-clock-o");
+            return;
+        }
         if (response.status === 503) {
             startBtn.disabled = false;
             startBtn.innerHTML = '<i class="fa fa-play me-1.5"></i> Start Demo Session';
-            setGuidance("Demo Busy", "The demo server is busy right now. Try again in a moment.", "warning", "fa fa-clock-o");
+            setGuidance("Demo Capacity Reached", "All active demo sessions are currently in use. Please try again shortly.", "warning", "fa fa-users");
             return;
         }
         if (!response.ok) {
             startBtn.disabled = false;
             startBtn.innerHTML = '<i class="fa fa-play me-1.5"></i> Start Demo Session';
-            setGuidance("Could Not Start Demo", "Unable to create demo session. Please try again.", "danger", "fa fa-exclamation-circle");
+            setGuidance("Could Not Start Demo", data.error || "Unable to create demo session. Please try again.", "danger", "fa fa-exclamation-circle");
             return;
         }
         state.demoState = data.status;
