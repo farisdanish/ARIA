@@ -36,9 +36,9 @@
                 </div>
             </div>
 
-            <!-- Video Stage Viewport (100% Unobstructed Video) -->
-            <div class="position-relative bg-dark" style="min-height: 320px;">
-                <video id="webcam" autoplay playsinline muted class="w-100 bg-dark" style="min-height: 320px; max-height: 460px; object-fit: cover;"></video>
+            <!-- Video Stage Viewport (4:3 on mobile, 16:9 on desktop) -->
+            <div class="position-relative bg-dark w-100 overflow-hidden d-flex align-items-center justify-content-center camera-stage">
+                <video id="webcam" autoplay playsinline muted class="w-100 h-100 bg-dark" style="object-fit: cover;"></video>
                 
                 <!-- Shutter Flash Overlay -->
                 <div id="shutter-flash" class="position-absolute top-0 start-0 w-100 h-100 bg-white" style="opacity: 0; pointer-events: none; transition: opacity 0.15s ease; z-index: 25;"></div>
@@ -159,6 +159,10 @@
 </div>
 
 <style>
+    .camera-stage { aspect-ratio: 4/3; }
+    @media (min-width: 576px) {
+        .camera-stage { aspect-ratio: 16/9; }
+    }
     .bg-soft-primary { background: rgba(13, 79, 140, 0.1); }
     .bg-soft-accent { background: rgba(31, 157, 139, 0.1); }
     .border-primary-o20 { border-color: rgba(13, 79, 140, 0.2); }

@@ -53,8 +53,8 @@
         </div>
       </div>
 
-      <!-- 📷 100% UNCLUTTERED LIVE CAMERA VIEWPORT (Zero floating badges covering eyes or face) -->
-      <div class="relative bg-slate-950 aspect-4/3 sm:aspect-video w-full overflow-hidden flex items-center justify-center">
+      <!-- 📷 100% UNCLUTTERED LIVE CAMERA VIEWPORT (4:3 on mobile for portrait room, 16:9 on desktop) -->
+      <div class="relative bg-slate-950 aspect-[4/3] sm:aspect-video w-full overflow-hidden flex items-center justify-center">
         <!-- Live Video Stream -->
         <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover"></video>
         
@@ -479,6 +479,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 };
         }
     }
+
+    function renderState() {
+        statePill.textContent = state.demoState.replace('_', ' ');
+        startBtn.style.display = (state.demoState === "no_session" || state.demoState === "expired") ? "" : "none";
+        captureBtn.style.display = (state.demoState === "pending" || state.demoState === "enrolling") ? "" : "none";
+        completeBtn.style.display = (state.demoState === "enrolling" && state.sampleCount >= state.required) ? "" : "none";
+        recognizeBtn.style.display = (state.demoState === "ready") ? "" : "none";
+        resetBtn.style.display = (state.demoState === "no_session") ? "none" : "";
 
         if (!state.isProcessing) {
             startBtn.disabled = false;
